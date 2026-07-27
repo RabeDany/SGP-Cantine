@@ -80,6 +80,36 @@ export interface MenuHebdo {
   valide: boolean
 }
 
+export interface Fournisseur {
+  id: string
+  nom: string
+  contact: string
+  produits: string[]
+  actif: boolean
+}
+
+export type StatutBonCommande = 'emitted' | 'validated' | 'received'
+
+export interface LigneBonCommande {
+  denreeId: string
+  quantite: number
+}
+
+export interface BonCommande {
+  id: string
+  fournisseurId: string
+  emetteurId: string
+  dateCommande: string
+  dateLivraisonSouhaitee: string
+  lignes: LigneBonCommande[]
+  statut: StatutBonCommande
+  valideurId?: string
+  dateValidation?: string
+  quantiteRecue?: number
+  ecart?: number
+  dateReception?: string
+}
+
 export interface Classe {
   id: string
   nom: string

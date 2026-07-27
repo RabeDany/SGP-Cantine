@@ -23,8 +23,8 @@ const allNav: NavItem[] = [
   { name: 'Recettes', to: '/recettes', icon: '🍲', module: 'recettes' },
   { name: 'Menu hebdo', to: '/menu', icon: '📅', module: 'menu' },
   { name: 'Liste de courses', to: '/courses', icon: '🛒', module: 'courses' },
-  { name: 'Présences', to: '/presences', icon: '👥', module: 'presences' },
-  { name: 'Utilisateurs', to: '/users', icon: '👤', module: 'users' },
+  { name: 'Fournisseurs', to: '/fournisseurs', icon: '🏪', module: 'fournisseurs' },
+  { name: 'Bons de commande', to: '/commandes', icon: '🧾', module: 'commandes' },
 ]
 
 const navItems = computed(() => allNav.filter((n) => auth.canAccess(n.module)))

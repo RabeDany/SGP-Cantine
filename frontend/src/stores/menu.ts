@@ -78,8 +78,8 @@ export const useMenuStore = defineStore('menu', () => {
       dateJour.setDate(dateJour.getDate() + jour.jour)
       const dateJourISO = dateJour.toISOString().split('T')[0]
       const portions =
-        dateJourISO === todayISO() && presenceStore.pointageEffectue
-          ? presenceStore.totalPresentsAujourdhui
+        presenceStore.isPointageEffectuePourDate(dateJourISO)
+          ? presenceStore.totalPresentsPourDate(dateJourISO)
           : jour.portionsPrevues
 
       for (const ing of recette.ingredients) {

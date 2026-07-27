@@ -6,6 +6,8 @@ import type {
   PointagePresence,
   Recette,
   User,
+  Fournisseur,
+  BonCommande,
 } from '@/types'
 import { hashPassword } from '@/utils/helpers'
 
@@ -272,6 +274,25 @@ export const mockPointages: PointagePresence[] = [
     createdAt: addDays(today, -1) + 'T10:30:00',
   },
 ]
+
+export const mockFournisseurs: Fournisseur[] = [
+  {
+    id: 'f1',
+    nom: 'Coopérative Ambovombe',
+    contact: 'Rabe +261 34 12 345 67',
+    produits: ['d1', 'd2', 'd6'],
+    actif: true,
+  },
+  {
+    id: 'f2',
+    nom: 'Maraîchers Sud',
+    contact: 'Soa +261 33 98 765 43',
+    produits: ['d4', 'd7', 'd8'],
+    actif: true,
+  },
+]
+
+export const mockBonCommandes: BonCommande[] = []
 
 export const ECOLE_INFO = {
   nom: 'EPP Ambovombe Centre',

@@ -57,6 +57,18 @@ const router = createRouter({
           meta: { module: 'courses', roles: ['admin', 'planificateur'] },
         },
         {
+          path: 'fournisseurs',
+          name: 'fournisseurs',
+          component: () => import('@/views/FournisseursView.vue'),
+          meta: { module: 'fournisseurs', roles: ['admin', 'gestionnaire'] },
+        },
+        {
+          path: 'commandes',
+          name: 'commandes',
+          component: () => import('@/views/CommandesView.vue'),
+          meta: { module: 'commandes', roles: ['admin', 'gestionnaire'] },
+        },
+        {
           path: 'presences',
           name: 'presences',
           component: () => import('@/views/PresencesView.vue'),

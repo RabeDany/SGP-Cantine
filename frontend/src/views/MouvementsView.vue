@@ -184,7 +184,12 @@ function getDenreeNom(id: string) {
         <label class="label">Menu / recette associée</label>
         <select v-model="sortieForm.menuId" class="input">
           <option value="">— Aucun lien —</option>
-          <option v-for="jour in menuStore.menuActuel.jours" :key="jour.jour" :value="`${menuStore.menuActuel.id}:${jour.jour}`">
+          <option
+            v-for="jour in menuStore.menuActuel.jours"
+            :key="jour.jour"
+            :value="jour.recetteId || ''"
+            :disabled="!jour.recetteId"
+          >
             {{ JOURS_SEMAINE[jour.jour] }} — {{ menuStore.getRecette(jour.recetteId ?? '')?.nom ?? 'Aucune recette' }}
           </option>
         </select>
@@ -229,6 +234,9 @@ function getDenreeNom(id: string) {
               </template>
               <template v-else>
                 {{ m.motif ? MOTIF_LABELS[m.motif] : '' }}
+                <template v-if="m.menuId">
+                  · Recette liée : {{ menuStore.getRecette(m.menuId)?.nom ?? m.menuId }}
+                </template>
                 {{ m.commentaire ? `· ${m.commentaire}` : '' }}
               </template>
             </td>

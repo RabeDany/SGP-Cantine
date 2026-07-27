@@ -24,6 +24,22 @@ export const usePresenceStore = defineStore('presence', () => {
 
   const pointageEffectue = computed(() => !!pointageDuJour.value)
 
+  function getPointageGlobalPourDate(date: string) {
+    return pointages.value.find((p) => p.date === date && p.classeId === null) ?? null
+  }
+
+  function totalPresentsPourDate(date: string) {
+    const global = getPointageGlobalPourDate(date)
+    if (global) return global.presents
+    return pointages.value
+      .filter((p) => p.date === date && p.classeId !== null)
+      .reduce((sum, p) => sum + p.presents, 0)
+  }
+
+  function isPointageEffectuePourDate(date: string) {
+    return pointages.value.some((p) => p.date === date)
+  }
+
   function enregistrerPointageGlobal(data: {
     presents: number
     exemptions: number
@@ -115,6 +131,9 @@ export const usePresenceStore = defineStore('presence', () => {
     pointageEffectue,
     pointagesParClasseAujourdhui,
     totalPresentsAujourdhui,
+    getPointageGlobalPourDate,
+    totalPresentsPourDate,
+    isPointageEffectuePourDate,
     enregistrerPointageGlobal,
     enregistrerPointageParClasse,
   }
