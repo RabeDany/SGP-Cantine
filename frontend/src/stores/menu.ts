@@ -1,7 +1,7 @@
 import { defineStore } from 'pinia'
 import { computed, ref } from 'vue'
 import { mockMenu, mockRecettes } from '@/data/mockData'
-import { generateId, loadFromStorage, saveToStorage } from '@/utils/helpers'
+import { generateId, loadFromStorage, saveToStorage, todayISO } from '@/utils/helpers'
 import { useStockStore } from '@/stores/stock'
 import { usePresenceStore } from '@/stores/presence'
 import type { BesoinDenree, IngredientRecette, MenuHebdo, Recette, RecetteCategorie } from '@/types'
@@ -73,8 +73,14 @@ export const useMenuStore = defineStore('menu', () => {
       const recette = getRecette(jour.recetteId)
       if (!recette) continue
 
+      const jourDate = `${menuActuel.value.semaineDebut}T00:00:00`
+      const dateJour = new Date(jourDate)
+      dateJour.setDate(dateJour.getDate() + jour.jour)
+      const dateJourISO = dateJour.toISOString().split('T')[0]
       const portions =
-        presenceStore.pointageDuJour?.presents ?? jour.portionsPrevues
+        dateJourISO === todayISO() && presenceStore.pointageEffectue
+          ? presenceStore.totalPresentsAujourdhui
+          : jour.portionsPrevues
 
       for (const ing of recette.ingredients) {
         const qte = ing.quantiteParPortion * portions

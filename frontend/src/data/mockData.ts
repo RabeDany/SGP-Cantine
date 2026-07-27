@@ -7,6 +7,7 @@ import type {
   Recette,
   User,
 } from '@/types'
+import { hashPassword } from '@/utils/helpers'
 
 function addDays(date: Date, days: number): string {
   const d = new Date(date)
@@ -28,7 +29,7 @@ export const mockUsers: User[] = [
   {
     id: 'u1',
     username: 'directeur',
-    password: 'directeur123',
+    password: hashPassword('directeur123'),
     nom: 'Rabe Andriamihaja',
     role: 'admin',
     actif: true,
@@ -36,7 +37,7 @@ export const mockUsers: User[] = [
   {
     id: 'u2',
     username: 'stock',
-    password: 'stock123',
+    password: hashPassword('stock123'),
     nom: 'Rasoa Marie',
     role: 'gestionnaire',
     actif: true,
@@ -44,7 +45,7 @@ export const mockUsers: User[] = [
   {
     id: 'u3',
     username: 'cuisine',
-    password: 'cuisine123',
+    password: hashPassword('cuisine123'),
     nom: 'Voahangy Razafy',
     role: 'planificateur',
     actif: true,
@@ -52,7 +53,7 @@ export const mockUsers: User[] = [
   {
     id: 'u4',
     username: 'agent',
-    password: 'agent123',
+    password: hashPassword('agent123'),
     nom: 'Hery Rakoto',
     role: 'agent',
     actif: true,

@@ -2,8 +2,10 @@
 import { ref } from 'vue'
 import PageHeader from '@/components/PageHeader.vue'
 import { useAuthStore } from '@/stores/auth'
+import { useMenuStore } from '@/stores/menu'
 import { useStockStore } from '@/stores/stock'
 import {
+  JOURS_SEMAINE,
   MOTIF_LABELS,
   PROVENANCE_LABELS,
   UNITE_LABELS,
@@ -14,6 +16,7 @@ import { formatDate, formatNumber, todayISO } from '@/utils/helpers'
 
 const auth = useAuthStore()
 const stockStore = useStockStore()
+const menuStore = useMenuStore()
 
 const tab = ref<'entree' | 'sortie' | 'historique'>('entree')
 const message = ref('')
@@ -35,6 +38,7 @@ const sortieForm = ref({
   quantite: 0,
   motif: 'preparation_repas' as MotifSortie,
   commentaire: '',
+  menuId: '',
 })
 
 function submitEntree() {
@@ -61,6 +65,7 @@ function submitSortie() {
   message.value = ''
   const result = stockStore.enregistrerSortie({
     ...sortieForm.value,
+    menuId: sortieForm.value.menuId || undefined,
     userId: auth.currentUser!.id,
     commentaire: sortieForm.value.commentaire || undefined,
   })
@@ -71,6 +76,7 @@ function submitSortie() {
   message.value = 'Sortie enregistrée — stock mis à jour.'
   sortieForm.value.quantite = 0
   sortieForm.value.commentaire = ''
+  sortieForm.value.menuId = ''
 }
 
 function getDenreeNom(id: string) {
@@ -172,6 +178,15 @@ function getDenreeNom(id: string) {
         <label class="label">Motif</label>
         <select v-model="sortieForm.motif" class="input">
           <option v-for="(label, key) in MOTIF_LABELS" :key="key" :value="key">{{ label }}</option>
+        </select>
+      </div>
+      <div>
+        <label class="label">Menu / recette associée</label>
+        <select v-model="sortieForm.menuId" class="input">
+          <option value="">— Aucun lien —</option>
+          <option v-for="jour in menuStore.menuActuel.jours" :key="jour.jour" :value="`${menuStore.menuActuel.id}:${jour.jour}`">
+            {{ JOURS_SEMAINE[jour.jour] }} — {{ menuStore.getRecette(jour.recetteId ?? '')?.nom ?? 'Aucune recette' }}
+          </option>
         </select>
       </div>
       <div class="sm:col-span-2">

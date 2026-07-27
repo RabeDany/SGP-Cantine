@@ -18,6 +18,19 @@ export function generateId(prefix: string): string {
   return `${prefix}_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`
 }
 
+export function hashPassword(value: string): string {
+  let hash = 0
+  for (let i = 0; i < value.length; i += 1) {
+    hash = (hash << 5) - hash + value.charCodeAt(i)
+    hash |= 0
+  }
+  return `h_${hash.toString(16)}`
+}
+
+export function createMockJwt(userId: string, expiresAt: number): string {
+  return `mockjwt.${userId}.${expiresAt}`
+}
+
 export function todayISO(): string {
   return new Date().toISOString().split('T')[0]
 }

@@ -3,11 +3,13 @@ import { computed } from 'vue'
 import PageHeader from '@/components/PageHeader.vue'
 import { useMenuStore } from '@/stores/menu'
 import { usePresenceStore } from '@/stores/presence'
-import { JOURS_SEMAINE } from '@/types'
+import { useStockStore } from '@/stores/stock'
+import { JOURS_SEMAINE, type Recette } from '@/types'
 import { formatDate } from '@/utils/helpers'
 
 const menuStore = useMenuStore()
 const presenceStore = usePresenceStore()
+const stockStore = useStockStore()
 
 const semaineLabel = computed(() =>
   formatDate(menuStore.menuActuel.semaineDebut),
@@ -27,6 +29,25 @@ function getRecetteNom(id: string | null) {
   if (!id) return '—'
   return menuStore.getRecette(id)?.nom ?? '—'
 }
+
+const denreesPrioritaires = computed(() =>
+  stockStore.denreesAvecStatut.filter((d) => d.joursAvantPeremption !== null && d.joursAvantPeremption <= 7),
+)
+
+function utiliseDenreePrioritaire(recette: Recette) {
+  return recette.ingredients.some((ing) =>
+    denreesPrioritaires.value.some((d) => d.id === ing.denreeId),
+  )
+}
+
+const recettesDisponibles = computed(() => {
+  const list = menuStore.recettesActives.filter((x) => x.valide)
+  return [...list].sort((a, b) => {
+    const pa = utiliseDenreePrioritaire(a) ? 1 : 0
+    const pb = utiliseDenreePrioritaire(b) ? 1 : 0
+    return pb - pa
+  })
+})
 </script>
 
 <template>
@@ -51,6 +72,17 @@ function getRecetteNom(id: string | null) {
       </span>
     </div>
 
+    <div v-if="denreesPrioritaires.length" class="mb-4 rounded-lg border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">
+      <p class="font-semibold">Priorité péremption</p>
+      <p class="mt-1">
+        Les denrées suivantes sont proches de la péremption :
+        <span class="font-medium">
+          {{ denreesPrioritaires.map((d) => d.nom).join(', ') }}
+        </span>
+        . Elles sont mises en avant dans la planification du menu.
+      </p>
+    </div>
+
     <div class="grid gap-4">
       <div
         v-for="jour in menuStore.menuActuel.jours"
@@ -65,15 +97,16 @@ function getRecetteNom(id: string | null) {
           <select
             class="input"
             :value="jour.recetteId ?? ''"
+            :disabled="!presenceStore.pointageEffectue"
             @change="updateJour(jour.jour, ($event.target as HTMLSelectElement).value)"
           >
             <option value="">— Aucune —</option>
             <option
-              v-for="r in menuStore.recettesActives.filter((x) => x.valide)"
+              v-for="r in recettesDisponibles"
               :key="r.id"
               :value="r.id"
             >
-              {{ r.nom }}
+              {{ r.nom }}{{ utiliseDenreePrioritaire(r) ? ' ⚠️' : '' }}
             </option>
           </select>
         </div>
@@ -84,6 +117,7 @@ function getRecetteNom(id: string | null) {
             min="1"
             class="input"
             :value="jour.portionsPrevues"
+            :disabled="!presenceStore.pointageEffectue"
             @change="
               updatePortions(jour.jour, Number(($event.target as HTMLInputElement).value))
             "
