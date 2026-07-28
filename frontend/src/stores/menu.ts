@@ -4,7 +4,15 @@ import { mockMenu, mockRecettes } from '@/data/mockData'
 import { generateId, loadFromStorage, saveToStorage, todayISO } from '@/utils/helpers'
 import { useStockStore } from '@/stores/stock'
 import { usePresenceStore } from '@/stores/presence'
-import type { BesoinDenree, IngredientRecette, MenuHebdo, Recette, RecetteCategorie } from '@/types'
+import { JOURS_SEMAINE } from '@/types'
+import type {
+  BesoinDenree,
+  IngredientRecette,
+  MenuHebdo,
+  Recette,
+  RecetteCategorie,
+  SortiePreparationLigne,
+} from '@/types'
 
 export const useMenuStore = defineStore('menu', () => {
   const recettes = ref<Recette[]>(loadFromStorage('recettes', [...mockRecettes]))
@@ -114,12 +122,49 @@ export const useMenuStore = defineStore('menu', () => {
     listeCourses.value.filter((b) => b.manque),
   )
 
+  function calculerSortiesPreparation() {
+    const sorties: SortiePreparationLigne[] = []
+    const presenceStore = usePresenceStore()
+
+    for (const jour of menuActuel.value.jours) {
+      if (!jour.recetteId) continue
+      const recette = getRecette(jour.recetteId)
+      if (!recette) continue
+
+      const jourDate = `${menuActuel.value.semaineDebut}T00:00:00`
+      const dateJour = new Date(jourDate)
+      dateJour.setDate(dateJour.getDate() + jour.jour)
+      const dateJourISO = dateJour.toISOString().split('T')[0]
+
+      const portions = presenceStore.isPointageEffectuePourDate(dateJourISO)
+        ? presenceStore.totalPresentsPourDate(dateJourISO)
+        : jour.portionsPrevues
+
+      const jourLabel = JOURS_SEMAINE[jour.jour]
+      for (const ing of recette.ingredients) {
+        sorties.push({
+          jour: jour.jour,
+          jourLabel,
+          recetteId: recette.id,
+          recetteNom: recette.nom,
+          denreeId: ing.denreeId,
+          quantite: ing.quantiteParPortion * portions,
+          portions,
+        })
+      }
+    }
+    return sorties
+  }
+
+  const sortiesPreparation = computed(() => calculerSortiesPreparation())
+
   return {
     recettes,
     menuActuel,
     recettesActives,
     listeCourses,
     denreesManquantes,
+    sortiesPreparation,
     getRecette,
     recetteEstValide,
     createRecette,

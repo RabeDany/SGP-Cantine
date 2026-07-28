@@ -1,11 +1,15 @@
 <script setup lang="ts">
 import { computed } from 'vue'
+import { useRouter } from 'vue-router'
 import PageHeader from '@/components/PageHeader.vue'
+import { useAuthStore } from '@/stores/auth'
 import { useMenuStore } from '@/stores/menu'
 import { usePresenceStore } from '@/stores/presence'
 import { UNITE_LABELS } from '@/types'
 import { formatNumber } from '@/utils/helpers'
 
+const router = useRouter()
+const auth = useAuthStore()
 const menuStore = useMenuStore()
 const presenceStore = usePresenceStore()
 
@@ -28,6 +32,10 @@ const totalManquants = computed(() =>
 const calculMode = computed(() =>
   presenceStore.pointageEffectue ? 'Pointage pris en compte' : 'Portions prévues utilisées',
 )
+
+function createBonFromCourses() {
+  router.push({ name: 'commandes', query: { fromCourses: '1' } })
+}
 </script>
 
 <template>
@@ -37,31 +45,43 @@ const calculMode = computed(() =>
       subtitle="Besoins calculés depuis le menu et les présences — manquants en rouge (US-08)"
     />
 
-    <div class="mb-6 grid gap-4 sm:grid-cols-4">
-      <div class="card">
-        <p class="text-xs text-gray-500">Portions de référence</p>
-        <p class="text-2xl font-bold">{{ portionsUtilisees }}</p>
-        <p class="text-xs text-gray-400">{{ calculMode }}</p>
+    <div class="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+      <div class="grid gap-4 sm:grid-cols-4 flex-1">
+        <div class="card">
+          <p class="text-xs text-gray-500">Portions de référence</p>
+          <p class="text-2xl font-bold">{{ portionsUtilisees }}</p>
+          <p class="text-xs text-gray-400">{{ calculMode }}</p>
+        </div>
+        <div class="card">
+          <p class="text-xs text-gray-500">Articles produits</p>
+          <p class="text-2xl font-bold">{{ totalArticles }}</p>
+          <p class="text-xs text-gray-400">Lignes de liste de courses</p>
+        </div>
+        <div class="card">
+          <p class="text-xs text-gray-500">Quantité totale</p>
+          <p class="text-2xl font-bold">{{ formatNumber(totalQuantite) }}</p>
+          <p class="text-xs text-gray-400">Quantité demandée pour la semaine</p>
+        </div>
+        <div class="card" :class="totalManquants > 0 ? 'border-red-200 bg-red-50' : ''">
+          <p class="text-xs text-gray-500">Quantité manquante</p>
+          <p class="text-2xl font-bold" :class="totalManquants > 0 ? 'text-red-700' : 'text-green-700'">
+            {{ formatNumber(totalManquants) }}
+          </p>
+          <p class="text-xs" :class="totalManquants > 0 ? 'text-red-600' : 'text-green-600'">
+            {{ menuStore.denreesManquantes.length }} article(s) à commander
+          </p>
+        </div>
       </div>
-      <div class="card">
-        <p class="text-xs text-gray-500">Articles produits</p>
-        <p class="text-2xl font-bold">{{ totalArticles }}</p>
-        <p class="text-xs text-gray-400">Lignes de liste de courses</p>
-      </div>
-      <div class="card">
-        <p class="text-xs text-gray-500">Quantité totale</p>
-        <p class="text-2xl font-bold">{{ formatNumber(totalQuantite) }}</p>
-        <p class="text-xs text-gray-400">Quantité demandée pour la semaine</p>
-      </div>
-      <div class="card" :class="totalManquants > 0 ? 'border-red-200 bg-red-50' : ''">
-        <p class="text-xs text-gray-500">Quantité manquante</p>
-        <p class="text-2xl font-bold" :class="totalManquants > 0 ? 'text-red-700' : 'text-green-700'">
-          {{ formatNumber(totalManquants) }}
-        </p>
-        <p class="text-xs" :class="totalManquants > 0 ? 'text-red-600' : 'text-green-600'">
-          {{ menuStore.denreesManquantes.length }} article(s) à commander
-        </p>
-      </div>
+
+      <button
+        v-if="auth.canAccess('commandes')"
+        type="button"
+        class="btn-primary h-12 w-full sm:w-auto"
+        :disabled="!menuStore.denreesManquantes.length"
+        @click="createBonFromCourses"
+      >
+        Créer un bon depuis les besoins
+      </button>
     </div>
 
     <div class="card overflow-x-auto p-0">

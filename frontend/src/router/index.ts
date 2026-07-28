@@ -54,7 +54,7 @@ const router = createRouter({
           path: 'courses',
           name: 'courses',
           component: () => import('@/views/ListeCoursesView.vue'),
-          meta: { module: 'courses', roles: ['admin', 'planificateur'] },
+          meta: { module: 'courses', roles: ['admin', 'planificateur','gestionnaire'] },
         },
         {
           path: 'fournisseurs',
@@ -72,7 +72,7 @@ const router = createRouter({
           path: 'presences',
           name: 'presences',
           component: () => import('@/views/PresencesView.vue'),
-          meta: { module: 'presences' },
+          meta: { module: 'presences' , roles: ['admin', 'agent']},
         },
         {
           path: 'users',

@@ -1,24 +1,62 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, onMounted, ref } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 import PageHeader from '@/components/PageHeader.vue'
 import { useAuthStore } from '@/stores/auth'
 import { useCommandeStore } from '@/stores/commande'
+import { useMenuStore } from '@/stores/menu'
 import { useStockStore } from '@/stores/stock'
-import { UNITE_LABELS } from '@/types'
+import { UNITE_LABELS, type BonCommande, type LigneReceptionBonCommande } from '@/types'
 import { todayISO } from '@/utils/helpers'
 
 const auth = useAuthStore()
 const commandeStore = useCommandeStore()
 const stockStore = useStockStore()
+const menuStore = useMenuStore()
+const route = useRoute()
+const router = useRouter()
 
 const fournisseurId = ref('')
 const dateCommande = ref(todayISO())
 const dateLivraisonSouhaitee = ref(todayISO())
 const quantites = ref<Record<string, number>>({})
+const validationError = ref('')
+const showReceptionModal = ref(false)
+const receptionBon = ref<BonCommande | null>(null)
+const receptionLines = ref<Record<string, { quantiteCommandee: number; quantiteRecue: number; commentaire: string }>>({})
+const receptionError = ref('')
+const prefillLoaded = ref(false)
 
 const fournisseursActifs = computed(() => commandeStore.fournisseurs.filter((f) => f.actif))
 const denreesActives = computed(() => stockStore.denrees.filter((d) => d.actif))
 const bons = computed(() => commandeStore.bonsCommande)
+
+function persistDefaultFournisseur() {
+  if (!fournisseurId.value && fournisseursActifs.value.length) {
+    fournisseurId.value = fournisseursActifs.value[0].id
+  }
+}
+
+function prefillFromListeCourses() {
+  if (route.query.fromCourses !== '1' || prefillLoaded.value) return
+  prefillLoaded.value = true
+  const needs = menuStore.denreesManquantes
+  if (!needs.length) {
+    router.replace({ name: 'commandes' })
+    return
+  }
+  needs.forEach((item) => {
+    if (item.manquant > 0) {
+      quantites.value[item.denreeId] = item.manquant
+    }
+  })
+  persistDefaultFournisseur()
+  router.replace({ name: 'commandes' })
+}
+
+onMounted(() => {
+  prefillFromListeCourses()
+})
 
 function submitBonCommande() {
   if (!fournisseurId.value || !dateCommande.value || !dateLivraisonSouhaitee.value) return
@@ -36,12 +74,97 @@ function submitBonCommande() {
   quantites.value = {}
 }
 
+function canValidateBon(bon: BonCommande) {
+  return (
+    auth.currentUser !== null &&
+    bon.statut === 'emitted' &&
+    bon.emetteurId !== auth.currentUser.id
+  )
+}
+
+function canReceiveBon(bon: BonCommande) {
+  return bon.statut === 'validated'
+}
+
+function validerBon(bonId: string) {
+  validationError.value = ''
+  if (!auth.currentUser) return
+  const bon = commandeStore.bonsCommande.find((b) => b.id === bonId)
+  if (!bon) return
+  if (bon.emetteurId === auth.currentUser.id) {
+    validationError.value = 'Un autre utilisateur doit valider ce bon.'
+    return
+  }
+  if (!commandeStore.validateBonCommande(bonId, auth.currentUser.id)) {
+    validationError.value = 'Impossible de valider ce bon, il est peut-être déjà validé.'
+  }
+}
+
+function openReceptionModal(bon: BonCommande) {
+  receptionError.value = ''
+  receptionBon.value = bon
+  receptionLines.value = {}
+  bon.lignes.forEach((ligne) => {
+    receptionLines.value[ligne.denreeId] = {
+      quantiteCommandee: ligne.quantite,
+      quantiteRecue: ligne.quantite,
+      commentaire: '',
+    }
+  })
+  showReceptionModal.value = true
+}
+
+function closeReceptionModal() {
+  showReceptionModal.value = false
+  receptionBon.value = null
+}
+
+function confirmReception() {
+  if (!auth.currentUser || !receptionBon.value) return
+  const receptionLignesArray: LigneReceptionBonCommande[] = Object.entries(receptionLines.value).map(
+    ([denreeId, data]) => ({
+      denreeId,
+      quantiteCommandee: data.quantiteCommandee,
+      quantiteRecue: data.quantiteRecue,
+      ecart: data.quantiteRecue - data.quantiteCommandee,
+      commentaire: data.commentaire || undefined,
+    }),
+  )
+  if (!receptionLignesArray.some((ligne) => ligne.quantiteRecue > 0)) {
+    receptionError.value = 'Veuillez saisir au moins une quantité reçue supérieure à 0.'
+    return
+  }
+
+  for (const ligne of receptionLignesArray) {
+    if (ligne.quantiteRecue > 0) {
+      stockStore.enregistrerEntree({
+        denreeId: ligne.denreeId,
+        date: todayISO(),
+        quantite: ligne.quantiteRecue,
+        provenance: 'achat_local',
+        userId: auth.currentUser.id,
+      })
+    }
+  }
+
+  if (!commandeStore.receiveBonCommande(receptionBon.value.id, receptionLignesArray, auth.currentUser.id)) {
+    receptionError.value = 'Erreur lors de la réception. Vérifiez le statut du bon.'
+    return
+  }
+
+  closeReceptionModal()
+}
+
 function formatStatut(statut: string) {
-  return statut === 'emitted' ? 'Émis' : statut === 'validated' ? 'Validé' : 'Reçu'
+  return statut === 'emitted' ? 'Émis' : statut === 'validated' ? 'Validé' : 'Réceptionné'
 }
 
 function getFournisseurName(id: string) {
   return commandeStore.getFournisseur(id)?.nom ?? id
+}
+
+function getUsername(id: string) {
+  return auth.users.find((u) => u.id === id)?.nom ?? id
 }
 </script>
 
@@ -109,6 +232,7 @@ function getFournisseurName(id: string) {
             <th class="px-5 py-3">Livraison</th>
             <th class="px-5 py-3">Lignes</th>
             <th class="px-5 py-3">Statut</th>
+            <th class="px-5 py-3">Action</th>
           </tr>
         </thead>
         <tbody>
@@ -118,13 +242,132 @@ function getFournisseurName(id: string) {
             <td class="px-5 py-3">{{ bon.dateCommande }}</td>
             <td class="px-5 py-3">{{ bon.dateLivraisonSouhaitee }}</td>
             <td class="px-5 py-3 text-gray-600">{{ bon.lignes.length }} ligne(s)</td>
-            <td class="px-5 py-3">{{ formatStatut(bon.statut) }}</td>
+            <td class="px-5 py-3">
+              <div>{{ formatStatut(bon.statut) }}</div>
+              <div class="text-xs text-gray-500 mt-1">
+                Émis par {{ getUsername(bon.emetteurId) }}
+                <template v-if="bon.valideurId">
+                  · Validé par {{ getUsername(bon.valideurId) }}
+                </template>
+                <template v-if="bon.receptionParId">
+                  · Reçu par {{ getUsername(bon.receptionParId) }}
+                </template>
+              </div>
+            </td>
+            <td class="px-5 py-3 space-y-2">
+              <button
+                v-if="canValidateBon(bon)"
+                type="button"
+                class="btn-secondary w-full"
+                @click="validerBon(bon.id)"
+              >
+                Valider
+              </button>
+              <button
+                v-else-if="bon.statut === 'emitted'"
+                type="button"
+                class="btn-disabled w-full"
+                disabled
+              >
+                En attente d'un validateur
+              </button>
+              <button
+                v-if="canReceiveBon(bon)"
+                type="button"
+                class="btn-primary w-full"
+                @click="openReceptionModal(bon)"
+              >
+                Réception
+              </button>
+              <div v-if="bon.statut === 'received'" class="text-xs text-gray-600">
+                Qté reçue: {{ bon.quantiteRecue }} · Écart: {{ bon.ecart }}
+              </div>
+            </td>
           </tr>
           <tr v-if="!bons.length">
-            <td colspan="6" class="px-5 py-6 text-center text-gray-500">Aucun bon de commande enregistré.</td>
+            <td colspan="7" class="px-5 py-6 text-center text-gray-500">Aucun bon de commande enregistré.</td>
           </tr>
         </tbody>
       </table>
+    </div>
+
+    <div v-if="validationError" class="mt-4 rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-700">
+      {{ validationError }}
+    </div>
+
+    <div
+      v-if="showReceptionModal && receptionBon"
+      class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4"
+    >
+      <div class="w-full max-w-3xl overflow-hidden rounded-xl bg-white p-6 shadow-lg">
+        <div class="mb-4 flex items-center justify-between">
+          <div>
+            <h2 class="text-lg font-semibold">Réception du bon {{ receptionBon.id }}</h2>
+            <p class="text-sm text-gray-500">Fournisseur : {{ getFournisseurName(receptionBon.fournisseurId) }}</p>
+          </div>
+          <button type="button" class="text-gray-500 hover:text-gray-900" @click="closeReceptionModal">✕</button>
+        </div>
+
+        <div class="space-y-4">
+          <div
+            v-for="ligne in receptionBon.lignes"
+            :key="ligne.denreeId"
+            class="rounded-xl border border-gray-200 p-4"
+          >
+            <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <p class="font-medium">{{ stockStore.getDenree(ligne.denreeId)?.nom || ligne.denreeId }}</p>
+                <p class="text-xs text-gray-500">
+                  Commandé {{ ligne.quantite }} · unité {{ UNITE_LABELS[stockStore.getDenree(ligne.denreeId)?.unite ?? 'unite'] }}
+                </p>
+              </div>
+              <div class="grid gap-2 sm:grid-cols-2 sm:items-end">
+                <label class="block text-xs text-gray-600">
+                  Qté reçue
+                  <input
+                    type="number"
+                    min="0"
+                    step="0.1"
+                    class="input mt-1"
+                    v-model.number="receptionLines[ligne.denreeId].quantiteRecue"
+                  />
+                </label>
+                <p class="text-sm text-gray-500">
+                  Écart : {{ receptionLines[ligne.denreeId].quantiteRecue - receptionLines[ligne.denreeId].quantiteCommandee }}
+                </p>
+              </div>
+            </div>
+            <label class="block text-xs text-gray-600">
+              Commentaire réception (optionnel)
+              <textarea
+                rows="2"
+                class="input mt-1 min-h-[72px] resize-none"
+                v-model="receptionLines[ligne.denreeId].commentaire"
+                placeholder="Saisir une observation"
+              />
+            </label>
+          </div>
+        </div>
+
+        <div class="mt-4 flex flex-col gap-3 sm:flex-row sm:justify-between">
+          <div class="space-y-1 text-sm text-gray-600">
+            <p>Quantité totale reçue :
+              {{ Object.values(receptionLines).reduce((sum, line) => sum + line.quantiteRecue, 0) }}
+            </p>
+            <p>Écart total :
+              {{ Object.values(receptionLines).reduce((sum, line) => sum + (line.quantiteRecue - line.quantiteCommandee), 0) }}
+            </p>
+          </div>
+          <div class="flex gap-2">
+            <button type="button" class="btn-secondary" @click="closeReceptionModal">Annuler</button>
+            <button type="button" class="btn-primary" @click="confirmReception">Confirmer réception</button>
+          </div>
+        </div>
+
+        <div v-if="receptionError" class="mt-4 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700">
+          {{ receptionError }}
+        </div>
+      </div>
     </div>
   </div>
 </template>

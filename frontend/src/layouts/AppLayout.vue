@@ -22,6 +22,7 @@ const allNav: NavItem[] = [
   { name: 'Mouvements', to: '/mouvements', icon: '📝', module: 'mouvements' },
   { name: 'Recettes', to: '/recettes', icon: '🍲', module: 'recettes' },
   { name: 'Menu hebdo', to: '/menu', icon: '📅', module: 'menu' },
+  { name: 'Présences', to: '/presences', icon: '✅', module: 'presences' },
   { name: 'Liste de courses', to: '/courses', icon: '🛒', module: 'courses' },
   { name: 'Fournisseurs', to: '/fournisseurs', icon: '🏪', module: 'fournisseurs' },
   { name: 'Bons de commande', to: '/commandes', icon: '🧾', module: 'commandes' },

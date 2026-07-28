@@ -2,7 +2,7 @@ import { defineStore } from 'pinia'
 import { ref } from 'vue'
 import { mockBonCommandes, mockFournisseurs } from '@/data/mockData'
 import { generateId, loadFromStorage, saveToStorage, todayISO } from '@/utils/helpers'
-import type { BonCommande, Fournisseur } from '@/types'
+import type { BonCommande, Fournisseur, LigneReceptionBonCommande } from '@/types'
 
 export const useCommandeStore = defineStore('commande', () => {
   const fournisseurs = ref<Fournisseur[]>(loadFromStorage('fournisseurs', [...mockFournisseurs]))
@@ -66,7 +66,9 @@ export const useCommandeStore = defineStore('commande', () => {
 
   function validateBonCommande(id: string, valideurId: string) {
     const bon = bonsCommande.value.find((b) => b.id === id)
-    if (!bon) return false
+    if (!bon || bon.statut !== 'emitted' || bon.emetteurId === valideurId || bon.valideurId) {
+      return false
+    }
     bon.statut = 'validated'
     bon.valideurId = valideurId
     bon.dateValidation = new Date().toISOString()
@@ -74,13 +76,19 @@ export const useCommandeStore = defineStore('commande', () => {
     return true
   }
 
-  function receiveBonCommande(id: string, quantiteRecue: number) {
+  function receiveBonCommande(id: string, receptionLignes: LigneReceptionBonCommande[], userId: string) {
     const bon = bonsCommande.value.find((b) => b.id === id)
-    if (!bon) return false
+    if (!bon || bon.statut !== 'validated' || !receptionLignes.length) {
+      return false
+    }
+    const totalRecue = receptionLignes.reduce((sum, ligne) => sum + ligne.quantiteRecue, 0)
+    const totalCommandee = receptionLignes.reduce((sum, ligne) => sum + ligne.quantiteCommandee, 0)
     bon.statut = 'received'
-    bon.quantiteRecue = quantiteRecue
-    bon.ecart = quantiteRecue - bon.lignes.reduce((sum, ligne) => sum + ligne.quantite, 0)
+    bon.quantiteRecue = totalRecue
+    bon.ecart = totalRecue - totalCommandee
     bon.dateReception = todayISO()
+    bon.receptionParId = userId
+    bon.receptionLignes = receptionLignes
     persist()
     return true
   }

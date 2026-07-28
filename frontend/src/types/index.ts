@@ -95,6 +95,14 @@ export interface LigneBonCommande {
   quantite: number
 }
 
+export interface LigneReceptionBonCommande {
+  denreeId: string
+  quantiteCommandee: number
+  quantiteRecue: number
+  ecart: number
+  commentaire?: string
+}
+
 export interface BonCommande {
   id: string
   fournisseurId: string
@@ -105,8 +113,10 @@ export interface BonCommande {
   statut: StatutBonCommande
   valideurId?: string
   dateValidation?: string
+  receptionParId?: string
   quantiteRecue?: number
   ecart?: number
+  receptionLignes?: LigneReceptionBonCommande[]
   dateReception?: string
 }
 
@@ -133,6 +143,16 @@ export interface BesoinDenree {
   quantiteNecessaire: number
   stockDisponible: number
   manquant: number
+}
+
+export interface SortiePreparationLigne {
+  jour: number
+  jourLabel: string
+  recetteId: string
+  recetteNom: string
+  denreeId: string
+  quantite: number
+  portions: number
 }
 
 export type StockStatus = 'ok' | 'warning' | 'critical'

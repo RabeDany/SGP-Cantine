@@ -63,8 +63,8 @@ export const useAuthStore = defineStore('auth', () => {
     const role = currentUser.value.role
     const access: Record<UserRole, string[]> = {
       admin: ['dashboard', 'stock', 'denrees', 'mouvements', 'recettes', 'menu', 'courses', 'fournisseurs', 'commandes', 'presences', 'users'],
-      gestionnaire: ['dashboard', 'stock', 'denrees', 'mouvements', 'fournisseurs', 'commandes'],
-      planificateur: ['dashboard', 'stock', 'recettes', 'menu', 'courses', 'presences'],
+      gestionnaire: ['dashboard', 'stock', 'denrees', 'mouvements', 'fournisseurs', 'commandes','courses'],
+      planificateur: ['dashboard', 'stock', 'recettes', 'menu', 'courses'],
       agent: ['dashboard', 'stock', 'presences'],
     }
     return access[role]?.includes(module) ?? false
