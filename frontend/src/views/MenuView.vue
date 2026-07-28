@@ -99,6 +99,12 @@ const denreesPrioritaires = computed(() =>
   stockStore.denreesAvecStatut.filter((d) => d.joursAvantPeremption !== null && d.joursAvantPeremption <= 7),
 )
 
+const denreesManquantes = computed(() => menuStore.denreesManquantes)
+
+const stockSuffisantPourValidation = computed(() =>
+  !denreesManquantes.value.length && sortiesPreparation.value.length > 0,
+)
+
 function utiliseDenreePrioritaire(recette: Recette) {
   return recette.ingredients.some((ing) =>
     denreesPrioritaires.value.some((d) => d.id === ing.denreeId),
@@ -139,38 +145,59 @@ const recettesDisponibles = computed(() => {
 
     <div class="mb-4 rounded-lg border border-slate-200 bg-slate-50 p-4 text-sm text-slate-700">
       <div class="mb-2 font-semibold">Sorties de préparation proposées</div>
-      <div class="grid gap-3 md:grid-cols-2">
-        <div>
-          <p class="text-xs text-gray-500">Articles</p>
-          <p class="text-lg font-bold">{{ sortiesParDenree.length }}</p>
+        <div class="grid gap-3 md:grid-cols-3">
+          <div>
+            <p class="text-xs text-gray-500">Articles</p>
+            <p class="text-lg font-bold">{{ sortiesParDenree.length }}</p>
+          </div>
+          <div>
+            <p class="text-xs text-gray-500">Quantité totale</p>
+            <p class="text-lg font-bold">
+              {{ formatNumber(sortiesParDenree.reduce((sum, item) => sum + item.quantite, 0)) }}
+            </p>
+          </div>
+          <div>
+            <p class="text-xs text-gray-500">Statut stock</p>
+            <p class="text-lg font-bold">
+              {{ stockSuffisantPourValidation ? 'OK' : 'Manquants' }}
+            </p>
+          </div>
         </div>
-        <div>
-          <p class="text-xs text-gray-500">Quantité totale</p>
-          <p class="text-lg font-bold">
-            {{ formatNumber(sortiesParDenree.reduce((sum, item) => sum + item.quantite, 0)) }}
-          </p>
-        </div>
-      </div>
-      <div class="mt-4 flex flex-wrap gap-3">
-        <button
-          type="button"
-          class="btn-primary"
-          :disabled="!peutValiderMenu()"
-          @click="validerMenu"
-        >
-          Valider le menu
-        </button>
-        <span class="text-xs text-gray-500">Ce bouton est actif seulement si toutes les denrées nécessaires sont en stock.</span>
-      </div>
-      <p v-if="validationError" class="mt-3 text-sm text-red-700">{{ validationError }}</p>
-      <p v-if="validationMessage" class="mt-3 text-sm text-green-700">{{ validationMessage }}</p>
-      <p v-if="menuDejaValide" class="mt-3 text-sm text-gray-600">
-        Menu validé le {{ menuStore.menuActuel.dateValidation }} par {{ auth.currentUser?.nom }}.
-      </p>
-    </div>
 
-    <div v-if="denreesPrioritaires.length" class="mb-4 rounded-lg border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">
-      <p class="font-semibold">Priorité péremption</p>
+        <div class="mt-4 flex flex-wrap gap-3">
+          <button
+            v-if="!menuDejaValide"
+            type="button"
+            class="btn-primary"
+            :disabled="!peutValiderMenu()"
+            @click="validerMenu"
+          >
+            Valider le menu
+          </button>
+          <span class="text-xs text-gray-500">
+            Ce bouton est actif seulement si toutes les denrées nécessaires sont en stock et si le menu n'a pas déjà été validé.
+          </span>
+        </div>
+
+        <p v-if="menuDejaValide" class="mt-3 rounded-lg bg-green-50 p-3 text-sm text-green-800">
+          Menu validé le {{ menuStore.menuActuel.dateValidation }} par {{ auth.currentUser?.nom }}.
+        </p>
+
+        <div v-if="denreesManquantes.length" class="mt-4 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-900">
+          <div class="font-semibold">Stock insuffisant</div>
+          <ul class="mt-2 list-disc space-y-1 pl-5">
+            <li v-for="item in denreesManquantes" :key="item.denreeId">
+              {{ item.denree?.nom ?? item.denreeId }} : besoin {{ formatNumber(item.quantiteNecessaire) }} {{ item.denree?.unite ?? 'unités' }}, disponible {{ formatNumber(item.stockDisponible) }}
+            </li>
+          </ul>
+        </div>
+
+        <p v-if="validationError" class="mt-3 text-sm text-red-700">{{ validationError }}</p>
+        <p v-if="validationMessage" class="mt-3 text-sm text-green-700">{{ validationMessage }}</p>
+      </div>
+
+      <div v-if="denreesPrioritaires.length" class="mb-4 rounded-lg border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">
+        <p class="font-semibold">Priorité péremption</p>
       <p class="mt-1">
         Les denrées suivantes sont proches de la péremption :
         <span class="font-medium">
