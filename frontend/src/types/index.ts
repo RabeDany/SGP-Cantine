@@ -78,6 +78,8 @@ export interface MenuHebdo {
   semaineDebut: string
   jours: MenuJour[]
   valide: boolean
+  dateValidation?: string
+  validationParId?: string
 }
 
 export interface Fournisseur {

@@ -34,64 +34,50 @@ const sortiesParDenree = computed(() => {
   return Array.from(totals.entries()).map(([denreeId, item]) => ({ denreeId, ...item }))
 })
 
-const sortieMessage = ref('')
-const sortieError = ref('')
+const validationMessage = ref('')
+const validationError = ref('')
 
-function peutGenererSorties() {
-  return sortiesPreparation.value.length > 0 && auth.currentUser !== null
+const menuDejaValide = computed(() => menuStore.menuActuel.valide)
+
+function peutValiderMenu() {
+  if (menuDejaValide.value) return false
+  if (!sortiesPreparation.value.length || !auth.currentUser) return false
+
+  const totals = new Map<string, number>()
+  for (const sortie of sortiesPreparation.value) {
+    totals.set(sortie.denreeId, (totals.get(sortie.denreeId) ?? 0) + sortie.quantite)
+  }
+
+  return Array.from(totals.entries()).every(([denreeId, quantite]) => {
+    const denree = stockStore.getDenree(denreeId)
+    return denree ? quantite <= denree.stockActuel : false
+  })
 }
 
-function genererSortiesPreparation() {
-  sortieError.value = ''
-  sortieMessage.value = ''
+function validerMenu() {
+  validationError.value = ''
+  validationMessage.value = ''
   if (!auth.currentUser) {
-    sortieError.value = 'Utilisateur non authentifié.'
-    return
-  }
-  if (!sortiesPreparation.value.length) {
-    sortieError.value = 'Aucune sortie à générer pour cette semaine.'
+    validationError.value = 'Utilisateur non authentifié.'
     return
   }
 
-  const aggregates = new Map<string, number>()
-  for (const sortie of sortiesPreparation.value) {
-    aggregates.set(sortie.denreeId, (aggregates.get(sortie.denreeId) ?? 0) + sortie.quantite)
-  }
-
-  const insuffisances = Array.from(aggregates.entries())
-    .map(([denreeId, quantite]) => {
-      const denree = stockStore.getDenree(denreeId)
-      if (!denree) return null
-      if (quantite > denree.stockActuel) {
-        return `${denree.nom} manque ${formatNumber(quantite - denree.stockActuel)} ${UNITE_LABELS[denree.unite]}`
-      }
-      return null
-    })
-    .filter(Boolean)
-
-  if (insuffisances.length) {
-    sortieError.value = `Stock insuffisant : ${insuffisances.join('; ')}`
+  const result = menuStore.validerMenu(auth.currentUser.id)
+  if (!result.ok) {
+    validationError.value = result.error ?? 'Échec de la validation du menu.'
     return
   }
 
-  let sortiesCrees = 0
-  for (const sortie of sortiesPreparation.value) {
-    const result = stockStore.enregistrerSortie({
-      denreeId: sortie.denreeId,
-      date: sortie.jourLabel ? sortie.jourLabel : formatDate(menuStore.menuActuel.semaineDebut),
-      quantite: sortie.quantite,
-      motif: 'preparation_repas',
-      menuId: sortie.recetteId,
-      userId: auth.currentUser.id,
-      commentaire: `Préparation ${sortie.jourLabel} - ${sortie.recetteNom}`,
-    })
-    if (result.ok) sortiesCrees += 1
-    else {
-      sortieError.value = result.error ?? 'Erreur lors de la création des sorties.'
-      return
-    }
-  }
-  sortieMessage.value = `Sorties de préparation générées (${sortiesCrees} mouvements).`
+  validationMessage.value = 'Menu validé et stock mis à jour.'
+}
+
+function reouvrirMenu() {
+  validationError.value = ''
+  validationMessage.value = ''
+  menuStore.menuActuel.valide = false
+  delete menuStore.menuActuel.dateValidation
+  delete menuStore.menuActuel.validationParId
+  menuStore.persist && menuStore.persist()
 }
 
 function updateJour(jour: number, recetteId: string) {
@@ -169,15 +155,18 @@ const recettesDisponibles = computed(() => {
         <button
           type="button"
           class="btn-primary"
-          :disabled="!peutGenererSorties()"
-          @click="genererSortiesPreparation"
+          :disabled="!peutValiderMenu()"
+          @click="validerMenu"
         >
-          Générer automatiquement les sorties préparation
+          Valider le menu
         </button>
-        <span class="text-xs text-gray-500">Le système utilise les portions planifiées ou le pointage réel selon disponibilité.</span>
+        <span class="text-xs text-gray-500">Ce bouton est actif seulement si toutes les denrées nécessaires sont en stock.</span>
       </div>
-      <p v-if="sortieError" class="mt-3 text-sm text-red-700">{{ sortieError }}</p>
-      <p v-if="sortieMessage" class="mt-3 text-sm text-green-700">{{ sortieMessage }}</p>
+      <p v-if="validationError" class="mt-3 text-sm text-red-700">{{ validationError }}</p>
+      <p v-if="validationMessage" class="mt-3 text-sm text-green-700">{{ validationMessage }}</p>
+      <p v-if="menuDejaValide" class="mt-3 text-sm text-gray-600">
+        Menu validé le {{ menuStore.menuActuel.dateValidation }} par {{ auth.currentUser?.nom }}.
+      </p>
     </div>
 
     <div v-if="denreesPrioritaires.length" class="mb-4 rounded-lg border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">

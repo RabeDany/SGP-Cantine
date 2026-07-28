@@ -67,8 +67,59 @@ export const useMenuStore = defineStore('menu', () => {
       j.recetteId = recetteId
       j.portionsPrevues = portionsPrevues
       menuActuel.value.valide = false
+      delete menuActuel.value.dateValidation
+      delete menuActuel.value.validationParId
       persist()
     }
+  }
+
+  function validerMenu(userId: string) {
+    if (menuActuel.value.valide) {
+      return { ok: false, error: 'Ce menu a déjà été validé.' }
+    }
+
+    const stockStore = useStockStore()
+    const sorties = calculerSortiesPreparation()
+    const totaux = new Map<string, number>()
+
+    for (const sortie of sorties) {
+      totaux.set(sortie.denreeId, (totaux.get(sortie.denreeId) ?? 0) + sortie.quantite)
+    }
+
+    const insuffisances = Array.from(totaux.entries())
+      .map(([denreeId, quantite]) => {
+        const denree = stockStore.getDenree(denreeId)
+        if (!denree) return null
+        return quantite > denree.stockActuel
+          ? `${denree.nom} (${quantite - denree.stockActuel} ${denree.unite})`
+          : null
+      })
+      .filter(Boolean)
+
+    if (insuffisances.length) {
+      return { ok: false, error: `Stock insuffisant : ${insuffisances.join(', ')}` }
+    }
+
+    for (const sortie of sorties) {
+      const result = stockStore.enregistrerSortie({
+        denreeId: sortie.denreeId,
+        date: todayISO(),
+        quantite: sortie.quantite,
+        motif: 'preparation_repas',
+        menuId: sortie.recetteId,
+        userId,
+        commentaire: `Préparation ${sortie.jourLabel} - ${sortie.recetteNom}`,
+      })
+      if (!result.ok) {
+        return { ok: false, error: result.error ?? 'Erreur lors de la validation du menu.' }
+      }
+    }
+
+    menuActuel.value.valide = true
+    menuActuel.value.dateValidation = todayISO()
+    menuActuel.value.validationParId = userId
+    persist()
+    return { ok: true }
   }
 
   function calculerBesoins(): BesoinDenree[] {
@@ -170,6 +221,7 @@ export const useMenuStore = defineStore('menu', () => {
     createRecette,
     updateRecette,
     updateMenuJour,
+    validerMenu,
     calculerBesoins,
   }
 })
