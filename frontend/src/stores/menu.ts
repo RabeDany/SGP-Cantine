@@ -14,12 +14,79 @@ import type {
   SortiePreparationLigne,
 } from '@/types'
 
+function getWeekStart(date = new Date()): string {
+  const d = new Date(date)
+  const day = d.getDay()
+  const diff = d.getDate() - day + (day === 0 ? -6 : 1)
+  d.setDate(diff)
+  return d.toISOString().split('T')[0]
+}
+
+function createMenuForWeek(semaineDebut: string): MenuHebdo {
+  return {
+    id: generateId('menu'),
+    semaineDebut,
+    jours: mockMenu.jours.map((jour) => ({ ...jour })),
+    valide: false,
+  }
+}
+
+function normalizeMenu(menu: MenuHebdo): MenuHebdo {
+  return {
+    ...menu,
+    jours: menu.jours?.map((jour) => ({ ...jour })) ?? [],
+    valide: Boolean(menu.valide),
+    validationMouvements: menu.validationMouvements ?? [],
+  }
+}
+
+function syncMenuInStore(menus: MenuHebdo[], menu: MenuHebdo): MenuHebdo {
+  const existing = menus.find((item) => item.id === menu.id)
+  if (existing) {
+    Object.assign(existing, normalizeMenu(menu))
+    return existing
+  }
+
+  const nextMenu = normalizeMenu(menu)
+  menus.push(nextMenu)
+  return nextMenu
+}
+
 export const useMenuStore = defineStore('menu', () => {
   const recettes = ref<Recette[]>(loadFromStorage('recettes', [...mockRecettes]))
-  const menuActuel = ref<MenuHebdo>(loadFromStorage('menu', { ...mockMenu }))
+  const persistedMenus = loadFromStorage<MenuHebdo[]>('menus', [])
+  const persistedMenu = loadFromStorage<MenuHebdo | null>('menu', null)
+
+  const menus = ref<MenuHebdo[]>(
+    persistedMenus.length
+      ? persistedMenus.map((menu) => normalizeMenu(menu))
+      : persistedMenu
+        ? [normalizeMenu(persistedMenu)]
+        : [createMenuForWeek(getWeekStart())],
+  )
+
+  const currentWeek = getWeekStart()
+  const menuForCurrentWeek = menus.value.find((menu) => menu.semaineDebut === currentWeek)
+  const initialMenu = menuForCurrentWeek ?? menus.value[0] ?? createMenuForWeek(currentWeek)
+  const menuActuel = ref<MenuHebdo>(normalizeMenu(initialMenu))
+
+  if (!menus.value.some((menu) => menu.id === menuActuel.value.id)) {
+    menus.value.unshift(menuActuel.value)
+  }
+
+  if (!menus.value.some((menu) => menu.semaineDebut === currentWeek)) {
+    const nextMenu = createMenuForWeek(currentWeek)
+    menus.value.unshift(nextMenu)
+    menuActuel.value = nextMenu
+  } else if (menuActuel.value.semaineDebut !== currentWeek) {
+    menuActuel.value = menus.value.find((menu) => menu.semaineDebut === currentWeek)!
+  }
+
+  menuActuel.value = syncMenuInStore(menus.value, menuActuel.value)
 
   function persist() {
     saveToStorage('recettes', recettes.value)
+    saveToStorage('menus', menus.value)
     saveToStorage('menu', menuActuel.value)
   }
 
@@ -61,16 +128,55 @@ export const useMenuStore = defineStore('menu', () => {
     }
   }
 
+  function invaliderMenu(userId = 'system') {
+    if (!menuActuel.value.valide) {
+      return { ok: true }
+    }
+
+    const stockStore = useStockStore()
+    for (const movement of menuActuel.value.validationMouvements ?? []) {
+      const result = stockStore.enregistrerEntree({
+        denreeId: movement.denreeId,
+        date: todayISO(),
+        quantite: movement.quantite,
+        provenance: 'don',
+        userId: movement.userId || userId,
+      })
+      if (!result.ok) {
+        return { ok: false, error: result.error ?? 'Erreur lors de l’annulation de validation.' }
+      }
+    }
+
+    menuActuel.value.valide = false
+    delete menuActuel.value.dateValidation
+    delete menuActuel.value.validationParId
+    menuActuel.value.validationMouvements = []
+    persist()
+    return { ok: true }
+  }
+
   function updateMenuJour(jour: number, recetteId: string | null, portionsPrevues: number) {
     const j = menuActuel.value.jours.find((x) => x.jour === jour)
-    if (j) {
-      j.recetteId = recetteId
-      j.portionsPrevues = portionsPrevues
-      menuActuel.value.valide = false
-      delete menuActuel.value.dateValidation
-      delete menuActuel.value.validationParId
-      persist()
+    if (!j) return
+
+    const changed = j.recetteId !== recetteId || j.portionsPrevues !== portionsPrevues
+    if (!changed) return
+
+    const previousState = { recetteId: j.recetteId, portionsPrevues: j.portionsPrevues }
+
+    j.recetteId = recetteId
+    j.portionsPrevues = portionsPrevues
+
+    if (menuActuel.value.valide) {
+      const result = invaliderMenu()
+      if (!result.ok) {
+        j.recetteId = previousState.recetteId
+        j.portionsPrevues = previousState.portionsPrevues
+        return
+      }
     }
+
+    persist()
   }
 
   function validerMenu(userId: string) {
@@ -118,8 +224,22 @@ export const useMenuStore = defineStore('menu', () => {
     menuActuel.value.valide = true
     menuActuel.value.dateValidation = todayISO()
     menuActuel.value.validationParId = userId
+    menuActuel.value.validationMouvements = sorties.map((sortie) => ({
+      denreeId: sortie.denreeId,
+      quantite: sortie.quantite,
+      userId,
+      commentaire: `Préparation ${sortie.jourLabel} - ${sortie.recetteNom}`,
+    }))
     persist()
     return { ok: true }
+  }
+
+  function setMenuActuel(menuId: string) {
+    const menu = menus.value.find((item) => item.id === menuId)
+    if (menu) {
+      menuActuel.value = menu
+      persist()
+    }
   }
 
   function calculerBesoins(): BesoinDenree[] {
@@ -160,6 +280,8 @@ export const useMenuStore = defineStore('menu', () => {
   }
 
   const listeCourses = computed(() => {
+    if (menuActuel.value.valide) return []
+
     const stockStore = useStockStore()
     return calculerBesoins()
       .map((b) => {
@@ -209,9 +331,15 @@ export const useMenuStore = defineStore('menu', () => {
 
   const sortiesPreparation = computed(() => calculerSortiesPreparation())
 
+  const menusDisponibles = computed(() =>
+    [...menus.value].sort((a, b) => b.semaineDebut.localeCompare(a.semaineDebut)),
+  )
+
   return {
     recettes,
     menuActuel,
+    menus,
+    menusDisponibles,
     recettesActives,
     listeCourses,
     denreesManquantes,
@@ -221,7 +349,9 @@ export const useMenuStore = defineStore('menu', () => {
     createRecette,
     updateRecette,
     updateMenuJour,
+    invaliderMenu,
     validerMenu,
+    setMenuActuel,
     calculerBesoins,
   }
 })

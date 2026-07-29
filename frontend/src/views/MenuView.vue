@@ -5,7 +5,7 @@ import { useAuthStore } from '@/stores/auth'
 import { useMenuStore } from '@/stores/menu'
 import { usePresenceStore } from '@/stores/presence'
 import { useStockStore } from '@/stores/stock'
-import { JOURS_SEMAINE, type Recette } from '@/types'
+import { JOURS_SEMAINE, type MenuHebdo, type Recette } from '@/types'
 import { formatDate, formatNumber } from '@/utils/helpers'
 
 const auth = useAuthStore()
@@ -74,10 +74,22 @@ function validerMenu() {
 function reouvrirMenu() {
   validationError.value = ''
   validationMessage.value = ''
-  menuStore.menuActuel.valide = false
-  delete menuStore.menuActuel.dateValidation
-  delete menuStore.menuActuel.validationParId
-  menuStore.persist && menuStore.persist()
+  const result = menuStore.invaliderMenu(auth.currentUser?.id ?? 'system')
+  if (!result.ok) {
+    validationError.value = result.error ?? 'Échec de l’annulation de la validation.'
+    return
+  }
+
+  validationMessage.value = 'Validation annulée et stock restauré.'
+}
+
+function changerMenu(menuId: string) {
+  menuStore.setMenuActuel(menuId)
+}
+
+function formatMenuLabel(menu: MenuHebdo) {
+  const status = menu.valide ? 'Validé' : 'En cours'
+  return `${formatDate(menu.semaineDebut)} — ${status}`
 }
 
 function updateJour(jour: number, recetteId: string) {
@@ -132,11 +144,19 @@ const recettesDisponibles = computed(() => {
       <span class="rounded-lg bg-brand-50 px-3 py-1.5 font-medium text-brand-800">
         Semaine du {{ semaineLabel }}
       </span>
+      <label class="flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-2">
+        <span class="text-xs uppercase tracking-wide text-slate-500">Menu</span>
+        <select class="bg-transparent text-sm outline-none" :value="menuStore.menuActuel.id" @change="changerMenu(($event.target as HTMLSelectElement).value)">
+          <option v-for="menu in menuStore.menusDisponibles" :key="menu.id" :value="menu.id">
+            {{ formatMenuLabel(menu) }}
+          </option>
+        </select>
+      </label>
       <span
         v-if="presenceStore.pointageEffectue"
-        class="rounded-lg bg-green-50 px-3 py-1.5 text-green-800"
+        class="rounded-lg bg-green-50 px-3 py-1.5 text-green-800 "
       >
-        Pointage du jour : {{ presenceStore.totalPresentsAujourdhui }} élèves
+        <span class="font-bold">Pointage du jour : </span> {{ presenceStore.totalPresentsAujourdhui }} élèves
       </span>
       <span v-else class="rounded-lg bg-amber-50 px-3 py-1.5 text-amber-800">
         Pointage non effectué — portions estimées utilisées

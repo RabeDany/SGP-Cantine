@@ -38,20 +38,45 @@ function persistDefaultFournisseur() {
 }
 
 function prefillFromListeCourses() {
-  if (route.query.fromCourses !== '1' || prefillLoaded.value) return
+  if (prefillLoaded.value) return
   prefillLoaded.value = true
-  const needs = menuStore.denreesManquantes
-  if (!needs.length) {
+
+  const fromCourses = route.query.fromCourses === '1'
+  const fromStock = route.query.fromStock === '1'
+
+  if (fromCourses) {
+    const needs = menuStore.denreesManquantes
+    if (!needs.length) {
+      router.replace({ name: 'commandes' })
+      return
+    }
+    needs.forEach((item) => {
+      if (item.manquant > 0) {
+        quantites.value[item.denreeId] = item.manquant
+      }
+    })
+    persistDefaultFournisseur()
     router.replace({ name: 'commandes' })
     return
   }
-  needs.forEach((item) => {
-    if (item.manquant > 0) {
-      quantites.value[item.denreeId] = item.manquant
+
+  if (fromStock) {
+    const linesParam = route.query.lines
+    if (typeof linesParam === 'string') {
+      try {
+        const lines = JSON.parse(linesParam) as Array<{ denreeId: string; quantite: number }>
+        lines.forEach((line) => {
+          if (line.quantite > 0) {
+            quantites.value[line.denreeId] = line.quantite
+          }
+        })
+      } catch {
+        // ignore malformed payload
+      }
     }
-  })
-  persistDefaultFournisseur()
-  router.replace({ name: 'commandes' })
+    persistDefaultFournisseur()
+    router.replace({ name: 'commandes' })
+  }
 }
 
 onMounted(() => {

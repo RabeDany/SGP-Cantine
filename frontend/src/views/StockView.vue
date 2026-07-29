@@ -1,14 +1,21 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
+import { useRouter } from 'vue-router'
 import PageHeader from '@/components/PageHeader.vue'
 import StockBadge from '@/components/StockBadge.vue'
+import { useAuthStore } from '@/stores/auth'
 import { useStockStore } from '@/stores/stock'
-import { CATEGORIE_LABELS, UNITE_LABELS } from '@/types'
+import { CATEGORIE_LABELS, UNITE_LABELS, type Denree } from '@/types'
 import { formatDate, formatNumber } from '@/utils/helpers'
 
+const router = useRouter()
+const auth = useAuthStore()
 const stockStore = useStockStore()
 const search = ref('')
 const filterStatus = ref<'all' | 'ok' | 'warning' | 'critical'>('all')
+const showCreateBonModal = ref(false)
+const commandeQuantites = ref<Record<string, number>>({})
+const creationError = ref('')
 
 const filtered = computed(() => {
   let list = stockStore.denreesAvecStatut
@@ -21,6 +28,43 @@ const filtered = computed(() => {
   }
   return list
 })
+
+function openCreateBonModal() {
+  creationError.value = ''
+  commandeQuantites.value = {}
+  filtered.value.forEach((denree) => {
+    commandeQuantites.value[denree.id] = Math.max(0, denree.seuilAlerte - denree.stockActuel)
+  })
+  showCreateBonModal.value = true
+}
+
+function closeCreateBonModal() {
+  showCreateBonModal.value = false
+  commandeQuantites.value = {}
+  creationError.value = ''
+}
+
+function createBonFromStock() {
+  const lignes = Object.entries(commandeQuantites.value)
+    .filter(([, quantite]) => quantite > 0)
+    .map(([denreeId, quantite]) => ({ denreeId, quantite }))
+
+  if (!lignes.length) {
+    creationError.value = 'Saisissez au moins une quantité à commander.'
+    return
+  }
+
+  const query = new URLSearchParams({
+    fromStock: '1',
+    lines: JSON.stringify(lignes),
+  })
+
+  router.push({ name: 'commandes', query: { fromStock: '1', lines: JSON.stringify(lignes) } })
+}
+
+function getDenreeName(denreeId: string) {
+  return stockStore.getDenree(denreeId)?.nom ?? denreeId
+}
 </script>
 
 <template>
@@ -30,14 +74,24 @@ const filtered = computed(() => {
       subtitle="Visualisation des quantités avec indicateurs vert / orange / rouge (US-04)"
     />
 
-    <div class="mb-4 flex flex-wrap gap-3">
-      <input v-model="search" class="input max-w-xs" placeholder="Rechercher une denrée…" />
-      <select v-model="filterStatus" class="input max-w-[180px]">
-        <option value="all">Tous les statuts</option>
-        <option value="ok">OK (vert)</option>
-        <option value="warning">Bas (orange)</option>
-        <option value="critical">Critique (rouge)</option>
-      </select>
+    <div class="mb-4 flex flex-wrap items-center justify-between gap-3">
+      <div class="flex flex-wrap gap-3">
+        <input v-model="search" class="input max-w-xs" placeholder="Rechercher une denrée…" />
+        <select v-model="filterStatus" class="input max-w-[180px]">
+          <option value="all">Tous les statuts</option>
+          <option value="ok">OK (vert)</option>
+          <option value="warning">Bas (orange)</option>
+          <option value="critical">Critique (rouge)</option>
+        </select>
+      </div>
+      <button
+        v-if="auth.canAccess('commandes') && ['admin', 'gestionnaire'].includes(auth.currentUser?.role ?? '')"
+        type="button"
+        class="btn-primary"
+        @click="openCreateBonModal"
+      >
+        Créer bon depuis les besoins en stock
+      </button>
     </div>
 
     <div class="mb-4 flex gap-4 text-xs text-gray-500">
@@ -98,6 +152,55 @@ const filtered = computed(() => {
           </tr>
         </tbody>
       </table>
+    </div>
+
+    <div
+      v-if="showCreateBonModal"
+      class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4"
+    >
+      <div class="w-full max-w-2xl rounded-xl bg-white p-6 shadow-lg">
+        <div class="mb-4 flex items-center justify-between">
+          <div>
+            <h2 class="text-lg font-semibold">Créer un bon depuis les besoins en stock</h2>
+            <p class="text-sm text-gray-500">Saisissez les quantités à commander pour chaque denrée.</p>
+          </div>
+          <button type="button" class="text-gray-500 hover:text-gray-900" @click="closeCreateBonModal">✕</button>
+        </div>
+
+        <div class="max-h-[60vh] space-y-3 overflow-y-auto">
+          <div
+            v-for="denree in filtered"
+            :key="denree.id"
+            class="rounded-lg border border-gray-200 p-4"
+          >
+            <div class="mb-2 flex items-center justify-between gap-3">
+              <div>
+                <p class="font-medium">{{ denree.nom }}</p>
+                <p class="text-xs text-gray-500">Stock actuel : {{ formatNumber(denree.stockActuel) }} {{ UNITE_LABELS[denree.unite] }}</p>
+              </div>
+              <div class="w-32">
+                <label class="text-xs text-gray-600">Quantité</label>
+                <input
+                  v-model.number="commandeQuantites[denree.id]"
+                  type="number"
+                  min="0"
+                  step="0.1"
+                  class="input mt-1"
+                  placeholder="0"
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="mt-4 flex items-center justify-between gap-3">
+          <p v-if="creationError" class="text-sm text-red-700">{{ creationError }}</p>
+          <div class="ml-auto flex gap-2">
+            <button type="button" class="btn-secondary" @click="closeCreateBonModal">Annuler</button>
+            <button type="button" class="btn-primary" @click="createBonFromStock">Valider</button>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 </template>

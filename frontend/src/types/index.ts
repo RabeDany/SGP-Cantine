@@ -80,6 +80,12 @@ export interface MenuHebdo {
   valide: boolean
   dateValidation?: string
   validationParId?: string
+  validationMouvements?: Array<{
+    denreeId: string
+    quantite: number
+    userId: string
+    commentaire?: string
+  }>
 }
 
 export interface Fournisseur {
