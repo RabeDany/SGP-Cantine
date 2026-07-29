@@ -17,6 +17,22 @@ export const usePresenceStore = defineStore('presence', () => {
     classes.value.reduce((s, c) => s + c.inscritsCantine, 0),
   )
 
+  function sanitizePointages() {
+    pointages.value = pointages.value.map((pointage) => {
+      const maxAllowed = pointage.classeId
+        ? classes.value.find((classe) => classe.id === pointage.classeId)?.inscritsCantine ?? pointage.inscrits
+        : totalInscrits.value
+
+      return {
+        ...pointage,
+        presents: Math.max(0, Math.min(pointage.presents, maxAllowed)),
+        inscrits: maxAllowed,
+      }
+    })
+  }
+
+  sanitizePointages()
+
   const pointageDuJour = computed(() => {
     const today = todayISO()
     return pointages.value.find((p) => p.date === today) ?? null
@@ -47,10 +63,10 @@ export const usePresenceStore = defineStore('presence', () => {
   }) {
     const today = todayISO()
     const inscrits = totalInscrits.value
-    if (data.presents > inscrits * 1.2) {
+    if (data.presents + data.exemptions > inscrits) {
       return {
         ok: false,
-        error: `Pointage anormal : ${data.presents} présents pour ${inscrits} inscrits (+20 % max).`,
+        error: `Le total des présents et exemptions ne peut pas dépasser ${inscrits} élèves inscrits.`,
       }
     }
 
@@ -84,6 +100,13 @@ export const usePresenceStore = defineStore('presence', () => {
     const today = todayISO()
     const classe = classes.value.find((c) => c.id === classeId)
     if (!classe) return { ok: false, error: 'Classe introuvable.' }
+
+    if (presents + exemptions > classe.inscritsCantine) {
+      return {
+        ok: false,
+        error: `Le total des présents et exemptions ne peut pas dépasser ${classe.inscritsCantine} inscrits pour ${classe.nom}.`,
+      }
+    }
 
     const existing = pointages.value.find((p) => p.date === today && p.classeId === classeId)
     if (existing) {

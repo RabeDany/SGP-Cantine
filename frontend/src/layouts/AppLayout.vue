@@ -33,6 +33,7 @@ const allNav: NavItem[] = [
   { name: 'Menu hebdo', to: '/menu', icon: '📅', module: 'menu' },
   { name: 'Présences', to: '/presences', icon: '✅', module: 'presences' },
   { name: 'Liste de courses', to: '/courses', icon: '🛒', module: 'courses' },
+  { name: 'Rapports', to: '/rapports', icon: '📈', module: 'rapports' },
   { name: 'Fournisseurs', to: '/fournisseurs', icon: '🏪', module: 'fournisseurs' },
   { name: 'Bons de commande', to: '/commandes', icon: '🧾', module: 'commandes' },
 ]

@@ -1,0 +1,419 @@
+
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--font-sans);font-size:13px;color:var(--color-text-primary)}
+.wrap{padding:1rem 0}
+.tabs{display:flex;gap:4px;margin-bottom:16px;flex-wrap:wrap}
+.tab{padding:6px 14px;border-radius:8px;cursor:pointer;font-size:12px;font-weight:500;border:1px solid var(--color-border-secondary);background:var(--color-background-secondary);color:var(--color-text-secondary);transition:all .15s}
+.tab.active{background:var(--color-background-primary);color:var(--color-text-primary);border-color:var(--color-border-primary)}
+.panel{display:none}.panel.active{display:block}
+.filters{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:12px}
+.fbtn{font-size:11px;padding:3px 9px;border-radius:14px;border:1px solid var(--color-border-secondary);background:var(--color-background-secondary);color:var(--color-text-secondary);cursor:pointer}
+.fbtn.active,.fbtn:hover{background:var(--color-background-primary);color:var(--color-text-primary);border-color:var(--color-border-primary)}
+table{width:100%;border-collapse:collapse}
+thead th{font-size:11px;font-weight:500;color:var(--color-text-secondary);padding:6px 7px;border-bottom:1px solid var(--color-border-tertiary);text-align:left}
+tbody tr{border-bottom:1px solid var(--color-border-tertiary)}
+tbody tr:hover{background:var(--color-background-secondary)}
+tbody td{padding:6px 7px;vertical-align:top;line-height:1.5}
+.badge{display:inline-block;font-size:11px;padding:2px 7px;border-radius:10px;font-weight:500;white-space:nowrap}
+.p1{background:#FCEBEB;color:#791F1F}.p2{background:#FAEEDA;color:#633806}.p3{background:#EAF3DE;color:#27500A}
+.mvp-tag{background:#E6F1FB;color:#0C447C;font-size:10px;padding:1px 6px;border-radius:8px;margin-left:4px}
+.new-tag{background:#FDF3FF;color:#6B21A8;font-size:10px;padding:1px 6px;border-radius:8px;margin-left:4px}
+.m-stock{background:#EEEDFE;color:#3C3489}.m-menu{background:#E1F5EE;color:#085041}
+.m-presence{background:#FAECE7;color:#712B13}.m-commande{background:#E6F1FB;color:#0C447C}
+.m-rapport{background:#EAF3DE;color:#27500A}.m-auth{background:#F1EFE8;color:#444441}
+.m-ml{background:#FDF3FF;color:#6B21A8}.m-nutri{background:#FFF7E6;color:#92400E}
+.m-anomalie{background:#FEF2F2;color:#991B1B}.m-sync{background:#F0FDF4;color:#14532D}
+.m-optim{background:#EFF6FF;color:#1E40AF}.m-audit{background:#F5F3FF;color:#4C1D95}
+.sid{font-size:11px;color:var(--color-text-secondary);white-space:nowrap}
+.pts-cell{font-size:12px;color:var(--color-text-secondary);white-space:nowrap}
+.total-bar{display:flex;gap:14px;margin-top:10px;font-size:12px;color:var(--color-text-secondary);flex-wrap:wrap}
+.total-bar span{font-weight:500;color:var(--color-text-primary)}
+.timeline-info{display:flex;gap:14px;flex-wrap:wrap;margin-bottom:14px;font-size:12px;color:var(--color-text-secondary)}
+.timeline-info span{font-weight:500;color:var(--color-text-primary)}
+.sprint-card{border:1px solid var(--color-border-tertiary);border-radius:10px;margin-bottom:8px;overflow:hidden}
+.sprint-card.mvp-sprint{border-color:#CC333355}
+.sprint-card.adv-sprint{border-color:#6B21A855}
+.sprint-head{display:flex;align-items:center;gap:10px;padding:9px 12px;cursor:pointer;background:var(--color-background-secondary)}
+.sprint-head:hover{background:var(--color-background-tertiary)}
+.snum{font-size:11px;font-weight:600;padding:2px 8px;border-radius:8px;white-space:nowrap}
+.ph-mvp{background:#FCEBEB;color:#791F1F}.ph-core{background:#EEEDFE;color:#3C3489}
+.ph-feat{background:#E1F5EE;color:#085041}.ph-finish{background:#E6F1FB;color:#0C447C}
+.ph-adv{background:#FDF3FF;color:#6B21A8}
+.stitle{flex:1;font-size:13px;font-weight:500}
+.smeta{font-size:11px;color:var(--color-text-secondary);white-space:nowrap}
+.chev{font-size:11px;color:var(--color-text-secondary);transition:transform .2s}
+.sprint-body{display:none;padding:10px 12px}
+.sprint-body.open{display:block}
+.sdates{font-size:11px;color:var(--color-text-secondary);margin-bottom:8px}
+.mvp-banner{background:#FCEBEB;color:#791F1F;font-size:11px;padding:4px 8px;border-radius:6px;margin-bottom:8px;font-weight:500}
+.adv-banner{background:#FDF3FF;color:#6B21A8;font-size:11px;padding:4px 8px;border-radius:6px;margin-bottom:8px;font-weight:500}
+.slist{display:flex;flex-direction:column;gap:5px;margin-bottom:8px}
+.srow{display:flex;align-items:flex-start;gap:8px;font-size:12px}
+.srow-id{min-width:46px;color:var(--color-text-secondary);font-size:11px;padding-top:1px}
+.srow-txt{flex:1;line-height:1.5}
+.srow-pts{color:var(--color-text-secondary);font-size:11px;white-space:nowrap;padding-top:1px}
+.sgoal{font-size:12px;color:var(--color-text-secondary);border-left:2px solid var(--color-border-secondary);padding-left:8px;line-height:1.6;margin-bottom:6px}
+.sgoal strong{color:var(--color-text-primary);font-weight:500}
+.vbar{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+.vbg{flex:1;height:5px;background:var(--color-border-tertiary);border-radius:3px;overflow:hidden}
+.vfill{height:100%;border-radius:3px}
+.cerem-wrap{display:flex;gap:6px;flex-wrap:wrap}
+.ctag{font-size:10px;padding:2px 7px;border-radius:6px;background:var(--color-background-tertiary);color:var(--color-text-secondary);border:1px solid var(--color-border-tertiary)}
+.milestone{display:inline-block;font-size:10px;padding:1px 7px;border-radius:6px;background:#FCEBEB;color:#791F1F;margin-left:6px;font-weight:600}
+.note{font-size:11px;color:var(--color-text-secondary);background:var(--color-background-secondary);border:1px solid var(--color-border-tertiary);border-radius:8px;padding:8px 12px;margin-bottom:14px;line-height:1.6}
+.note strong{color:var(--color-text-primary)}
+.section-sep{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--color-text-secondary);margin:14px 0 6px;padding-left:4px;border-left:3px solid var(--color-border-primary)}
+</style>
+
+<div class="wrap">
+<div class="tabs">
+  <div class="tab active" onclick="showTab('backlog')">📋 Backlog complet</div>
+  <div class="tab" onclick="showTab('mvp')">🎯 MVP (18 juillet)</div>
+  <div class="tab" onclick="showTab('full')">📅 Plan 16 semaines</div>
+</div>
+
+<div class="panel active" id="panel-backlog">
+  <div class="filters" id="filter-bar">
+    <button class="fbtn active" onclick="filter('all',this)">Tout</button>
+    <button class="fbtn" onclick="filter('mvp',this)">🎯 MVP</button>
+    <button class="fbtn" onclick="filter('P1',this)">P1</button>
+    <button class="fbtn" onclick="filter('P2',this)">P2</button>
+    <button class="fbtn" onclick="filter('P3',this)">P3</button>
+    <button class="fbtn" onclick="filter('new',this)">🆕 Nouveaux</button>
+    <button class="fbtn" onclick="filter('stock',this)">Stock</button>
+    <button class="fbtn" onclick="filter('menu',this)">Menus</button>
+    <button class="fbtn" onclick="filter('commande',this)">Commandes</button>
+    <button class="fbtn" onclick="filter('rapport',this)">Rapports</button>
+    <button class="fbtn" onclick="filter('auth',this)">Auth</button>
+    <button class="fbtn" onclick="filter('ml',this)">ML Prévision</button>
+    <button class="fbtn" onclick="filter('nutri',this)">Nutrition</button>
+    <button class="fbtn" onclick="filter('anomalie',this)">Anomalies</button>
+    <button class="fbtn" onclick="filter('sync',this)">Sync multi-sites</button>
+    <button class="fbtn" onclick="filter('optim',this)">Optim. menus</button>
+    <button class="fbtn" onclick="filter('audit',this)">Audit immuable</button>
+  </div>
+  <table>
+    <thead><tr><th>#</th><th>User story</th><th>Module</th><th>Prio</th><th>Pts</th><th>Critères d'acceptation</th></tr></thead>
+    <tbody id="bl-tbody"></tbody>
+  </table>
+  <div class="total-bar" id="bl-total"></div>
+</div>
+
+<div class="panel" id="panel-mvp">
+  <div class="note"><strong>Démarrage mercredi 24 juin.</strong> Le MVP couvre les 11 stories P1. Livraison le <strong>vendredi 18 juillet 2026</strong>. 2 sprints, 28 points.</div>
+  <div class="timeline-info">
+    <div>Début : <span>Mer. 24 juin 2026</span></div>
+    <div>MVP : <span>Ven. 18 juillet 2026</span></div>
+    <div>Sprints : <span>2</span></div>
+    <div>Points MVP : <span>28 pts</span></div>
+  </div>
+  <div id="mvp-sprints"></div>
+</div>
+
+<div class="panel" id="panel-full">
+  <div class="note"><strong>Plan complet — 16 semaines — 8 sprints.</strong> Les sprints 1–2 couvrent le MVP (P1). Les sprints 3–5 couvrent P2. Les sprints 6–8 couvrent les modules avancés P3 (ML, nutrition, anomalies, sync, optimisation, audit immuable) issus des fonctionnalités avancées et des recommandations de M. Tojo.</div>
+  <div class="timeline-info">
+    <div>Début : <span>Mer. 24 juin 2026</span></div>
+    <div>Fin : <span>Ven. 17 octobre 2026</span></div>
+    <div>Sprints : <span>8 × 2 semaines</span></div>
+    <div>Total : <span>46 stories · 127 pts</span></div>
+    <div>Vélocité cible : <span>~14–16 pts / sprint</span></div>
+  </div>
+  <div id="full-sprints"></div>
+</div>
+</div>
+
+<script>
+const ML_MAP = {
+  stock:'m-stock',menu:'m-menu',presence:'m-presence',commande:'m-commande',
+  rapport:'m-rapport',auth:'m-auth',ml:'m-ml',nutri:'m-nutri',
+  anomalie:'m-anomalie',sync:'m-sync',optim:'m-optim',audit:'m-audit'
+};
+const ML_LAB = {
+  stock:'Stock',menu:'Menus',presence:'Présences',commande:'Commandes',
+  rapport:'Rapports',auth:'Auth & Infra',ml:'ML Prévision',nutri:'Nutrition',
+  anomalie:'Anomalies',sync:'Sync Multi-Sites',optim:'Optim. Menus',audit:'Audit Immuable'
+};
+const PC = {P1:'p1',P2:'p2',P3:'p3'};
+
+const stories = [
+  // ── MVP P1 ──────────────────────────────────────────────────────────────
+  {id:'US-01',story:'En tant que gestionnaire, je peux créer une fiche denrée (nom, catégorie, unité, seuil).',module:'stock',prio:'P1',pts:3,ac:'Fiche sauvegardée, visible en liste, seuil déclenche alerte.',mvp:true,isNew:false},
+  {id:'US-02',story:'En tant que gestionnaire, je peux enregistrer une entrée de stock (date, qté, provenance, prix, n° bon).',module:'stock',prio:'P1',pts:3,ac:'Mouvement horodaté, stock mis à jour, bon lisible.',mvp:true,isNew:false},
+  {id:'US-03',story:'En tant que gestionnaire, je peux enregistrer une sortie de stock avec motif ; blocage si qté insuffisante.',module:'stock',prio:'P1',pts:3,ac:'Blocage actif si insuffisant ; sortie liée au menu si applicable.',mvp:true,isNew:false},
+  {id:'US-04',story:'En tant qu\'agent, je vois le stock en temps réel avec indicateurs vert/orange/rouge.',module:'stock',prio:'P1',pts:2,ac:'Couleurs correctes selon seuils ; rafraîchissement < 2 s.',mvp:true,isNew:false},
+  {id:'US-05',story:'En tant que gestionnaire, je reçois une alerte pour les denrées expirant dans 7 jours.',module:'stock',prio:'P1',pts:2,ac:'Bandeau visible au tableau de bord ; denrée prioritaire dans la planification.',mvp:true,isNew:false},
+  {id:'US-06',story:'En tant que planificateur, je peux créer une recette avec ingrédients et quantités par portion.',module:'menu',prio:'P1',pts:3,ac:'Recette inactive si un ingrédient n\'est pas référencé en stock.',mvp:true,isNew:false},
+  {id:'US-07',story:'En tant que planificateur, je peux composer un menu hebdomadaire (recette × jour).',module:'menu',prio:'P1',pts:3,ac:'Sélection par liste ; calcul des besoins lancé automatiquement.',mvp:true,isNew:false},
+  {id:'US-08',story:'En tant que planificateur, je vois la liste de courses générée depuis le menu et les présences.',module:'menu',prio:'P1',pts:3,ac:'Quantités correctes (portions × élèves présents) ; denrées manquantes en rouge.',mvp:true,isNew:false},
+  {id:'US-09',story:'En tant qu\'agent, je peux pointer les élèves présents au repas (par classe ou global).',module:'presence',prio:'P1',pts:2,ac:'Pointage bloque la validation de portions si non effectué.',mvp:true,isNew:false},
+  {id:'US-10',story:'En tant que directeur, je peux créer des comptes utilisateurs et attribuer un rôle.',module:'auth',prio:'P1',pts:3,ac:'4 rôles ; connexion identifiant + mot de passe haché.',mvp:true,isNew:false},
+  {id:'US-11',story:'En tant qu\'utilisateur, je me connecte et accède uniquement aux écrans de mon rôle.',module:'auth',prio:'P1',pts:2,ac:'JWT 8 h ; redirection si rôle insuffisant.',mvp:true,isNew:false},
+  // ── P2 ──────────────────────────────────────────────────────────────────
+  {id:'US-12',story:'En tant que gestionnaire, je peux enregistrer des fournisseurs locaux (nom, contact, produits).',module:'commande',prio:'P2',pts:2,ac:'Fournisseur associable à une denrée ; non supprimable.',mvp:false,isNew:false},
+  {id:'US-13',story:'En tant que gestionnaire, je génère un bon de commande depuis la liste de courses.',module:'commande',prio:'P2',pts:3,ac:'Bon avec fournisseur, qtés, date souhaitée ; statut "émis".',mvp:false,isNew:false},
+  {id:'US-14',story:'En tant que directeur, je valide (double validation) un bon de commande avant envoi.',module:'commande',prio:'P2',pts:2,ac:'2 signatures distinctes ; log horodaté.',mvp:false,isNew:false},
+  {id:'US-15',story:'En tant que gestionnaire, je saisis la livraison réelle et le stock est mis à jour avec écart.',module:'commande',prio:'P2',pts:3,ac:'Écart calculé ; stock incrémenté des qtés réellement reçues.',mvp:false,isNew:false},
+  {id:'US-16',story:'En tant que directeur, je consulte un rapport de stock mensuel exportable en PDF.',module:'rapport',prio:'P2',pts:3,ac:'Filtrable par période ; export PDF fonctionnel.',mvp:false,isNew:false},
+  {id:'US-17',story:'En tant que directeur, je consulte un rapport de fréquentation (repas servis, absentéisme).',module:'rapport',prio:'P2',pts:2,ac:'Graphique hebdomadaire + tableau.',mvp:false,isNew:false},
+  {id:'US-18',story:'En tant que planificateur, j\'exporte la fiche de menu hebdomadaire en PDF imprimable.',module:'rapport',prio:'P2',pts:2,ac:'PDF A4 bilingue FR/MG, prêt à afficher.',mvp:false,isNew:false},
+  {id:'US-19',story:'En tant que gestionnaire, je déclare une denrée avariée avec commentaire obligatoire.',module:'stock',prio:'P2',pts:2,ac:'Avarie dans rapport mensuel distinct ; commentaire non vide.',mvp:false,isNew:false},
+  {id:'US-20',story:'En tant que directeur, je valide l\'inventaire mensuel (comptage réel vs stock théorique).',module:'stock',prio:'P2',pts:3,ac:'Écart calculé ; commentaire obligatoire si > 5 % ; export déclenché.',mvp:false,isNew:false},
+  {id:'US-21',story:'En tant qu\'utilisateur, l\'interface est disponible en français et en malgache.',module:'auth',prio:'P2',pts:2,ac:'Bascule en 1 clic ; labels et rapports traduits.',mvp:false,isNew:false},
+  {id:'US-22',story:'En tant que directeur, je peux exporter toutes les données en JSON/CSV.',module:'rapport',prio:'P2',pts:2,ac:'Export manuel ou à la clôture mensuelle ; fichier nommé avec date.',mvp:false,isNew:false},
+  // ── P3 existants ─────────────────────────────────────────────────────────
+  {id:'US-23',story:'En tant que gestionnaire, je consulte la piste d\'audit (qui a saisi quoi, quand).',module:'rapport',prio:'P3',pts:2,ac:'Tableau filtrable par utilisateur et date ; données non modifiables.',mvp:false,isNew:false},
+  {id:'US-24',story:'En tant qu\'agent, je saisis le pointage depuis une interface grande icône, 3 clics max.',module:'presence',prio:'P3',pts:3,ac:'Aucun texte superflu ; opération terminée en ≤ 3 interactions.',mvp:false,isNew:false},
+  {id:'US-25',story:'En tant que directeur, je consulte un rapport de consommation par denrée sur une période.',module:'rapport',prio:'P3',pts:3,ac:'Graphique + tableau ; corrélation repas / qté consommée.',mvp:false,isNew:false},
+  {id:'US-26',story:'En tant que gestionnaire, je vois l\'historique des présences (taux par semaine/mois).',module:'presence',prio:'P3',pts:2,ac:'Vue graphique et tableau ; filtrable par classe.',mvp:false,isNew:false},
+  {id:'US-27',story:'Le système redémarre automatiquement après coupure de courant (service systemd).',module:'auth',prio:'P3',pts:2,ac:'Service systemd ; backend opérationnel en < 30 s.',mvp:false,isNew:false},
+  // ── NOUVEAUX — Tableau de bord enrichi (Tojo rec. 1) ─────────────────────
+  {id:'US-28',story:'En tant que directeur, je consulte un tableau de bord enrichi : coût moyen par repas, taux de gaspillage, évolution nutritionnelle hebdomadaire.',module:'rapport',prio:'P3',pts:3,ac:'4 indicateurs affichés ; données recalculées à chaque consultation.',mvp:false,isNew:true},
+  {id:'US-29',story:'En tant que responsable communal, je consulte les ruptures de stock par région et les écoles les plus consommatrices.',module:'rapport',prio:'P3',pts:3,ac:'Vue agrégée multi-écoles ; filtrable par denrée et par période.',mvp:false,isNew:true},
+  // ── NOUVEAUX — ML Prévision de consommation (module + Tojo rec. 3) ───────
+  {id:'US-30',story:'En tant que planificateur, le système me prédit le nombre d\'élèves présents pour les 7 prochains jours avec intervalle de confiance.',module:'ml',prio:'P3',pts:5,ac:'Prédiction basée sur historique 12 mois, calendrier scolaire, saison (pluies/sèche) et météo ; affichée avec borne basse/haute.',mvp:false,isNew:true},
+  {id:'US-31',story:'En tant que planificateur, le système me prédit les quantités de denrées à consommer par jour pour la semaine suivante.',module:'ml',prio:'P3',pts:5,ac:'Prédictions par denrée ; modèle entraîné mensuellement en local sans API externe.',mvp:false,isNew:true},
+  {id:'US-32',story:'En tant que planificateur, la liste de courses est automatiquement ajustée par les prédictions ML.',module:'ml',prio:'P3',pts:3,ac:'Quantités corrigées affichées avec delta vs calcul classique ; désactivable.',mvp:false,isNew:true},
+  // ── NOUVEAUX — Optimisation nutritionnelle (module + Tojo rec. 2) ─────────
+  {id:'US-33',story:'En tant que planificateur, je vois le bilan nutritionnel (calories, protéines, fer, vitamine A) de chaque menu planifié.',module:'nutri',prio:'P3',pts:4,ac:'Graphique radar ou barres ; comparaison avec seuils OMS 6–12 ans.',mvp:false,isNew:true},
+  {id:'US-34',story:'En tant que planificateur, je reçois une suggestion automatique si le menu est déficient en un nutriment.',module:'nutri',prio:'P3',pts:4,ac:'Suggestion de recette alternative ou ingrédient complémentaire disponible en stock.',mvp:false,isNew:true},
+  {id:'US-35',story:'En tant que planificateur, l\'optimisation multicritères respecte budget, stocks, apports nutritionnels et limite le gaspillage simultanément.',module:'nutri',prio:'P3',pts:5,ac:'Score de fitness combinant 4 critères ; contraintes paramétrables par le directeur.',mvp:false,isNew:true},
+  // ── NOUVEAUX — Détection d'anomalies ─────────────────────────────────────
+  {id:'US-36',story:'En tant que directeur, je reçois une alerte de niveau 1/2/3 lors d\'un écart anormal de stock (> 10%) ou d\'une consommation > 150% de la moyenne.',module:'anomalie',prio:'P3',pts:4,ac:'3 niveaux d\'alerte ; niveau 3 bloque l\'opération jusqu\'à validation manuelle.',mvp:false,isNew:true},
+  {id:'US-37',story:'En tant que directeur, je suis alerté si un pointage dépasse de 20% le nombre d\'élèves inscrits ou si une sortie de stock est enregistrée hors des heures de cantine sans justification.',module:'anomalie',prio:'P3',pts:3,ac:'Règles configurables ; justification requise pour lever le blocage niveau 3.',mvp:false,isNew:true},
+  {id:'US-38',story:'En tant que directeur, je consulte le journal des anomalies avec statut (justifiée, non justifiée, en cours d\'investigation).',module:'anomalie',prio:'P3',pts:2,ac:'Journal filtrable ; statut modifiable par le directeur uniquement.',mvp:false,isNew:true},
+  // ── NOUVEAUX — Synchronisation multi-sites (module + Tojo rec. 4) ─────────
+  {id:'US-39',story:'En tant qu\'administrateur communal, je peux importer les exports JSON incrémentiels de chaque école et fusionner les données avec résolution de conflits.',module:'sync',prio:'P3',pts:5,ac:'Stratégie offline-first ; dernier modificateur gagne ou validation manuelle ; reprise après coupure réseau.',mvp:false,isNew:true},
+  {id:'US-40',story:'En tant qu\'administrateur communal, je génère des rapports agrégés (consommation totale, stocks mutualisables, commandes groupées) sur plusieurs écoles.',module:'sync',prio:'P3',pts:4,ac:'Rapport consolidé par zone ; export PDF disponible.',mvp:false,isNew:true},
+  // ── NOUVEAUX — Planification automatique par algo génétique (Tojo rec. 2) ─
+  {id:'US-41',story:'En tant que planificateur, le système génère automatiquement un menu hebdomadaire optimal via algorithme génétique (nutrition ≥ 90%, variété, stock, coût).',module:'optim',prio:'P3',pts:8,ac:'Population de 50 plannings ; score fitness combinant 4 critères ; génération en < 10 s en local.',mvp:false,isNew:true},
+  {id:'US-42',story:'En tant que planificateur, je peux verrouiller certaines recettes ou jours avant de lancer l\'optimisation automatique.',module:'optim',prio:'P3',pts:3,ac:'Verrous persistants ; algo optimise autour des contraintes fixes.',mvp:false,isNew:true},
+  // ── NOUVEAUX — Audit immuable & sécurité renforcée (module + Tojo rec. 5) ─
+  {id:'US-43',story:'En tant que directeur, chaque action est enregistrée dans une chaîne d\'audit cryptographique (hash chaîné) locale.',module:'audit',prio:'P3',pts:5,ac:'Chaque entrée contient hash de l\'entrée précédente ; altération détectée immédiatement.',mvp:false,isNew:true},
+  {id:'US-44',story:'En tant que directeur, je peux vérifier l\'intégrité de la chaîne d\'audit à tout moment et exporter un rapport signé numériquement.',module:'audit',prio:'P3',pts:4,ac:'Vérification complète en < 5 s ; rapport PDF signé exportable pour les autorités.',mvp:false,isNew:true},
+  {id:'US-45',story:'En tant qu\'administrateur, les données sensibles (mots de passe, tokens, données personnelles) sont chiffrées au repos.',module:'audit',prio:'P3',pts:3,ac:'Chiffrement AES-256 pour les données sensibles ; clé non stockée en clair.',mvp:false,isNew:true},
+  {id:'US-46',story:'En tant qu\'administrateur, le système effectue des sauvegardes automatiques chiffrées à intervalle configurable.',module:'audit',prio:'P3',pts:3,ac:'Sauvegarde pg_dump chiffrée ; restauration testée ; alerte si sauvegarde échoue.',mvp:false,isNew:true},
+];
+
+function filter(tag, btn) {
+  document.querySelectorAll('.fbtn').forEach(b=>b.classList.remove('active'));
+  if(btn) btn.classList.add('active');
+  let filtered;
+  if(tag==='all') filtered=stories;
+  else if(tag==='mvp') filtered=stories.filter(s=>s.mvp);
+  else if(tag==='new') filtered=stories.filter(s=>s.isNew);
+  else if(['P1','P2','P3'].includes(tag)) filtered=stories.filter(s=>s.prio===tag);
+  else filtered=stories.filter(s=>s.module===tag);
+  const tbody=document.getElementById('bl-tbody');
+  tbody.innerHTML=filtered.map(s=>`
+    <tr>
+      <td class="sid">${s.id}</td>
+      <td>${s.story}${s.mvp?'<span class="mvp-tag">MVP</span>':''}${s.isNew?'<span class="new-tag">NOUVEAU</span>':''}</td>
+      <td><span class="badge ${ML_MAP[s.module]}">${ML_LAB[s.module]}</span></td>
+      <td><span class="badge ${PC[s.prio]}">${s.prio}</span></td>
+      <td class="pts-cell">${s.pts}</td>
+      <td style="font-size:11px;color:var(--color-text-secondary)">${s.ac}</td>
+    </tr>`).join('');
+  const total=filtered.reduce((a,s)=>a+s.pts,0);
+  const nw=filtered.filter(s=>s.isNew).length;
+  document.getElementById('bl-total').innerHTML=`
+    <div>${filtered.length} stories · <span>${total} pts</span></div>
+    ${nw>0?`<div>dont <span>${nw} nouvelles</span> stories</div>`:''}`;
+}
+filter('all',null);
+
+// MVP sprints
+const mvpSprints=[
+  {num:'Sprint 1',phase:'ph-mvp',label:'Setup + Auth + Stock saisie',
+   dates:'Mer. 24 juin → Ven. 4 juillet',pts:13,barColor:'#CC3333',
+   banner:'🎯 MVP Sprint 1/2 — Socle fonctionnel',
+   stories:[
+     {id:'Setup',txt:'Init Vue 3 + NestJS + PostgreSQL + Prisma + Docker Compose',pts:1},
+     {id:'US-10',txt:'Gestion des comptes utilisateurs + 4 rôles',pts:3},
+     {id:'US-11',txt:'Connexion JWT, redirection par rôle',pts:2},
+     {id:'US-01',txt:'Fiche denrée (nom, catégorie, unité, seuil)',pts:3},
+     {id:'US-02',txt:'Entrée de stock horodatée',pts:3},
+     {id:'US-04',txt:'Tableau de bord stock vert/orange/rouge',pts:2},
+   ],
+   goal:'<strong>Objectif :</strong> Application démarrée, connexion par rôle fonctionnelle, saisie stock de base opérationnelle. Init Docker/Prisma terminée au plus tard ven. 27/06.',
+   cerem:['Planning mer. 24/06','Review ven. 04/07','Rétro 15 min','Journal 5 min/jour'],
+  },
+  {num:'Sprint 2',phase:'ph-mvp',label:'Stock complet + Menus + Présences',
+   dates:'Lun. 7 juillet → Ven. 18 juillet',pts:15,barColor:'#CC3333',
+   banner:'🎯 MVP Sprint 2/2 — Livraison MVP vendredi 18 juillet',
+   stories:[
+     {id:'US-03',txt:'Sortie de stock avec blocage si insuffisant',pts:3},
+     {id:'US-05',txt:'Alerte péremption 7 jours',pts:2},
+     {id:'US-06',txt:'Recette avec ingrédients par portion',pts:3},
+     {id:'US-07',txt:'Menu hebdomadaire (recette × jour)',pts:3},
+     {id:'US-09',txt:'Pointage présences élèves',pts:2},
+     {id:'US-08',txt:'Liste de courses automatique',pts:3},
+   ],
+   goal:'<strong>Objectif :</strong> Cycle complet Stock→Recette→Menu→Présences→Courses fonctionnel et testé. Livraison MVP ven. 18/07.',
+   cerem:['Planning lun. 07/07','Review & livraison ven. 18/07','Rétro + bilan MVP'],
+  },
+];
+
+// Full sprints
+const fullSprints=[
+  {num:'S1',phase:'ph-mvp',label:'Setup + Auth + Stock saisie',
+   dates:'Mer. 24 juin → Ven. 4 juillet',pts:13,barColor:'#CC3333',
+   banner:'🎯 MVP Sprint 1/2',
+   stories:[
+     {id:'Setup',txt:'Init Vue 3 + NestJS + PostgreSQL + Prisma + Docker Compose',pts:1},
+     {id:'US-10',txt:'Comptes utilisateurs + 4 rôles',pts:3},
+     {id:'US-11',txt:'Connexion JWT, redirection par rôle',pts:2},
+     {id:'US-01',txt:'Fiche denrée',pts:3},
+     {id:'US-02',txt:'Entrée de stock',pts:3},
+     {id:'US-04',txt:'Dashboard stock vert/orange/rouge',pts:2},
+   ],
+   goal:'<strong>MVP S1 :</strong> Socle fonctionnel, auth opérationnelle, saisie stock de base. Init terminée au plus tard ven. 27/06.',
+   cerem:['Planning 24/06','Review 04/07','Rétro'],
+  },
+  {num:'S2',phase:'ph-mvp',label:'Stock complet + Menus + Présences',
+   dates:'Lun. 7 juillet → Ven. 18 juillet',pts:15,barColor:'#CC3333',
+   banner:'🎯 Livraison MVP — vendredi 18 juillet',
+   stories:[
+     {id:'US-03',txt:'Sortie stock + blocage',pts:3},
+     {id:'US-05',txt:'Alerte péremption',pts:2},
+     {id:'US-06',txt:'Recettes',pts:3},
+     {id:'US-07',txt:'Menu hebdomadaire',pts:3},
+     {id:'US-09',txt:'Pointage présences',pts:2},
+     {id:'US-08',txt:'Liste de courses auto',pts:3},
+   ],
+   goal:'<strong>MVP S2 :</strong> Cycle complet Stock→Menu→Présences→Courses. Livraison ven. 18/07.',
+   cerem:['Planning 07/07','Review + livraison MVP 18/07','Rétro bilan MVP'],
+  },
+  {num:'S3',phase:'ph-core',label:'Commandes fournisseurs',
+   dates:'Lun. 21 juillet → Ven. 1er août',pts:10,barColor:'#7F77DD',
+   stories:[
+     {id:'US-12',txt:'Registre fournisseurs locaux',pts:2},
+     {id:'US-13',txt:'Bon de commande depuis liste de courses',pts:3},
+     {id:'US-14',txt:'Double validation (stock + directeur)',pts:2},
+     {id:'US-15',txt:'Réception livraison + écart + stock',pts:3},
+   ],
+   goal:'<strong>Objectif :</strong> Cycle commande bouclé end-to-end. Règle métier 4 (double validation) implémentée.',
+   cerem:['Planning 21/07','Review 01/08','Rétro'],
+  },
+  {num:'S4',phase:'ph-core',label:'Rapports, exports & sécurité P2',
+   dates:'Lun. 4 août → Ven. 15 août',pts:14,barColor:'#7F77DD',
+   stories:[
+     {id:'US-16',txt:'Rapport stock mensuel PDF',pts:3},
+     {id:'US-17',txt:'Rapport fréquentation',pts:2},
+     {id:'US-18',txt:'Fiche menu PDF bilingue FR/MG',pts:2},
+     {id:'US-22',txt:'Export données JSON/CSV',pts:2},
+     {id:'US-19',txt:'Déclaration avarie + commentaire',pts:2},
+     {id:'US-21',txt:'Interface bilingue FR/MG (i18next)',pts:2},
+     {id:'US-20',txt:'Inventaire mensuel + clôture + export',pts:3},
+   ],
+   goal:'<strong>Objectif :</strong> Reddition de comptes complète, exports opérationnels, interface bilingue. Règles 6, 7 et 8 du CDC couvertes.',
+   cerem:['Planning 04/08','Review 15/08','Rétro'],
+  },
+  {num:'S5',phase:'ph-feat',label:'UX agents, audit P3 de base & finitions',
+   dates:'Lun. 18 août → Ven. 29 août',pts:15,barColor:'#1D9E75',
+   stories:[
+     {id:'US-24',txt:'Interface agents : grande icône, 3 clics max',pts:3},
+     {id:'US-26',txt:'Historique présences graphique',pts:2},
+     {id:'US-27',txt:'Redémarrage automatique systemd',pts:2},
+     {id:'US-23',txt:'Piste d\'audit consultable',pts:2},
+     {id:'US-25',txt:'Rapport consommation par denrée',pts:3},
+     {id:'US-28',txt:'Tableau de bord enrichi (coût/repas, gaspillage, évolution nutritionnelle)',pts:3},
+   ],
+   goal:'<strong>Objectif :</strong> Interface agents conforme §3.3, tableau de bord enrichi opérationnel, piste d\'audit visible. Tests Vitest + e2e lancés.',
+   cerem:['Planning 18/08','Review 29/08','Rétro'],
+  },
+  {num:'S6',phase:'ph-adv',label:'ML Prévision + Anomalies + Rapports multi-écoles',
+   dates:'Lun. 1er sept. → Ven. 12 sept.',pts:17,barColor:'#6B21A8',
+   banner:'🆕 Modules avancés — Phase 1',
+   stories:[
+     {id:'US-30',txt:'Prédiction présences 7 jours (saison, météo, historique)',pts:5},
+     {id:'US-31',txt:'Prédiction consommation denrées — entraînement local mensuel',pts:5},
+     {id:'US-36',txt:'Alertes anomalies niveaux 1/2/3 (stock, consommation)',pts:4},
+     {id:'US-29',txt:'Rapports multi-écoles : ruptures de stock par région',pts:3},
+   ],
+   goal:'<strong>Objectif :</strong> Modèle ML de prévision fonctionnel en local (sans API externe). Détection d\'anomalies opérationnelle avec les 3 niveaux d\'alerte.',
+   cerem:['Planning 01/09','Review 12/09','Rétro'],
+  },
+  {num:'S7',phase:'ph-adv',label:'Nutrition + Optimisation + Sync multi-sites',
+   dates:'Lun. 15 sept. → Ven. 26 sept.',pts:22,barColor:'#6B21A8',
+   banner:'🆕 Modules avancés — Phase 2',
+   stories:[
+     {id:'US-33',txt:'Bilan nutritionnel radar/barres par menu (OMS 6–12 ans)',pts:4},
+     {id:'US-34',txt:'Suggestion automatique si menu déficient',pts:4},
+     {id:'US-35',txt:'Optimisation multicritères : budget, stock, nutrition, gaspillage',pts:5},
+     {id:'US-37',txt:'Alertes anomalies pointage et sorties hors horaires',pts:3},
+     {id:'US-38',txt:'Journal des anomalies avec statuts',pts:2},
+     {id:'US-32',txt:'Liste de courses ajustée par prédictions ML',pts:3},
+     {id:'US-39',txt:'Sync multi-sites offline-first + résolution de conflits',pts:5},
+   ],
+   goal:'<strong>Objectif :</strong> Module nutrition opérationnel (radar + suggestions), optimisation multicritères active, synchronisation multi-sites avec résolution de conflits testée.',
+   cerem:['Planning 15/09','Review 26/09','Rétro'],
+  },
+  {num:'S8',phase:'ph-adv',label:'Algo génétique + Audit immuable + Déploiement final',
+   dates:'Lun. 29 sept. → Ven. 17 oct.',pts:21,barColor:'#6B21A8',
+   banner:'🆕 Modules avancés — Phase 3 + Livraison finale',
+   stories:[
+     {id:'US-41',txt:'Génération menu hebdo optimal — algo génétique (population 50, fitness 4 critères)',pts:8},
+     {id:'US-42',txt:'Verrouillage de recettes/jours avant optimisation',pts:3},
+     {id:'US-40',txt:'Rapports agrégés multi-écoles + commandes groupées',pts:4},
+     {id:'US-43',txt:'Chaîne d\'audit cryptographique locale (hash chaîné)',pts:5},
+     {id:'US-44',txt:'Vérification intégrité audit + export rapport signé',pts:4},
+     {id:'US-45',txt:'Chiffrement données sensibles AES-256 au repos',pts:3},
+     {id:'US-46',txt:'Sauvegardes automatiques chiffrées pg_dump',pts:3},
+     {id:'-',   txt:'Tests complets + déploiement final + documentation',pts:2},
+   ],
+   goal:'<strong>Objectif :</strong> Algorithme génétique opérationnel, audit immuable déployé, données chiffrées. Application complète déployée sur hardware cible. Rapport de stage finalisé.',
+   cerem:['Planning 29/09','Review finale 17/10','Rétro de clôture','Livraison rapport + soutenance'],
+  },
+];
+
+function renderSprints(data, containerId) {
+  const maxPts=Math.max(...data.map(s=>s.pts));
+  document.getElementById(containerId).innerHTML=data.map((s,i)=>`
+    <div class="sprint-card${s.phase==='ph-mvp'?' mvp-sprint':s.phase==='ph-adv'?' adv-sprint':''}">
+      <div class="sprint-head" onclick="toggleS('sb-${containerId}-${i}','sc-${containerId}-${i}')">
+        <span class="snum ${s.phase}">${s.num}</span>
+        <span class="stitle">${s.label}${s.banner?`<span class="milestone">${s.phase==='ph-adv'?'NEW':'MVP'}</span>`:''}</span>
+        <span class="smeta">${s.dates} · ${s.pts} pts</span>
+        <span class="chev" id="sc-${containerId}-${i}">▼</span>
+      </div>
+      <div class="sprint-body" id="sb-${containerId}-${i}">
+        <div class="sdates">${s.dates}</div>
+        ${s.banner?`<div class="${s.phase==='ph-adv'?'adv-banner':'mvp-banner'}">${s.banner}</div>`:''}
+        <div class="vbar">
+          <div style="font-size:11px;color:var(--color-text-secondary);min-width:48px">Charge</div>
+          <div class="vbg"><div class="vfill" style="width:${(s.pts/maxPts)*100}%;background:${s.barColor}"></div></div>
+          <div style="font-size:11px;color:var(--color-text-secondary)">${s.pts} pts</div>
+        </div>
+        <div class="slist">
+          ${s.stories.map(st=>`
+            <div class="srow">
+              <span class="srow-id">${st.id}</span>
+              <span class="srow-txt">${st.txt}</span>
+              <span class="srow-pts">${st.pts}pt</span>
+            </div>`).join('')}
+        </div>
+        <div class="sgoal">${s.goal}</div>
+        <div class="cerem-wrap">${s.cerem.map(c=>`<span class="ctag">${c}</span>`).join('')}</div>
+      </div>
+    </div>`).join('');
+  document.getElementById(`sb-${containerId}-0`).classList.add('open');
+  document.getElementById(`sc-${containerId}-0`).style.transform='rotate(180deg)';
+}
+
+function toggleS(bodyId,chevId){
+  const b=document.getElementById(bodyId),c=document.getElementById(chevId);
+  const open=b.classList.toggle('open');
+  c.style.transform=open?'rotate(180deg)':'';
+}
+function showTab(id){
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  event.target.classList.add('active');
+  document.getElementById('panel-'+id).classList.add('active');
+}
+
+renderSprints(mvpSprints,'mvp-sprints');
+renderSprints(fullSprints,'full-sprints');
+</script>

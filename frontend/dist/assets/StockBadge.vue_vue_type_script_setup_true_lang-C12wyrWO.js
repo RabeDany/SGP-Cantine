@@ -1,1 +1,0 @@
-import{d as e,o as n,c,q as i,t as l}from"./index-9f3titOw.js";const m=e({__name:"StockBadge",props:{status:{},label:{}},setup(a){const s={ok:"badge-ok",warning:"badge-warning",critical:"badge-critical"},t={ok:"OK",warning:"Bas",critical:"Critique"};return(o,r)=>(n(),c("span",{class:i(s[a.status])},l(a.label??t[a.status]),3))}});export{m as _};
