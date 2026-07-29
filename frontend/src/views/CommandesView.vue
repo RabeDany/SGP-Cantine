@@ -22,7 +22,9 @@ const dateLivraisonSouhaitee = ref(todayISO())
 const quantites = ref<Record<string, number>>({})
 const validationError = ref('')
 const showReceptionModal = ref(false)
+const showDetailModal = ref(false)
 const receptionBon = ref<BonCommande | null>(null)
+const detailBon = ref<BonCommande | null>(null)
 const receptionLines = ref<Record<string, { quantiteCommandee: number; quantiteRecue: number; commentaire: string }>>({})
 const receptionError = ref('')
 const prefillLoaded = ref(false)
@@ -142,6 +144,16 @@ function openReceptionModal(bon: BonCommande) {
 function closeReceptionModal() {
   showReceptionModal.value = false
   receptionBon.value = null
+}
+
+function openDetailModal(bon: BonCommande) {
+  detailBon.value = bon
+  showDetailModal.value = true
+}
+
+function closeDetailModal() {
+  showDetailModal.value = false
+  detailBon.value = null
 }
 
 function confirmReception() {
@@ -281,6 +293,13 @@ function getUsername(id: string) {
             </td>
             <td class="px-5 py-3 space-y-2">
               <button
+                type="button"
+                class="btn-secondary w-full"
+                @click="openDetailModal(bon)"
+              >
+                👁️ Voir détail
+              </button>
+              <button
                 v-if="canValidateBon(bon)"
                 type="button"
                 class="btn-secondary w-full"
@@ -321,10 +340,47 @@ function getUsername(id: string) {
     </div>
 
     <div
+      v-if="showDetailModal && detailBon"
+      class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4"
+    >
+      <div class="w-full max-w-2xl max-h-[80vh] overflow-hidden rounded-xl bg-white p-6 shadow-lg">
+        <div class="mb-4 flex items-center justify-between">
+          <div>
+            <h2 class="text-lg font-semibold">Détail du bon {{ detailBon.id }}</h2>
+            <p class="text-sm text-gray-500">Fournisseur : {{ getFournisseurName(detailBon.fournisseurId) }}</p>
+          </div>
+          <button type="button" class="text-gray-500 hover:text-gray-900" @click="closeDetailModal">✕</button>
+        </div>
+
+        <div class="max-h-[55vh] space-y-3 overflow-y-auto pr-1">
+          <div
+            v-for="ligne in detailBon.lignes"
+            :key="ligne.denreeId"
+            class="rounded-lg border border-gray-200 p-3"
+          >
+            <div class="flex items-center justify-between gap-3">
+              <div>
+                <p class="font-medium">{{ stockStore.getDenree(ligne.denreeId)?.nom || ligne.denreeId }}</p>
+                <p class="text-xs text-gray-500">Quantité commandée : {{ ligne.quantite }}</p>
+              </div>
+              <span class="rounded-full bg-slate-100 px-2 py-1 text-xs text-slate-700">
+                {{ UNITE_LABELS[stockStore.getDenree(ligne.denreeId)?.unite ?? 'unite'] }}
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <div class="mt-4 flex justify-end">
+          <button type="button" class="btn-secondary" @click="closeDetailModal">Fermer</button>
+        </div>
+      </div>
+    </div>
+
+    <div
       v-if="showReceptionModal && receptionBon"
       class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4"
     >
-      <div class="w-full max-w-3xl overflow-hidden rounded-xl bg-white p-6 shadow-lg">
+      <div class="w-full max-w-3xl max-h-[90vh] overflow-hidden rounded-xl bg-white p-6 shadow-lg">
         <div class="mb-4 flex items-center justify-between">
           <div>
             <h2 class="text-lg font-semibold">Réception du bon {{ receptionBon.id }}</h2>
@@ -333,7 +389,7 @@ function getUsername(id: string) {
           <button type="button" class="text-gray-500 hover:text-gray-900" @click="closeReceptionModal">✕</button>
         </div>
 
-        <div class="space-y-4">
+        <div class="max-h-[65vh] space-y-4 overflow-y-auto pr-2">
           <div
             v-for="ligne in receptionBon.lignes"
             :key="ligne.denreeId"

@@ -1,12 +1,21 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 import { RouterLink, RouterView, useRoute, useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
+import { useCommandeStore } from '@/stores/commande'
+import { useMenuStore } from '@/stores/menu'
+import { usePresenceStore } from '@/stores/presence'
+import { useStockStore } from '@/stores/stock'
 import { ECOLE_INFO } from '@/data/mockData'
 
 const auth = useAuthStore()
 const route = useRoute()
 const router = useRouter()
+const commandeStore = useCommandeStore()
+const menuStore = useMenuStore()
+const presenceStore = usePresenceStore()
+const stockStore = useStockStore()
+const showNotifications = ref(false)
 
 interface NavItem {
   name: string
@@ -39,6 +48,55 @@ function logout() {
   auth.logout()
   router.push('/login')
 }
+
+const notifications = computed(() => {
+  const list: Array<{ id: string; title: string; message: string; type: 'info' | 'warning' | 'danger' }> = []
+  const role = auth.currentUser?.role
+
+  if (role === 'planificateur' && presenceStore.pointageEffectue) {
+    list.push({
+      id: 'pointage-termine',
+      title: 'Pointage finalisé',
+      message: 'L’agent de cantine a terminé le pointage du jour.',
+      type: 'info',
+    })
+  }
+
+  if (role === 'admin' || role === 'gestionnaire') {
+    const pendingValidation = commandeStore.bonsCommande.find(
+      (bon) => bon.statut === 'emitted' && bon.emetteurId !== auth.currentUser?.id,
+    )
+    if (pendingValidation) {
+      list.push({
+        id: `bon-${pendingValidation.id}`,
+        title: 'Signature de bon en attente',
+        message: `Le bon ${pendingValidation.id} attend votre validation.`,
+        type: 'warning',
+      })
+    }
+
+    if (menuStore.denreesManquantes.length) {
+      list.push({
+        id: 'menu-stock',
+        title: 'Stock insuffisant pour le menu',
+        message: `${menuStore.denreesManquantes.length} denrée(s) manquent pour le menu en cours.`,
+        type: 'warning',
+      })
+    }
+
+    const stockCritique = stockStore.denreesAvecStatut.filter((d) => d.status === 'critical')
+    if (stockCritique.length) {
+      list.push({
+        id: `stock-${stockCritique[0].id}`,
+        title: 'Stock critique',
+        message: `${stockCritique[0].nom} est à un niveau critique.`,
+        type: 'danger',
+      })
+    }
+  }
+
+  return list
+})
 </script>
 
 <template>
@@ -94,9 +152,45 @@ function logout() {
               {{ ECOLE_INFO.commune }} · {{ ECOLE_INFO.region }}
             </p>
           </div>
-          <span class="rounded-full bg-amber-50 px-3 py-1 text-xs font-medium text-amber-700">
-            Mode démo · Données mock
-          </span>
+          <div class="flex items-center gap-3">
+            <div class="relative">
+              <button
+                v-if="notifications.length"
+                type="button"
+                class="rounded-full border border-amber-200 bg-amber-50 px-3 py-1 text-xs font-medium text-amber-700"
+                @click="showNotifications = !showNotifications"
+              >
+                🔔 {{ notifications.length }} notif.
+              </button>
+              <div
+                v-if="showNotifications && notifications.length"
+                class="absolute right-0 top-10 z-20 w-80 rounded-xl border border-earth-200 bg-white p-3 shadow-lg"
+              >
+                <div class="mb-2 flex items-center justify-between">
+                  <p class="text-sm font-semibold text-gray-900">Notifications</p>
+                  <button type="button" class="text-xs text-gray-500" @click="showNotifications = false">Fermer</button>
+                </div>
+                <div class="space-y-2">
+                  <div
+                    v-for="notif in notifications"
+                    :key="notif.id"
+                    class="rounded-lg border border-gray-200 p-2 text-sm"
+                    :class="{
+                      'bg-amber-50': notif.type === 'warning',
+                      'bg-red-50': notif.type === 'danger',
+                      'bg-sky-50': notif.type === 'info',
+                    }"
+                  >
+                    <p class="font-medium text-gray-900">{{ notif.title }}</p>
+                    <p class="text-xs text-gray-600">{{ notif.message }}</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <span class="rounded-full bg-amber-50 px-3 py-1 text-xs font-medium text-amber-700">
+              Mode démo · Données mock
+            </span>
+          </div>
         </div>
       </header>
       <div class="flex-1 overflow-y-auto p-8">
