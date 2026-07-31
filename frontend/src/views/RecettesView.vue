@@ -124,8 +124,8 @@ function getDenreeNom(id: string) {
         <div>
           <label class="label">{{ i18n.t('recettes.label.category') }}</label>
           <select v-model="form.categorie" class="input">
-            <option value="dejeuner">{{ i18n.t('recettes.label.category') }} - déjeuner</option>
-            <option value="complement">{{ i18n.t('recettes.label.category') }} - complément</option>
+            <option value="dejeuner">{{ i18n.t('recettes.label.category') }} - {{ i18n.t('recettes.category.dejeuner') }}</option>
+            <option value="complement">{{ i18n.t('recettes.label.category') }} - {{ i18n.t('recettes.category.complement') }}</option>
           </select>
         </div>
       </div>
@@ -139,7 +139,7 @@ function getDenreeNom(id: string) {
           <select v-model="ing.denreeId" class="input flex-1" required>
             <option value="">— {{ i18n.t('general.select') }} —</option>
             <option v-for="d in stockStore.denrees.filter((x) => x.actif)" :key="d.id" :value="d.id">
-              {{ d.nom }}
+              {{ translateForUi(d.nom) }}
             </option>
           </select>
           <input
@@ -169,7 +169,7 @@ function getDenreeNom(id: string) {
         <div class="mb-3 flex items-start justify-between">
           <div>
             <h3 class="font-semibold text-gray-900">{{ translateForUi(r.nom) }}</h3>
-            <p class="text-xs text-gray-500 capitalize">{{ r.categorie.replace('_', ' ') }}</p>
+            <p class="text-xs text-gray-500 capitalize">{{ i18n.t(r.categorie === 'dejeuner' ? 'recettes.category.dejeuner' : 'recettes.category.complement') }}</p>
           </div>
           <div class="flex items-center gap-2">
             <span
@@ -191,7 +191,7 @@ function getDenreeNom(id: string) {
             <span class="text-gray-500">
               {{ formatNumber(ing.quantiteParPortion, 3) }}
               {{ stockStore.getDenree(ing.denreeId) ? UNITE_LABELS[stockStore.getDenree(ing.denreeId)!.unite] : '' }}
-              / portion
+              / {{ i18n.t('recettes.unit.perPortion') }}
             </span>
           </li>
         </ul>

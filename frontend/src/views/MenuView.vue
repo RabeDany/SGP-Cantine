@@ -8,6 +8,7 @@ import { useStockStore } from '@/stores/stock'
 import { useI18nStore } from '@/stores/i18n'
 import { JOURS_SEMAINE, type MenuHebdo, type Recette } from '@/types'
 import { formatDate, formatNumber } from '@/utils/helpers'
+import { translateForUi } from '@/utils/foodTranslator'
 
 const auth = useAuthStore()
 const menuStore = useMenuStore()
@@ -106,7 +107,7 @@ function updatePortions(jour: number, portions: number) {
 
 function getRecetteNom(id: string | null) {
   if (!id) return '—'
-  return menuStore.getRecette(id)?.nom ?? '—'
+  return translateForUi(menuStore.getRecette(id)?.nom ?? '—')
 }
 
 const denreesPrioritaires = computed(() =>
@@ -209,7 +210,7 @@ const recettesDisponibles = computed(() => {
           <div class="font-semibold">{{ i18n.t('menu.stockInsufficient.title') }}</div>
           <ul class="mt-2 list-disc space-y-1 pl-5">
             <li v-for="item in denreesManquantes" :key="item.denreeId">
-              {{ item.denree?.nom ?? item.denreeId }} : {{ i18n.t('menu.stockInsufficient.need') }} {{ formatNumber(item.quantiteNecessaire) }} {{ item.denree?.unite ?? i18n.t('menu.stockInsufficient.units') }}, {{ i18n.t('menu.stockInsufficient.available') }} {{ formatNumber(item.stockDisponible) }}
+              {{ translateForUi(item.denree?.nom ?? item.denreeId) }} : {{ i18n.t('menu.stockInsufficient.need') }} {{ formatNumber(item.quantiteNecessaire) }} {{ item.denree?.unite ?? i18n.t('menu.stockInsufficient.units') }}, {{ i18n.t('menu.stockInsufficient.available') }} {{ formatNumber(item.stockDisponible) }}
             </li>
           </ul>
         </div>
@@ -223,7 +224,7 @@ const recettesDisponibles = computed(() => {
       <p class="mt-1">
         {{ i18n.t('menu.priority.description') }}
         <span class="font-medium">
-          {{ denreesPrioritaires.map((d) => d.nom).join(', ') }}
+          {{ denreesPrioritaires.map((d) => translateForUi(d.nom)).join(', ') }}
         </span>
         {{ i18n.t('menu.priority.followup') }}
       </p>
@@ -252,7 +253,7 @@ const recettesDisponibles = computed(() => {
               :key="r.id"
               :value="r.id"
             >
-              {{ r.nom }}{{ utiliseDenreePrioritaire(r) ? ' ⚠️' : '' }}
+              {{ translateForUi(r.nom) }}{{ utiliseDenreePrioritaire(r) ? ' ⚠️' : '' }}
             </option>
           </select>
         </div>

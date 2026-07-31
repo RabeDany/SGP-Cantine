@@ -359,6 +359,31 @@ export const PLATS_TRADITIONNELS: FoodEntry[] = [
     category: 'plats_traditionnels',
     aliases_fr: ['lasary', 'salade malagasy']
   },
+  {
+    fr: 'riz au haricots rouges ',
+    mlg: 'vary sy tsaramaso mena',
+    category: 'plats_traditionnels',
+    aliases_fr: ['riz et haricots rouges', 'riz aux haricots rouges']
+  }, 
+  {
+    fr :'riz au poisson',
+    mlg: 'vary sy trondro',
+    category: 'plats_traditionnels',
+    aliases_fr: ['riz et poisson', 'riz aux poissons', 'riz poisson']
+
+  },
+  {
+    fr : "riz au laitue",
+    mlg: "vary sy salady",
+    category: 'plats_traditionnels',
+    aliases_fr: ['riz et laitue', 'riz aux laitues', 'riz laitue']
+  }, 
+  {
+    fr : "manioc au haricot",
+    mlg: "mangahazo sy tsaramaso",
+    category: 'plats_traditionnels',
+    aliases_fr: ['manioc et haricots', 'manioc aux haricots', 'manioc haricot']
+  }
 ]
 
 // ============================================================
