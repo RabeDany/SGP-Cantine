@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { buildAttendanceReportData, buildMenuReportData, buildStockReportData, toCsv } from './helpers'
+import { buildAttendanceReportData, buildMenuReportData, buildStockReportData, toCsv, validateInventoryEntries } from './helpers'
 
 describe('report helpers', () => {
   it('buildStockReportData returns monthly summary and low stock items', () => {
@@ -13,9 +13,9 @@ describe('report helpers', () => {
     ], '2026-07')
 
     expect(data.period).toBe('2026-07')
-    expect(data.lowStockItems).toHaveLength(1)
-    expect(data.lowStockItems[0].nom).toBe('Poisson')
-    expect(data.mouvementsCount).toBe(3)
+    expect(data.lowStockItems).toHaveLength(2)
+    expect(data.lowStockItems.map((item) => item.nom)).toEqual(['Riz', 'Poisson'])
+    expect(data.movementsCount).toBe(3)
   })
 
   it('buildAttendanceReportData computes attendance metrics', () => {
@@ -24,9 +24,9 @@ describe('report helpers', () => {
       { id: 'p2', date: '2026-07-21', classeId: null, presents: 160, inscrits: 220, exemptions: 6, userId: 'u4', createdAt: '2026-07-21T10:00:00' },
     ], 220)
 
-    expect(data.averageAttendanceRate).toBe(76.4)
+    expect(data.averageAttendanceRate).toBe(77.3)
     expect(data.totalMealsServed).toBe(340)
-    expect(data.absentRate).toBe(23.6)
+    expect(data.absentRate).toBe(22.7)
   })
 
   it('buildMenuReportData aggregates ingredients by week', () => {
@@ -51,9 +51,22 @@ describe('report helpers', () => {
       220,
     )
 
-    expect(data.totalPortions).toBe(180)
+    expect(data.totalPortions).toBe(220)
     expect(data.ingredients[0].quantite).toBe(0.15 * 100 + 0.1 * 80)
     expect(data.mealsByDay).toHaveLength(2)
+  })
+
+  it('validateInventoryEntries flags high variance and requires a comment', () => {
+    const rows = validateInventoryEntries([
+      { denreeId: 'd1', nom: 'Riz', unite: 'kg', stockTheorique: 100, stockPhysique: 96, commentaire: '' },
+      { denreeId: 'd2', nom: 'Poisson', unite: 'kg', stockTheorique: 100, stockPhysique: 70, commentaire: '' },
+    ])
+
+    expect(rows[0].ecart).toBe(-4)
+    expect(rows[0].tauxEcartPct).toBe(4)
+    expect(rows[0].requiresComment).toBe(false)
+    expect(rows[1].requiresComment).toBe(true)
+    expect(rows[1].errors).toContain('Un commentaire est obligatoire si l’écart dépasse 5 % du stock théorique.')
   })
 
   it('toCsv renders a simple csv payload', () => {

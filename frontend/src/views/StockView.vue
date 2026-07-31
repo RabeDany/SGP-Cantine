@@ -29,6 +29,10 @@ const filtered = computed(() => {
   return list
 })
 
+const canCreateBon = computed(() =>
+  filtered.value.some((denree) => Math.max(0, denree.seuilAlerte - denree.stockActuel) > 0),
+)
+
 function openCreateBonModal() {
   creationError.value = ''
   commandeQuantites.value = {}
@@ -88,10 +92,14 @@ function getDenreeName(denreeId: string) {
         v-if="auth.canAccess('commandes') && ['admin', 'gestionnaire'].includes(auth.currentUser?.role ?? '')"
         type="button"
         class="btn-primary"
+        :disabled="!canCreateBon"
         @click="openCreateBonModal"
       >
         Créer bon depuis les besoins en stock
       </button>
+    </div>
+    <div v-if="auth.canAccess('commandes') && ['admin', 'gestionnaire'].includes(auth.currentUser?.role ?? '') && !canCreateBon" class="mb-4 rounded-lg border border-gray-200 bg-gray-50 px-4 py-3 text-sm text-gray-600">
+      Aucun besoin de commande n’est détecté pour les denrées sélectionnées.
     </div>
 
     <div class="mb-4 flex gap-4 text-xs text-gray-500">
@@ -149,6 +157,9 @@ function getDenreeName(denreeId: string) {
               <span v-else class="text-gray-400">—</span>
             </td>
             <td class="px-5 py-3"><StockBadge :status="d.status" /></td>
+          </tr>
+          <tr v-if="!filtered.length">
+            <td colspan="6" class="px-5 py-6 text-center text-gray-500">Aucune denrée ne correspond aux filtres.</td>
           </tr>
         </tbody>
       </table>

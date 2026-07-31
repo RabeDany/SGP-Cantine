@@ -113,7 +113,28 @@ function exportGlobalJson() {
 }
 
 function printCurrentSection() {
+  const section = document.getElementById('menu-print-section')
+  if (!section) {
+    window.print()
+    return
+  }
+
+  const previousTitle = document.title
+  document.title = 'Fiche de menu hebdomadaire - SGP-Cantine'
+
+  const printContents = section.innerHTML
+  const originalContents = document.body.innerHTML
+
+  document.body.innerHTML = `
+    <div style="padding: 24px; font-family: Arial, sans-serif; color: #111827;">
+      ${printContents}
+    </div>
+  `
+
   window.print()
+  document.body.innerHTML = originalContents
+  document.title = previousTitle
+  window.location.reload()
 }
 </script>
 
@@ -229,7 +250,7 @@ function printCurrentSection() {
       </section>
     </div>
 
-    <section class="mt-6 card print-card">
+    <section id="menu-print-section" class="mt-6 card print-card">
       <div class="mb-4 flex items-center justify-between">
         <div>
           <h2 class="text-lg font-semibold text-gray-900">Fiche de menu hebdomadaire — {{ formatDate(menuReport.week) }}</h2>
@@ -295,6 +316,12 @@ function printCurrentSection() {
   .btn-primary,
   .page-header {
     display: none !important;
+  }
+
+  .print-card {
+    border: none !important;
+    box-shadow: none !important;
+    padding: 0 !important;
   }
 }
 </style>

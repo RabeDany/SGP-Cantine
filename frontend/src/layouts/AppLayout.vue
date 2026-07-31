@@ -27,6 +27,7 @@ interface NavItem {
 const allNav: NavItem[] = [
   { name: 'Tableau de bord', to: '/', icon: '📊', module: 'dashboard' },
   { name: 'Stock', to: '/stock', icon: '📦', module: 'stock' },
+  { name: 'Inventaire', to: '/inventaire', icon: '🧾', module: 'stock' },
   { name: 'Denrées', to: '/denrees', icon: '🌾', module: 'denrees' },
   { name: 'Mouvements', to: '/mouvements', icon: '📝', module: 'mouvements' },
   { name: 'Recettes', to: '/recettes', icon: '🍲', module: 'recettes' },
