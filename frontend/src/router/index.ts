@@ -27,6 +27,12 @@ const router = createRouter({
           meta: { module: 'stock' },
         },
         {
+          path: 'inventaire',
+          name: 'inventaire',
+          component: () => import('@/views/InventaireView.vue'),
+          meta: { module: 'stock', roles: ['admin', 'gestionnaire'] },
+        },
+        {
           path: 'denrees',
           name: 'denrees',
           component: () => import('@/views/DenreesView.vue'),

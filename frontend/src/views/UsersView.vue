@@ -2,9 +2,11 @@
 import { ref } from 'vue'
 import PageHeader from '@/components/PageHeader.vue'
 import { useAuthStore } from '@/stores/auth'
+import { useI18nStore } from '@/stores/i18n'
 import { ROLE_LABELS, type UserRole } from '@/types'
 
 const auth = useAuthStore()
+const i18n = useI18nStore()
 const showForm = ref(false)
 const success = ref('')
 
@@ -32,39 +34,39 @@ function submit() {
 <template>
   <div>
     <PageHeader
-      title="Gestion des utilisateurs"
-      subtitle="Création de comptes et attribution des 4 rôles (US-10)"
+      :title="i18n.t('users.title')"
+      :subtitle="i18n.t('users.subtitle')"
     />
 
     <div class="mb-4 flex justify-between">
       <p v-if="success" class="text-sm text-green-700">{{ success }}</p>
       <div v-else />
       <button type="button" class="btn-primary" @click="showForm = !showForm">
-        {{ showForm ? 'Annuler' : '+ Nouvel utilisateur' }}
+        {{ showForm ? i18n.t('general.cancel') : i18n.t('users.button.new') }}
       </button>
     </div>
 
     <form v-if="showForm" class="card mb-6 grid gap-4 sm:grid-cols-2" @submit.prevent="submit">
       <div>
-        <label class="label">Identifiant</label>
+        <label class="label">{{ i18n.t('users.label.username') }}</label>
         <input v-model="form.username" class="input" required />
       </div>
       <div>
-        <label class="label">Mot de passe</label>
+        <label class="label">{{ i18n.t('users.label.password') }}</label>
         <input v-model="form.password" type="password" class="input" required />
       </div>
       <div>
-        <label class="label">Nom complet</label>
+        <label class="label">{{ i18n.t('users.label.name') }}</label>
         <input v-model="form.nom" class="input" required />
       </div>
       <div>
-        <label class="label">Rôle</label>
+        <label class="label">{{ i18n.t('users.label.role') }}</label>
         <select v-model="form.role" class="input">
           <option v-for="(label, key) in ROLE_LABELS" :key="key" :value="key">{{ label }}</option>
         </select>
       </div>
       <div class="sm:col-span-2">
-        <button type="submit" class="btn-primary">Créer le compte</button>
+        <button type="submit" class="btn-primary">{{ i18n.t('users.button.create') }}</button>
       </div>
     </form>
 
@@ -72,11 +74,11 @@ function submit() {
       <table class="w-full text-sm">
         <thead class="bg-gray-50">
           <tr class="text-left text-xs text-gray-500">
-            <th class="px-5 py-3">Nom</th>
-            <th class="px-5 py-3">Identifiant</th>
-            <th class="px-5 py-3">Rôle</th>
-            <th class="px-5 py-3">Statut</th>
-            <th class="px-5 py-3">Actions</th>
+            <th class="px-5 py-3">{{ i18n.t('users.table.name') }}</th>
+            <th class="px-5 py-3">{{ i18n.t('users.table.username') }}</th>
+            <th class="px-5 py-3">{{ i18n.t('users.table.role') }}</th>
+            <th class="px-5 py-3">{{ i18n.t('users.table.status') }}</th>
+            <th class="px-5 py-3">{{ i18n.t('users.table.action') }}</th>
           </tr>
         </thead>
         <tbody>
@@ -91,7 +93,7 @@ function submit() {
                 class="rounded-full px-2 py-0.5 text-xs font-medium"
                 :class="u.actif ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'"
               >
-                {{ u.actif ? 'Actif' : 'Inactif' }}
+                {{ u.actif ? i18n.t('users.status.active') : i18n.t('users.status.inactive') }}
               </span>
             </td>
             <td class="px-5 py-3">
@@ -101,9 +103,9 @@ function submit() {
                 class="text-xs text-brand-600 hover:underline"
                 @click="auth.toggleUserActive(u.id)"
               >
-                {{ u.actif ? 'Désactiver' : 'Activer' }}
+                {{ u.actif ? i18n.t('users.action.deactivate') : i18n.t('users.action.activate') }}
               </button>
-              <span v-else class="text-xs text-gray-400">Compte courant</span>
+              <span v-else class="text-xs text-gray-400">{{ i18n.t('users.action.currentAccount') }}</span>
             </td>
           </tr>
         </tbody>
@@ -111,8 +113,7 @@ function submit() {
     </div>
 
     <div class="mt-6 rounded-lg border border-blue-200 bg-blue-50 px-4 py-3 text-sm text-blue-800">
-      <strong>US-11 :</strong> Chaque rôle n'accède qu'aux modules autorisés après connexion.
-      Testez avec les comptes démo sur la page de login.
+      <strong>US-11 :</strong> {{ i18n.t('users.note') }}
     </div>
   </div>
 </template>

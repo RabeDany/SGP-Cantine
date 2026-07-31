@@ -2,10 +2,12 @@
 import { ref } from 'vue'
 import PageHeader from '@/components/PageHeader.vue'
 import { useAuthStore } from '@/stores/auth'
+import { useI18nStore } from '@/stores/i18n'
 import { usePresenceStore } from '@/stores/presence'
 import { formatDate } from '@/utils/helpers'
 
 const auth = useAuthStore()
+const i18n = useI18nStore()
 const presenceStore = usePresenceStore()
 
 const mode = ref<'global' | 'classe'>('global')
@@ -60,8 +62,8 @@ function updateClasse(classeId: string, presents: number) {
 <template>
   <div>
     <PageHeader
-      title="Présences à la cantine"
-      subtitle="Pointage quotidien par classe ou global (US-09)"
+      :title="i18n.t('presences.title')"
+      :subtitle="i18n.t('presences.subtitle')"
     />
 
     <div class="mb-4 flex gap-2">
@@ -71,7 +73,7 @@ function updateClasse(classeId: string, presents: number) {
         :class="mode === 'global' ? 'bg-brand-600 text-white' : 'bg-white ring-1 ring-gray-200'"
         @click="mode = 'global'"
       >
-        Pointage global
+        {{ i18n.t('presences.tab.global') }}
       </button>
       <button
         type="button"
@@ -79,23 +81,23 @@ function updateClasse(classeId: string, presents: number) {
         :class="mode === 'classe' ? 'bg-brand-600 text-white' : 'bg-white ring-1 ring-gray-200'"
         @click="mode = 'classe'"
       >
-        Par classe
+        {{ i18n.t('presences.tab.classe') }}
       </button>
     </div>
 
     <div class="mb-4 grid gap-4 sm:grid-cols-3">
       <div class="card">
-        <p class="text-xs text-gray-500">Inscrits cantine</p>
+        <p class="text-xs text-gray-500">{{ i18n.t('presences.card.inscrits') }}</p>
         <p class="text-2xl font-bold">{{ presenceStore.totalInscrits }}</p>
       </div>
       <div class="card">
-        <p class="text-xs text-gray-500">Présents aujourd'hui</p>
+        <p class="text-xs text-gray-500">{{ i18n.t('presences.card.presents') }}</p>
         <p class="text-2xl font-bold text-brand-700">
-          {{ presenceStore.pointageEffectue ? presenceStore.totalPresentsAujourdhui : '—' }}
+          {{ presenceStore.pointageEffectue ? presenceStore.totalPresentsAujourdhui : i18n.t('general.none') }}
         </p>
       </div>
       <div class="card">
-        <p class="text-xs text-gray-500">Taux présence</p>
+        <p class="text-xs text-gray-500">{{ i18n.t('presences.card.rate') }}</p>
         <p class="text-2xl font-bold">
           {{
             presenceStore.pointageEffectue
@@ -112,26 +114,26 @@ function updateClasse(classeId: string, presents: number) {
     <p v-if="error" class="mb-4 rounded-lg bg-red-50 px-4 py-2 text-sm text-red-800">{{ error }}</p>
 
     <form v-if="mode === 'global'" class="card max-w-md space-y-4" @submit.prevent="submitGlobal">
-      <h3 class="font-semibold">Pointage global du jour</h3>
+      <h3 class="font-semibold">{{ i18n.t('presences.form.global') }}</h3>
       <div>
-        <label class="label">Nombre d'élèves présents</label>
+        <label class="label">{{ i18n.t('presences.label.presentStudents') }}</label>
         <input v-model.number="globalForm.presents" type="number" min="0" class="input" required />
       </div>
       <div>
-        <label class="label">Exemptions (malades, repas gratuit…)</label>
+        <label class="label">{{ i18n.t('presences.label.exemptions') }}</label>
         <input v-model.number="globalForm.exemptions" type="number" min="0" class="input" />
       </div>
-      <button type="submit" class="btn-primary">Enregistrer le pointage</button>
+      <button type="submit" class="btn-primary">{{ i18n.t('presences.form.save') }}</button>
     </form>
 
     <div v-else class="card overflow-x-auto p-0">
       <table class="w-full text-sm">
         <thead class="bg-gray-50">
           <tr class="text-left text-xs text-gray-500">
-            <th class="px-5 py-3">Classe</th>
-            <th class="px-5 py-3">Inscrits</th>
-            <th class="px-5 py-3">Présents</th>
-            <th class="px-5 py-3">Action</th>
+            <th class="px-5 py-3">{{ i18n.t('presences.table.class') }}</th>
+            <th class="px-5 py-3">{{ i18n.t('presences.table.inscrits') }}</th>
+            <th class="px-5 py-3">{{ i18n.t('presences.table.presents') }}</th>
+            <th class="px-5 py-3">{{ i18n.t('presences.table.action') }}</th>
           </tr>
         </thead>
         <tbody>
@@ -151,7 +153,7 @@ function updateClasse(classeId: string, presents: number) {
               />
             </td>
             <td class="px-5 py-3 text-xs text-gray-500">
-              {{ pointage ? 'Enregistré' : 'Non saisi' }}
+              {{ pointage ? i18n.t('presences.status.saved') : i18n.t('presences.status.notRecorded') }}
             </td>
           </tr>
         </tbody>
@@ -159,7 +161,7 @@ function updateClasse(classeId: string, presents: number) {
     </div>
 
     <section class="mt-8 card">
-      <h3 class="mb-3 font-semibold">Historique récent</h3>
+      <h3 class="mb-3 font-semibold">{{ i18n.t('presences.history.title') }}</h3>
       <ul class="space-y-2 text-sm">
         <li
           v-for="p in presenceStore.pointages.slice(0, 7)"

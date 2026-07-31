@@ -6,6 +6,7 @@ import { useAuthStore } from '@/stores/auth'
 import { useCommandeStore } from '@/stores/commande'
 import { useMenuStore } from '@/stores/menu'
 import { useStockStore } from '@/stores/stock'
+import { useI18nStore } from '@/stores/i18n'
 import { UNITE_LABELS, type BonCommande, type LigneReceptionBonCommande } from '@/types'
 import { todayISO } from '@/utils/helpers'
 
@@ -15,6 +16,7 @@ const stockStore = useStockStore()
 const menuStore = useMenuStore()
 const route = useRoute()
 const router = useRouter()
+const i18n = useI18nStore()
 
 const fournisseurId = ref('')
 const dateCommande = ref(todayISO())
@@ -193,7 +195,11 @@ function confirmReception() {
 }
 
 function formatStatut(statut: string) {
-  return statut === 'emitted' ? 'Émis' : statut === 'validated' ? 'Validé' : 'Réceptionné'
+  return statut === 'emitted'
+    ? i18n.t('commandes.status.emitted')
+    : statut === 'validated'
+    ? i18n.t('commandes.status.validated')
+    : i18n.t('commandes.status.received')
 }
 
 function getFournisseurName(id: string) {
@@ -208,26 +214,26 @@ function getUsername(id: string) {
 <template>
   <div>
     <PageHeader
-      title="Bons de commande"
-      subtitle="Créer un bon de commande à partir de la liste de courses et suivre son statut."
+      :title="i18n.t('commandes.title')"
+      :subtitle="i18n.t('commandes.subtitle')"
     />
 
     <div class="card mb-6 grid gap-4 lg:grid-cols-3">
       <div>
-        <label class="label">Fournisseur</label>
+        <label class="label">{{ i18n.t('commandes.selectSupplier') }}</label>
         <select v-model="fournisseurId" class="input">
-          <option value="">— Sélectionner —</option>
+          <option value="">{{ i18n.t('commandes.selectSupplierPlaceholder') }}</option>
           <option v-for="f in fournisseursActifs" :key="f.id" :value="f.id">
             {{ f.nom }}
           </option>
         </select>
       </div>
       <div>
-        <label class="label">Date commande</label>
+        <label class="label">{{ i18n.t('commandes.orderDate') }}</label>
         <input v-model="dateCommande" type="date" class="input" />
       </div>
       <div>
-        <label class="label">Date livraison souhaitée</label>
+        <label class="label">{{ i18n.t('commandes.deliveryDate') }}</label>
         <input v-model="dateLivraisonSouhaitee" type="date" class="input" />
       </div>
     </div>
@@ -254,7 +260,7 @@ function getUsername(id: string) {
       </div>
       <div class="mt-4 flex justify-end">
         <button type="button" class="btn-primary" @click="submitBonCommande">
-          Enregistrer le bon de commande
+          {{ i18n.t('commandes.saveOrder') }}
         </button>
       </div>
     </div>
@@ -263,13 +269,13 @@ function getUsername(id: string) {
       <table class="w-full text-sm">
         <thead class="bg-gray-50">
           <tr class="text-left text-xs text-gray-500">
-            <th class="px-5 py-3">Réf</th>
-            <th class="px-5 py-3">Fournisseur</th>
-            <th class="px-5 py-3">Date</th>
-            <th class="px-5 py-3">Livraison</th>
-            <th class="px-5 py-3">Lignes</th>
-            <th class="px-5 py-3">Statut</th>
-            <th class="px-5 py-3">Action</th>
+            <th class="px-5 py-3">{{ i18n.t('commandes.table.ref') }}</th>
+            <th class="px-5 py-3">{{ i18n.t('commandes.table.supplier') }}</th>
+            <th class="px-5 py-3">{{ i18n.t('commandes.table.date') }}</th>
+            <th class="px-5 py-3">{{ i18n.t('commandes.table.delivery') }}</th>
+            <th class="px-5 py-3">{{ i18n.t('commandes.table.lines') }}</th>
+            <th class="px-5 py-3">{{ i18n.t('commandes.table.status') }}</th>
+            <th class="px-5 py-3">{{ i18n.t('commandes.table.action') }}</th>
           </tr>
         </thead>
         <tbody>
@@ -297,7 +303,7 @@ function getUsername(id: string) {
                 class="btn-secondary w-full"
                 @click="openDetailModal(bon)"
               >
-                👁️ Voir détail
+                👁️ {{ i18n.t('commandes.detail') }}
               </button>
               <button
                 v-if="canValidateBon(bon)"
@@ -305,7 +311,7 @@ function getUsername(id: string) {
                 class="btn-secondary w-full"
                 @click="validerBon(bon.id)"
               >
-                Valider
+                {{ i18n.t('commandes.validate') }}
               </button>
               <button
                 v-else-if="bon.statut === 'emitted'"
@@ -313,7 +319,7 @@ function getUsername(id: string) {
                 class="btn-disabled w-full"
                 disabled
               >
-                En attente d'un validateur
+                {{ i18n.t('commandes.waitingValidation') }}
               </button>
               <button
                 v-if="canReceiveBon(bon)"
@@ -321,7 +327,7 @@ function getUsername(id: string) {
                 class="btn-primary w-full"
                 @click="openReceptionModal(bon)"
               >
-                Réception
+                {{ i18n.t('commandes.reception') }}
               </button>
               <div v-if="bon.statut === 'received'" class="text-xs text-gray-600">
                 Qté reçue: {{ bon.quantiteRecue }} · Écart: {{ bon.ecart }}

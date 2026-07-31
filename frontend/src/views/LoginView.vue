@@ -2,10 +2,12 @@
 import { ref } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
+import { useI18nStore } from '@/stores/i18n'
 
 const auth = useAuthStore()
 const router = useRouter()
 const route = useRoute()
+const i18n = useI18nStore()
 
 const username = ref('')
 const password = ref('')
@@ -45,20 +47,20 @@ async function submit() {
         <div class="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-brand-600 text-3xl text-white shadow-lg">
           🍽
         </div>
-        <h1 class="text-2xl font-bold text-gray-900">SGP-Cantine</h1>
+        <h1 class="text-2xl font-bold text-gray-900">{{ i18n.t('login.title') }}</h1>
         <p class="mt-2 text-sm text-gray-600">
-          Gestion des stocks et planification des repas<br />
+          {{ i18n.t('login.subtitle') }}<br />
           <span class="text-brand-700">Androy · Anosy · Madagascar</span>
         </p>
       </div>
 
       <form class="card space-y-4" @submit.prevent="submit">
         <div>
-          <label class="label" for="username">Identifiant</label>
+          <label class="label" for="username">{{ i18n.t('login.username') }}</label>
           <input id="username" v-model="username" class="input" autocomplete="username" required />
         </div>
         <div>
-          <label class="label" for="password">Mot de passe</label>
+          <label class="label" for="password">{{ i18n.t('login.password') }}</label>
           <input
             id="password"
             v-model="password"
@@ -72,13 +74,13 @@ async function submit() {
         <p v-if="error" class="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{{ error }}</p>
 
         <button type="submit" class="btn-primary w-full" :disabled="loading">
-          {{ loading ? 'Connexion…' : 'Se connecter' }}
+          {{ loading ? 'Connexion…' : i18n.t('login.connect') }}
         </button>
       </form>
 
       <div class="mt-6 card">
         <p class="mb-3 text-xs font-semibold uppercase tracking-wide text-gray-500">
-          Comptes démo (MVP)
+          {{ i18n.t('login.demoAccounts') }}
         </p>
         <div class="space-y-2">
           <button

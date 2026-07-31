@@ -2,6 +2,7 @@
 import { ref } from 'vue'
 import PageHeader from '@/components/PageHeader.vue'
 import { useAuthStore } from '@/stores/auth'
+import { useI18nStore } from '@/stores/i18n'
 import { useMenuStore } from '@/stores/menu'
 import { useStockStore } from '@/stores/stock'
 import {
@@ -17,6 +18,7 @@ import { formatDate, formatNumber, todayISO } from '@/utils/helpers'
 const auth = useAuthStore()
 const stockStore = useStockStore()
 const menuStore = useMenuStore()
+const i18n = useI18nStore()
 
 const tab = ref<'entree' | 'sortie' | 'historique'>('entree')
 const message = ref('')
@@ -87,16 +89,16 @@ function getDenreeNom(id: string) {
 <template>
   <div>
     <PageHeader
-      title="Mouvements de stock"
-      subtitle="Entrées (US-02) et sorties avec blocage si stock insuffisant (US-03)"
+      :title="i18n.t('mouvements.title')"
+      :subtitle="i18n.t('mouvements.subtitle')"
     />
 
     <div class="mb-4 flex gap-2">
       <button
         v-for="t in [
-          { id: 'entree', label: 'Entrée' },
-          { id: 'sortie', label: 'Sortie' },
-          { id: 'historique', label: 'Historique' },
+          { id: 'entree', label: i18n.t('mouvements.tab.entree') },
+          { id: 'sortie', label: i18n.t('mouvements.tab.sortie') },
+          { id: 'historique', label: i18n.t('mouvements.tab.historique') },
         ]"
         :key="t.id"
         type="button"
@@ -117,50 +119,50 @@ function getDenreeNom(id: string) {
 
     <form v-if="tab === 'entree'" class="card mb-6 grid gap-4 sm:grid-cols-2" @submit.prevent="submitEntree">
       <div class="sm:col-span-2">
-        <label class="label">Denrée</label>
+        <label class="label">{{ i18n.t('mouvements.label.entry') }}</label>
         <select v-model="entreeForm.denreeId" class="input" required>
-          <option value="">— Sélectionner —</option>
+          <option value="">— {{ i18n.t('general.select') }} —</option>
           <option v-for="d in stockStore.denrees.filter((x) => x.actif)" :key="d.id" :value="d.id">
             {{ d.nom }} ({{ formatNumber(d.stockActuel) }} {{ UNITE_LABELS[d.unite] }})
           </option>
         </select>
       </div>
       <div>
-        <label class="label">Date</label>
+        <label class="label">{{ i18n.t('general.date') }}</label>
         <input v-model="entreeForm.date" type="date" class="input" required />
       </div>
       <div>
-        <label class="label">Quantité</label>
+        <label class="label">{{ i18n.t('general.quantity') }}</label>
         <input v-model.number="entreeForm.quantite" type="number" min="0.01" step="0.01" class="input" required />
       </div>
       <div>
-        <label class="label">Provenance</label>
+        <label class="label">{{ i18n.t('mouvements.label.origin') }}</label>
         <select v-model="entreeForm.provenance" class="input">
           <option v-for="(label, key) in PROVENANCE_LABELS" :key="key" :value="key">{{ label }}</option>
         </select>
       </div>
       <div>
-        <label class="label">Prix d'achat (Ar, optionnel)</label>
+        <label class="label">{{ i18n.t('mouvements.label.purchasePrice') }}</label>
         <input v-model.number="entreeForm.prixAchat" type="number" min="0" class="input" />
       </div>
       <div>
-        <label class="label">N° bon d'entrée</label>
-        <input v-model="entreeForm.numeroBon" class="input" placeholder="BE-2026-001" />
+        <label class="label">{{ i18n.t('mouvements.label.receiptNumber') }}</label>
+        <input v-model="entreeForm.numeroBon" class="input" :placeholder="i18n.t('mouvements.placeholder.receipt')" />
       </div>
       <div>
-        <label class="label">Nouvelle date péremption</label>
+        <label class="label">{{ i18n.t('mouvements.label.expirationDate') }}</label>
         <input v-model="entreeForm.datePeremption" type="date" class="input" />
       </div>
       <div class="sm:col-span-2">
-        <button type="submit" class="btn-primary">Enregistrer l'entrée</button>
+        <button type="submit" class="btn-primary">{{ i18n.t('mouvements.button.submitEntry') }}</button>
       </div>
     </form>
 
     <form v-if="tab === 'sortie'" class="card mb-6 grid gap-4 sm:grid-cols-2" @submit.prevent="submitSortie">
       <div class="sm:col-span-2">
-        <label class="label">Denrée</label>
+        <label class="label">{{ i18n.t('mouvements.label.exit') }}</label>
         <select v-model="sortieForm.denreeId" class="input" required>
-          <option value="">— Sélectionner —</option>
+          <option value="">— {{ i18n.t('general.select') }} —</option>
           <option v-for="d in stockStore.denrees.filter((x) => x.actif)" :key="d.id" :value="d.id">
             {{ d.nom }} ({{ formatNumber(d.stockActuel) }} {{ UNITE_LABELS[d.unite] }})
           </option>
@@ -175,13 +177,13 @@ function getDenreeNom(id: string) {
         <input v-model.number="sortieForm.quantite" type="number" min="0.01" step="0.01" class="input" required />
       </div>
       <div>
-        <label class="label">Motif</label>
+        <label class="label">{{ i18n.t('mouvements.label.reason') }}</label>
         <select v-model="sortieForm.motif" class="input">
           <option v-for="(label, key) in MOTIF_LABELS" :key="key" :value="key">{{ label }}</option>
         </select>
       </div>
       <div>
-        <label class="label">Menu / recette associée</label>
+        <label class="label">{{ i18n.t('mouvements.label.menuRecipe') }}</label>
         <select v-model="sortieForm.menuId" class="input">
           <option value="">— Aucun lien —</option>
           <option
@@ -195,11 +197,11 @@ function getDenreeNom(id: string) {
         </select>
       </div>
       <div class="sm:col-span-2">
-        <label class="label">Commentaire {{ sortieForm.motif === 'avarie' ? '(obligatoire)' : '' }}</label>
+        <label class="label">{{ i18n.t('general.comment') }} {{ sortieForm.motif === 'avarie' ? `(${i18n.t('mouvements.label.required')})` : '' }}</label>
         <textarea v-model="sortieForm.commentaire" class="input" rows="2" />
       </div>
       <div class="sm:col-span-2">
-        <button type="submit" class="btn-primary">Enregistrer la sortie</button>
+        <button type="submit" class="btn-primary">{{ i18n.t('mouvements.button.submitExit') }}</button>
       </div>
     </form>
 
@@ -207,11 +209,11 @@ function getDenreeNom(id: string) {
       <table class="w-full text-sm">
         <thead class="bg-gray-50">
           <tr class="text-left text-xs text-gray-500">
-            <th class="px-5 py-3">Date</th>
-            <th class="px-5 py-3">Type</th>
-            <th class="px-5 py-3">Denrée</th>
-            <th class="px-5 py-3">Quantité</th>
-            <th class="px-5 py-3">Détail</th>
+            <th class="px-5 py-3">{{ i18n.t('general.date') }}</th>
+            <th class="px-5 py-3">{{ i18n.t('mouvements.table.type') }}</th>
+            <th class="px-5 py-3">{{ i18n.t('fournisseurs.table.name') }}</th>
+            <th class="px-5 py-3">{{ i18n.t('general.quantity') }}</th>
+            <th class="px-5 py-3">{{ i18n.t('general.comment') }}</th>
           </tr>
         </thead>
         <tbody>
@@ -222,7 +224,7 @@ function getDenreeNom(id: string) {
                 class="rounded-full px-2 py-0.5 text-xs font-medium"
                 :class="m.type === 'entree' ? 'bg-green-100 text-green-800' : 'bg-orange-100 text-orange-800'"
               >
-                {{ m.type === 'entree' ? 'Entrée' : 'Sortie' }}
+                {{ m.type === 'entree' ? i18n.t('mouvements.status.entry') : i18n.t('mouvements.status.exit') }}
               </span>
             </td>
             <td class="px-5 py-3 font-medium">{{ getDenreeNom(m.denreeId) }}</td>
@@ -235,7 +237,7 @@ function getDenreeNom(id: string) {
               <template v-else>
                 {{ m.motif ? MOTIF_LABELS[m.motif] : '' }}
                 <template v-if="m.menuId">
-                  · Recette liée : {{ menuStore.getRecette(m.menuId)?.nom ?? m.menuId }}
+                  · {{ i18n.t('mouvements.detail.linkedRecipe') }} : {{ menuStore.getRecette(m.menuId)?.nom ?? m.menuId }}
                 </template>
                 {{ m.commentaire ? `· ${m.commentaire}` : '' }}
               </template>

@@ -2,6 +2,7 @@
 import { ref } from 'vue'
 import PageHeader from '@/components/PageHeader.vue'
 import { useStockStore } from '@/stores/stock'
+import { useI18nStore } from '@/stores/i18n'
 import {
   CATEGORIE_LABELS,
   UNITE_LABELS,
@@ -11,6 +12,7 @@ import {
 import { formatNumber, todayISO } from '@/utils/helpers'
 
 const stockStore = useStockStore()
+const i18n = useI18nStore()
 const showForm = ref(false)
 const success = ref('')
 
@@ -42,7 +44,7 @@ function submit() {
     ...form.value,
     datePeremption: form.value.datePeremption || undefined,
   })
-  success.value = `Denrée « ${form.value.nom} » créée.`
+  success.value = i18n.t('denrees.success.created', { name: form.value.nom })
   resetForm()
   showForm.value = false
   setTimeout(() => (success.value = ''), 3000)
@@ -52,25 +54,25 @@ function submit() {
 <template>
   <div>
     <PageHeader
-      title="Référentiel des denrées"
-      subtitle="Création et gestion des fiches denrées (US-01)"
+      :title="i18n.t('denrees.title')"
+      :subtitle="i18n.t('denrees.subtitle')"
     />
 
     <div class="mb-4 flex items-center justify-between">
       <p v-if="success" class="text-sm text-green-700">{{ success }}</p>
       <div v-else />
       <button type="button" class="btn-primary" @click="showForm = !showForm">
-        {{ showForm ? 'Annuler' : '+ Nouvelle denrée' }}
+        {{ showForm ? i18n.t('general.cancel') : i18n.t('denrees.button.new') }}
       </button>
     </div>
 
     <form v-if="showForm" class="card mb-6 grid gap-4 sm:grid-cols-2" @submit.prevent="submit">
       <div class="sm:col-span-2">
-        <label class="label">Nom</label>
-        <input v-model="form.nom" class="input" required placeholder="Ex. Riz blanc" />
+        <label class="label">{{ i18n.t('denrees.label.name') }}</label>
+        <input v-model="form.nom" class="input" required :placeholder="i18n.t('denrees.placeholder.example')" />
       </div>
       <div>
-        <label class="label">Catégorie</label>
+        <label class="label">{{ i18n.t('denrees.label.category') }}</label>
         <select v-model="form.categorie" class="input">
           <option v-for="(label, key) in CATEGORIE_LABELS" :key="key" :value="key">
             {{ label }}
@@ -78,7 +80,7 @@ function submit() {
         </select>
       </div>
       <div>
-        <label class="label">Unité</label>
+        <label class="label">{{ i18n.t('denrees.label.unit') }}</label>
         <select v-model="form.unite" class="input">
           <option v-for="(label, key) in UNITE_LABELS" :key="key" :value="key">
             {{ label }}
@@ -86,23 +88,23 @@ function submit() {
         </select>
       </div>
       <div>
-        <label class="label">Seuil d'alerte</label>
+        <label class="label">{{ i18n.t('denrees.label.alertThreshold') }}</label>
         <input v-model.number="form.seuilAlerte" type="number" min="0" step="0.1" class="input" required />
       </div>
       <div>
-        <label class="label">Durée conservation (jours)</label>
+        <label class="label">{{ i18n.t('denrees.label.shelfLife') }}</label>
         <input v-model.number="form.dureeConservationJours" type="number" min="1" class="input" required />
       </div>
       <div>
-        <label class="label">Date péremption (optionnel)</label>
+        <label class="label">{{ i18n.t('denrees.label.expirationDate') }}</label>
         <input v-model="form.datePeremption" type="date" class="input" :min="todayISO()" />
       </div>
       <div>
-        <label class="label">Stock initial</label>
+        <label class="label">{{ i18n.t('denrees.label.initialStock') }}</label>
         <input v-model.number="form.stockInitial" type="number" min="0" step="0.1" class="input" />
       </div>
       <div class="sm:col-span-2">
-        <button type="submit" class="btn-primary">Enregistrer la fiche</button>
+        <button type="submit" class="btn-primary">{{ i18n.t('denrees.form.submit') }}</button>
       </div>
     </form>
 
@@ -110,12 +112,12 @@ function submit() {
       <table class="w-full text-sm">
         <thead class="bg-gray-50">
           <tr class="text-left text-xs text-gray-500">
-            <th class="px-5 py-3">Nom</th>
-            <th class="px-5 py-3">Catégorie</th>
-            <th class="px-5 py-3">Unité</th>
-            <th class="px-5 py-3">Seuil</th>
-            <th class="px-5 py-3">Stock</th>
-            <th class="px-5 py-3">Conservation</th>
+            <th class="px-5 py-3">{{ i18n.t('denrees.table.name') }}</th>
+            <th class="px-5 py-3">{{ i18n.t('denrees.table.category') }}</th>
+            <th class="px-5 py-3">{{ i18n.t('denrees.table.unit') }}</th>
+            <th class="px-5 py-3">{{ i18n.t('denrees.table.threshold') }}</th>
+            <th class="px-5 py-3">{{ i18n.t('denrees.table.stock') }}</th>
+            <th class="px-5 py-3">{{ i18n.t('denrees.table.shelfLife') }}</th>
           </tr>
         </thead>
         <tbody>
@@ -125,7 +127,7 @@ function submit() {
             <td class="px-5 py-3">{{ UNITE_LABELS[d.unite] }}</td>
             <td class="px-5 py-3">{{ formatNumber(d.seuilAlerte) }}</td>
             <td class="px-5 py-3">{{ formatNumber(d.stockActuel) }}</td>
-            <td class="px-5 py-3 text-gray-500">{{ d.dureeConservationJours }} j.</td>
+            <td class="px-5 py-3 text-gray-500">{{ d.dureeConservationJours }} {{ i18n.t('denrees.label.daysShort') }}</td>
           </tr>
         </tbody>
       </table>

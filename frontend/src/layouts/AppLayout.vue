@@ -6,6 +6,7 @@ import { useCommandeStore } from '@/stores/commande'
 import { useMenuStore } from '@/stores/menu'
 import { usePresenceStore } from '@/stores/presence'
 import { useStockStore } from '@/stores/stock'
+import { useI18nStore } from '@/stores/i18n'
 import { ECOLE_INFO } from '@/data/mockData'
 
 const auth = useAuthStore()
@@ -15,28 +16,30 @@ const commandeStore = useCommandeStore()
 const menuStore = useMenuStore()
 const presenceStore = usePresenceStore()
 const stockStore = useStockStore()
+const i18n = useI18nStore()
 const showNotifications = ref(false)
 
 interface NavItem {
-  name: string
+  labelKey: string
   to: string
   icon: string
   module: string
 }
 
 const allNav: NavItem[] = [
-  { name: 'Tableau de bord', to: '/', icon: '📊', module: 'dashboard' },
-  { name: 'Stock', to: '/stock', icon: '📦', module: 'stock' },
-  { name: 'Inventaire', to: '/inventaire', icon: '🧾', module: 'stock' },
-  { name: 'Denrées', to: '/denrees', icon: '🌾', module: 'denrees' },
-  { name: 'Mouvements', to: '/mouvements', icon: '📝', module: 'mouvements' },
-  { name: 'Recettes', to: '/recettes', icon: '🍲', module: 'recettes' },
-  { name: 'Menu hebdo', to: '/menu', icon: '📅', module: 'menu' },
-  { name: 'Présences', to: '/presences', icon: '✅', module: 'presences' },
-  { name: 'Liste de courses', to: '/courses', icon: '🛒', module: 'courses' },
-  { name: 'Rapports', to: '/rapports', icon: '📈', module: 'rapports' },
-  { name: 'Fournisseurs', to: '/fournisseurs', icon: '🏪', module: 'fournisseurs' },
-  { name: 'Bons de commande', to: '/commandes', icon: '🧾', module: 'commandes' },
+  { labelKey: 'nav.dashboard', to: '/', icon: '📊', module: 'dashboard' },
+  { labelKey: 'nav.stock', to: '/stock', icon: '📦', module: 'stock' },
+  { labelKey: 'nav.inventaire', to: '/inventaire', icon: '🧾', module: 'stock' },
+  { labelKey: 'nav.denrees', to: '/denrees', icon: '🌾', module: 'denrees' },
+  { labelKey: 'nav.mouvements', to: '/mouvements', icon: '📝', module: 'mouvements' },
+  { labelKey: 'nav.recettes', to: '/recettes', icon: '🍲', module: 'recettes' },
+  { labelKey: 'nav.menu', to: '/menu', icon: '📅', module: 'menu' },
+  { labelKey: 'nav.presences', to: '/presences', icon: '✅', module: 'presences' },
+  { labelKey: 'nav.courses', to: '/courses', icon: '🛒', module: 'courses' },
+  { labelKey: 'nav.rapports', to: '/rapports', icon: '📈', module: 'rapports' },
+  { labelKey: 'nav.fournisseurs', to: '/fournisseurs', icon: '🏪', module: 'fournisseurs' },
+  { labelKey: 'nav.commandes', to: '/commandes', icon: '🧾', module: 'commandes' },
+  { labelKey: 'nav.users', to: '/users', icon: '👤', module: 'users' },
 ]
 
 const navItems = computed(() => allNav.filter((n) => auth.canAccess(n.module)))
@@ -129,7 +132,7 @@ const notifications = computed(() => {
           "
         >
           <span>{{ item.icon }}</span>
-          {{ item.name }}
+          {{ i18n.t(item.labelKey) }}
         </RouterLink>
       </nav>
 
@@ -141,7 +144,7 @@ const notifications = computed(() => {
           </p>
         </div>
         <button type="button" class="btn-secondary w-full text-xs" @click="logout">
-          Déconnexion
+          {{ i18n.t('header.logout') }}
         </button>
       </div>
     </aside>
@@ -155,6 +158,17 @@ const notifications = computed(() => {
             </p>
           </div>
           <div class="flex items-center gap-3">
+            <div class="flex items-center gap-2 rounded-full border border-earth-200 bg-earth-50 px-3 py-1 text-xs text-gray-600">
+              <span>{{ i18n.t('header.language') }}:</span>
+              <select
+                v-model="i18n.language"
+                @change="i18n.setLanguage(i18n.language)"
+                class="bg-transparent text-xs"
+              >
+                <option value="fr">FR</option>
+                <option value="mg">MG</option>
+              </select>
+            </div>
             <div class="relative">
               <button
                 v-if="notifications.length"
@@ -162,7 +176,7 @@ const notifications = computed(() => {
                 class="rounded-full border border-amber-200 bg-amber-50 px-3 py-1 text-xs font-medium text-amber-700"
                 @click="showNotifications = !showNotifications"
               >
-                🔔 {{ notifications.length }} notif.
+                🔔 {{ notifications.length }} {{ i18n.t('header.notifications') }}
               </button>
               <div
                 v-if="showNotifications && notifications.length"

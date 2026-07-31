@@ -5,6 +5,7 @@ import { useAuthStore } from '@/stores/auth'
 import { useMenuStore } from '@/stores/menu'
 import { usePresenceStore } from '@/stores/presence'
 import { useStockStore } from '@/stores/stock'
+import { useI18nStore } from '@/stores/i18n'
 import { JOURS_SEMAINE, type MenuHebdo, type Recette } from '@/types'
 import { formatDate, formatNumber } from '@/utils/helpers'
 
@@ -12,6 +13,7 @@ const auth = useAuthStore()
 const menuStore = useMenuStore()
 const presenceStore = usePresenceStore()
 const stockStore = useStockStore()
+const i18n = useI18nStore()
 
 const semaineLabel = computed(() =>
   formatDate(menuStore.menuActuel.semaineDebut),
@@ -136,16 +138,16 @@ const recettesDisponibles = computed(() => {
 <template>
   <div>
     <PageHeader
-      title="Menu hebdomadaire"
-      subtitle="Planification recette × jour avec calcul automatique des besoins (US-07)"
+      :title="i18n.t('menu.title')"
+      :subtitle="i18n.t('menu.subtitle')"
     />
 
     <div class="mb-4 flex flex-wrap items-center gap-4 text-sm">
       <span class="rounded-lg bg-brand-50 px-3 py-1.5 font-medium text-brand-800">
-        Semaine du {{ semaineLabel }}
+        {{ i18n.t('menu.weekLabel', { week: semaineLabel }) }}
       </span>
       <label class="flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-2">
-        <span class="text-xs uppercase tracking-wide text-slate-500">Menu</span>
+        <span class="text-xs uppercase tracking-wide text-slate-500">{{ i18n.t('menu.label.menu') }}</span>
         <select class="bg-transparent text-sm outline-none" :value="menuStore.menuActuel.id" @change="changerMenu(($event.target as HTMLSelectElement).value)">
           <option v-for="menu in menuStore.menusDisponibles" :key="menu.id" :value="menu.id">
             {{ formatMenuLabel(menu) }}
@@ -156,30 +158,30 @@ const recettesDisponibles = computed(() => {
         v-if="presenceStore.pointageEffectue"
         class="rounded-lg bg-green-50 px-3 py-1.5 text-green-800 "
       >
-        <span class="font-bold">Pointage du jour : </span> {{ presenceStore.totalPresentsAujourdhui }} élèves
+        <span class="font-bold">{{ i18n.t('menu.attendance.today') }}</span> {{ presenceStore.totalPresentsAujourdhui }} {{ i18n.t('menu.attendance.students') }}
       </span>
       <span v-else class="rounded-lg bg-amber-50 px-3 py-1.5 text-amber-800">
-        Pointage non effectué — portions estimées utilisées
+        {{ i18n.t('menu.attendance.missing') }}
       </span>
     </div>
 
     <div class="mb-4 rounded-lg border border-slate-200 bg-slate-50 p-4 text-sm text-slate-700">
-      <div class="mb-2 font-semibold">Sorties de préparation proposées</div>
+      <div class="mb-2 font-semibold">{{ i18n.t('menu.prep.title') }}</div>
         <div class="grid gap-3 md:grid-cols-3">
           <div>
-            <p class="text-xs text-gray-500">Articles</p>
+            <p class="text-xs text-gray-500">{{ i18n.t('menu.prep.items') }}</p>
             <p class="text-lg font-bold">{{ sortiesParDenree.length }}</p>
           </div>
           <div>
-            <p class="text-xs text-gray-500">Quantité totale</p>
+            <p class="text-xs text-gray-500">{{ i18n.t('menu.prep.total') }}</p>
             <p class="text-lg font-bold">
               {{ formatNumber(sortiesParDenree.reduce((sum, item) => sum + item.quantite, 0)) }}
             </p>
           </div>
           <div>
-            <p class="text-xs text-gray-500">Statut stock</p>
+            <p class="text-xs text-gray-500">{{ i18n.t('menu.prep.stockStatus') }}</p>
             <p class="text-lg font-bold">
-              {{ stockSuffisantPourValidation ? 'OK' : 'Manquants' }}
+              {{ stockSuffisantPourValidation ? i18n.t('menu.prep.ok') : i18n.t('menu.prep.missing') }}
             </p>
           </div>
         </div>
@@ -192,22 +194,22 @@ const recettesDisponibles = computed(() => {
             :disabled="!peutValiderMenu()"
             @click="validerMenu"
           >
-            Valider le menu
+            {{ i18n.t('menu.button.validate') }}
           </button>
           <span class="text-xs text-gray-500">
-            Ce bouton est actif seulement si toutes les denrées nécessaires sont en stock et si le menu n'a pas déjà été validé.
+            {{ i18n.t('menu.validate.help') }}
           </span>
         </div>
 
         <p v-if="menuDejaValide" class="mt-3 rounded-lg bg-green-50 p-3 text-sm text-green-800">
-          Menu validé le {{ menuStore.menuActuel.dateValidation }} par {{ auth.currentUser?.nom }}.
+          {{ i18n.t('menu.validated', { date: menuStore.menuActuel.dateValidation, user: auth.currentUser?.nom ?? '' }) }}
         </p>
 
         <div v-if="denreesManquantes.length" class="mt-4 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-900">
-          <div class="font-semibold">Stock insuffisant</div>
+          <div class="font-semibold">{{ i18n.t('menu.stockInsufficient.title') }}</div>
           <ul class="mt-2 list-disc space-y-1 pl-5">
             <li v-for="item in denreesManquantes" :key="item.denreeId">
-              {{ item.denree?.nom ?? item.denreeId }} : besoin {{ formatNumber(item.quantiteNecessaire) }} {{ item.denree?.unite ?? 'unités' }}, disponible {{ formatNumber(item.stockDisponible) }}
+              {{ item.denree?.nom ?? item.denreeId }} : {{ i18n.t('menu.stockInsufficient.need') }} {{ formatNumber(item.quantiteNecessaire) }} {{ item.denree?.unite ?? i18n.t('menu.stockInsufficient.units') }}, {{ i18n.t('menu.stockInsufficient.available') }} {{ formatNumber(item.stockDisponible) }}
             </li>
           </ul>
         </div>
@@ -217,13 +219,13 @@ const recettesDisponibles = computed(() => {
       </div>
 
       <div v-if="denreesPrioritaires.length" class="mb-4 rounded-lg border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">
-        <p class="font-semibold">Priorité péremption</p>
+        <p class="font-semibold">{{ i18n.t('menu.priority.title') }}</p>
       <p class="mt-1">
-        Les denrées suivantes sont proches de la péremption :
+        {{ i18n.t('menu.priority.description') }}
         <span class="font-medium">
           {{ denreesPrioritaires.map((d) => d.nom).join(', ') }}
         </span>
-        . Elles sont mises en avant dans la planification du menu.
+        {{ i18n.t('menu.priority.followup') }}
       </p>
     </div>
 
@@ -237,14 +239,14 @@ const recettesDisponibles = computed(() => {
           <p class="font-semibold text-gray-900">{{ JOURS_SEMAINE[jour.jour] }}</p>
         </div>
         <div class="min-w-[200px] flex-1">
-          <label class="label text-xs">Recette</label>
+          <label class="label text-xs">{{ i18n.t('menu.label.recipe') }}</label>
           <select
             class="input"
             :value="jour.recetteId ?? ''"
             :disabled="!presenceStore.pointageEffectue"
             @change="updateJour(jour.jour, ($event.target as HTMLSelectElement).value)"
           >
-            <option value="">— Aucune —</option>
+            <option value="">{{ i18n.t('general.select') }}</option>
             <option
               v-for="r in recettesDisponibles"
               :key="r.id"
@@ -255,7 +257,7 @@ const recettesDisponibles = computed(() => {
           </select>
         </div>
         <div class="w-36">
-          <label class="label text-xs">Portions prévues</label>
+          <label class="label text-xs">{{ i18n.t('menu.label.portions') }}</label>
           <input
             type="number"
             min="1"
@@ -274,8 +276,7 @@ const recettesDisponibles = computed(() => {
     </div>
 
     <p class="mt-4 text-sm text-gray-500">
-      La liste de courses est recalculée automatiquement à partir de ce menu et des présences
-      enregistrées.
+      {{ i18n.t('menu.note.recalculation') }}
     </p>
   </div>
 </template>

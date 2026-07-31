@@ -3,6 +3,7 @@ import { computed } from 'vue'
 import { useRouter } from 'vue-router'
 import PageHeader from '@/components/PageHeader.vue'
 import { useAuthStore } from '@/stores/auth'
+import { useI18nStore } from '@/stores/i18n'
 import { useMenuStore } from '@/stores/menu'
 import { usePresenceStore } from '@/stores/presence'
 import { UNITE_LABELS } from '@/types'
@@ -10,6 +11,7 @@ import { formatNumber } from '@/utils/helpers'
 
 const router = useRouter()
 const auth = useAuthStore()
+const i18n = useI18nStore()
 const menuStore = useMenuStore()
 const presenceStore = usePresenceStore()
 
@@ -30,7 +32,7 @@ const totalManquants = computed(() =>
   menuStore.denreesManquantes.reduce((s, b) => s + b.manquant, 0),
 )
 const calculMode = computed(() =>
-  presenceStore.pointageEffectue ? 'Pointage pris en compte' : 'Portions prévues utilisées',
+  presenceStore.pointageEffectue ? i18n.t('courses.mode.present') : i18n.t('courses.mode.planned'),
 )
 
 function createBonFromCourses() {
@@ -41,34 +43,34 @@ function createBonFromCourses() {
 <template>
   <div>
     <PageHeader
-      title="Liste de courses"
-      subtitle="Besoins calculés depuis le menu et les présences — manquants en rouge (US-08)"
+      :title="i18n.t('courses.title')"
+      :subtitle="i18n.t('courses.subtitle')"
     />
 
     <div class="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
       <div class="grid gap-4 sm:grid-cols-4 flex-1">
         <div class="card">
-          <p class="text-xs text-gray-500">Portions de référence</p>
+          <p class="text-xs text-gray-500">{{ i18n.t('courses.card.referencePortions') }}</p>
           <p class="text-2xl font-bold">{{ portionsUtilisees }}</p>
           <p class="text-xs text-gray-400">{{ calculMode }}</p>
         </div>
         <div class="card">
-          <p class="text-xs text-gray-500">Articles produits</p>
+          <p class="text-xs text-gray-500">{{ i18n.t('courses.card.totalItems') }}</p>
           <p class="text-2xl font-bold">{{ totalArticles }}</p>
-          <p class="text-xs text-gray-400">Lignes de liste de courses</p>
+          <p class="text-xs text-gray-400">{{ i18n.t('courses.card.lines') }}</p>
         </div>
         <div class="card">
-          <p class="text-xs text-gray-500">Quantité totale</p>
+          <p class="text-xs text-gray-500">{{ i18n.t('courses.card.totalQuantity') }}</p>
           <p class="text-2xl font-bold">{{ formatNumber(totalQuantite) }}</p>
-          <p class="text-xs text-gray-400">Quantité demandée pour la semaine</p>
+          <p class="text-xs text-gray-400">{{ i18n.t('courses.card.weeklyQuantity') }}</p>
         </div>
         <div class="card" :class="totalManquants > 0 ? 'border-red-200 bg-red-50' : ''">
-          <p class="text-xs text-gray-500">Quantité manquante</p>
+          <p class="text-xs text-gray-500">{{ i18n.t('courses.card.missingQuantity') }}</p>
           <p class="text-2xl font-bold" :class="totalManquants > 0 ? 'text-red-700' : 'text-green-700'">
             {{ formatNumber(totalManquants) }}
           </p>
           <p class="text-xs" :class="totalManquants > 0 ? 'text-red-600' : 'text-green-600'">
-            {{ menuStore.denreesManquantes.length }} article(s) à commander
+            {{ i18n.t('courses.requiresOrder', { count: menuStore.denreesManquantes.length }) }}
           </p>
         </div>
       </div>
@@ -88,11 +90,11 @@ function createBonFromCourses() {
       <table class="w-full text-sm">
         <thead class="bg-gray-50">
           <tr class="text-left text-xs text-gray-500 uppercase tracking-wide">
-            <th class="px-5 py-3">Denrée</th>
-            <th class="px-5 py-3">Besoin semaine</th>
-            <th class="px-5 py-3">Stock dispo</th>
-            <th class="px-5 py-3">Manquant</th>
-            <th class="px-5 py-3">Statut</th>
+            <th class="px-5 py-3">{{ i18n.t('courses.table.ingredients') }}</th>
+            <th class="px-5 py-3">{{ i18n.t('courses.table.need') }}</th>
+            <th class="px-5 py-3">{{ i18n.t('courses.table.available') }}</th>
+            <th class="px-5 py-3">{{ i18n.t('courses.table.missing') }}</th>
+            <th class="px-5 py-3">{{ i18n.t('courses.table.status') }}</th>
           </tr>
         </thead>
         <tbody>
@@ -140,7 +142,7 @@ function createBonFromCourses() {
         </tfoot>
       </table>
       <p v-if="!menuStore.listeCourses.length" class="p-8 text-center text-gray-500">
-        Aucun besoin calculé — composez d'abord le menu hebdomadaire.
+        {{ i18n.t('courses.notCalculated') }}
       </p>
     </div>
   </div>

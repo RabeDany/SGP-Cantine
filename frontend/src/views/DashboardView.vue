@@ -8,6 +8,7 @@ import { useStockStore } from '@/stores/stock'
 import { useMenuStore } from '@/stores/menu'
 import { usePresenceStore } from '@/stores/presence'
 import { useAuthStore } from '@/stores/auth'
+import { useI18nStore } from '@/stores/i18n'
 import { CATEGORIE_LABELS, UNITE_LABELS } from '@/types'
 import { formatDate, formatNumber } from '@/utils/helpers'
 
@@ -15,6 +16,7 @@ const stockStore = useStockStore()
 const menuStore = useMenuStore()
 const presenceStore = usePresenceStore()
 const auth = useAuthStore()
+const i18n = useI18nStore()
 
 const stats = computed(() => stockStore.statsStock)
 
@@ -28,8 +30,8 @@ const manquants = computed(() => menuStore.denreesManquantes.slice(0, 5))
 <template>
   <div>
     <PageHeader
-      title="Tableau de bord"
-      :subtitle="`Bonjour ${auth.currentUser?.nom} — vue d'ensemble de la cantine`"
+      :title="i18n.t('dashboard.title')"
+      :subtitle="i18n.t('dashboard.subtitle', { user: auth.currentUser?.nom ?? '' })"
     />
 
     <!-- Alertes péremption US-05 -->
@@ -41,29 +43,29 @@ const manquants = computed(() => menuStore.denreesManquantes.slice(0, 5))
         <span class="text-xl">⚠️</span>
         <div>
           <h3 class="font-semibold text-amber-900">
-            {{ alertesPeremption.length }} denrée(s) expirent dans 7 jours ou moins
+            {{ alertesPeremption.length }} {{ i18n.t('dashboard.alertPeremption') }}
           </h3>
           <ul class="mt-2 space-y-1 text-sm text-amber-800">
             <li v-for="d in alertesPeremption" :key="d.id">
-              <strong>{{ d.nom }}</strong> — péremption
-              {{ d.datePeremption ? formatDate(d.datePeremption) : 'N/A' }}
-              ({{ d.joursAvantPeremption }} j.)
+              <strong>{{ d.nom }}</strong> — {{ i18n.t('dashboard.stock.expiration') }}
+              {{ d.datePeremption ? formatDate(d.datePeremption) : i18n.t('general.notAvailable') }}
+              ({{ d.joursAvantPeremption }} {{ i18n.t('general.daysAbbreviation') }})
               · Stock : {{ formatNumber(d.stockActuel) }} {{ UNITE_LABELS[d.unite] }}
             </li>
           </ul>
           <p class="mt-2 text-xs text-amber-700">
-            Priorisez ces denrées dans le menu hebdomadaire.
+            {{ i18n.t('dashboard.alertAdvice') }}
           </p>
         </div>
       </div>
     </div>
 
     <div class="mb-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-      <StatCard label="Denrées en stock" :value="stats.total" icon="📦" color="blue" />
-      <StatCard label="Stock OK" :value="stats.ok" icon="✅" color="green" />
-      <StatCard label="Stock bas" :value="stats.warning + stats.critical" icon="⚠️" color="amber" />
+      <StatCard :label="i18n.t('dashboard.cards.denrees')" :value="stats.total" icon="📦" color="blue" />
+      <StatCard :label="i18n.t('dashboard.cards.ok')" :value="stats.ok" icon="✅" color="green" />
+      <StatCard :label="i18n.t('dashboard.cards.low')" :value="stats.warning + stats.critical" icon="⚠️" color="amber" />
       <StatCard
-        label="Présents aujourd'hui"
+        :label="i18n.t('dashboard.cards.presences')"
         :value="presenceStore.pointageEffectue ? presenceStore.totalPresentsAujourdhui : '—'"
         icon="👥"
         color="gray"
@@ -72,15 +74,15 @@ const manquants = computed(() => menuStore.denreesManquantes.slice(0, 5))
 
     <div class="grid gap-6 lg:grid-cols-2">
       <section class="card">
-        <h3 class="mb-4 font-semibold text-gray-900">État du stock (US-04)</h3>
+        <h3 class="mb-4 font-semibold text-gray-900">{{ i18n.t('dashboard.stock.title') }}</h3>
         <div class="overflow-x-auto">
           <table class="w-full text-sm">
             <thead>
               <tr class="border-b text-left text-xs text-gray-500">
-                <th class="pb-2 pr-4">Denrée</th>
-                <th class="pb-2 pr-4">Catégorie</th>
-                <th class="pb-2 pr-4">Stock</th>
-                <th class="pb-2">Statut</th>
+                <th class="pb-2 pr-4">{{ i18n.t('dashboard.stock.table.denree') }}</th>
+                <th class="pb-2 pr-4">{{ i18n.t('dashboard.stock.table.category') }}</th>
+                <th class="pb-2 pr-4">{{ i18n.t('dashboard.stock.table.stock') }}</th>
+                <th class="pb-2">{{ i18n.t('dashboard.stock.table.status') }}</th>
               </tr>
             </thead>
             <tbody>
@@ -100,14 +102,14 @@ const manquants = computed(() => menuStore.denreesManquantes.slice(0, 5))
           </table>
         </div>
         <RouterLink to="/stock" class="mt-4 inline-block text-sm font-medium text-brand-600 hover:underline">
-          Voir tout le stock →
+          {{ i18n.t('dashboard.stock.link') }}
         </RouterLink>
       </section>
 
       <section class="card">
-        <h3 class="mb-4 font-semibold text-gray-900">Liste de courses — manquants (US-08)</h3>
+        <h3 class="mb-4 font-semibold text-gray-900">{{ i18n.t('dashboard.courses.title') }}</h3>
         <div v-if="!manquants.length" class="py-8 text-center text-sm text-gray-500">
-          Aucune denrée manquante pour la semaine en cours.
+          {{ i18n.t('dashboard.noMissing') }}
         </div>
         <ul v-else class="space-y-3">
           <li
@@ -126,7 +128,7 @@ const manquants = computed(() => menuStore.denreesManquantes.slice(0, 5))
           to="/courses"
           class="mt-4 inline-block text-sm font-medium text-brand-600 hover:underline"
         >
-          Voir la liste complète →
+          {{ i18n.t('dashboard.courses.link') }}
         </RouterLink>
       </section>
     </div>
@@ -135,12 +137,12 @@ const manquants = computed(() => menuStore.denreesManquantes.slice(0, 5))
       <div class="flex items-center gap-3">
         <span class="text-2xl">📋</span>
         <div>
-          <h3 class="font-semibold text-gray-900">Pointage du jour non effectué</h3>
+          <h3 class="font-semibold text-gray-900">{{ i18n.t('dashboard.attendance.pending.title') }}</h3>
           <p class="text-sm text-gray-600">
-            Le pointage matinal est requis avant de valider les portions du menu.
+            {{ i18n.t('dashboard.attendance.pending.text') }}
           </p>
           <RouterLink to="/presences" class="mt-2 inline-block text-sm font-medium text-brand-600 hover:underline">
-            Effectuer le pointage →
+            {{ i18n.t('dashboard.attendance.pending.link') }}
           </RouterLink>
         </div>
       </div>
