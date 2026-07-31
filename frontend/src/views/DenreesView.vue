@@ -3,6 +3,7 @@ import { ref } from 'vue'
 import PageHeader from '@/components/PageHeader.vue'
 import { useStockStore } from '@/stores/stock'
 import { useI18nStore } from '@/stores/i18n'
+import { translateForUi } from '@/utils/foodTranslator'
 import {
   CATEGORIE_LABELS,
   UNITE_LABELS,
@@ -15,6 +16,7 @@ const stockStore = useStockStore()
 const i18n = useI18nStore()
 const showForm = ref(false)
 const success = ref('')
+const editingId = ref<string | null>(null)
 
 const form = ref({
   nom: '',
@@ -40,14 +42,54 @@ function resetForm() {
 
 function submit() {
   if (!form.value.nom.trim()) return
-  stockStore.createDenree({
-    ...form.value,
-    datePeremption: form.value.datePeremption || undefined,
-  })
-  success.value = i18n.t('denrees.success.created', { name: form.value.nom })
+
+  if (editingId.value) {
+    stockStore.updateDenree(editingId.value, {
+      ...form.value,
+      datePeremption: form.value.datePeremption || undefined,
+    })
+    success.value = `Denrée « ${form.value.nom} » mise à jour.`
+  } else {
+    stockStore.createDenree({
+      ...form.value,
+      datePeremption: form.value.datePeremption || undefined,
+    })
+    success.value = i18n.t('denrees.success.created', { name: form.value.nom })
+  }
+
   resetForm()
   showForm.value = false
+  editingId.value = null
   setTimeout(() => (success.value = ''), 3000)
+}
+
+function startEdit(denree: any) {
+  editingId.value = denree.id
+  form.value = {
+    nom: denree.nom,
+    categorie: denree.categorie,
+    unite: denree.unite,
+    seuilAlerte: denree.seuilAlerte,
+    dureeConservationJours: denree.dureeConservationJours,
+    datePeremption: denree.datePeremption || '',
+    stockInitial: denree.stockActuel,
+  }
+  showForm.value = true
+}
+
+function deleteCurrent(id: string) {
+  if (!confirm('Supprimer cette denrée ?')) return
+  stockStore.deleteDenree(id)
+  success.value = 'Denrée supprimée.'
+  setTimeout(() => (success.value = ''), 3000)
+}
+
+function toggleForm() {
+  showForm.value = !showForm.value
+  if (!showForm.value) {
+    editingId.value = null
+    resetForm()
+  }
 }
 </script>
 
@@ -61,7 +103,7 @@ function submit() {
     <div class="mb-4 flex items-center justify-between">
       <p v-if="success" class="text-sm text-green-700">{{ success }}</p>
       <div v-else />
-      <button type="button" class="btn-primary" @click="showForm = !showForm">
+      <button type="button" class="btn-primary" @click="toggleForm">
         {{ showForm ? i18n.t('general.cancel') : i18n.t('denrees.button.new') }}
       </button>
     </div>
@@ -122,12 +164,18 @@ function submit() {
         </thead>
         <tbody>
           <tr v-for="d in stockStore.denrees.filter((x) => x.actif)" :key="d.id" class="border-t">
-            <td class="px-5 py-3 font-medium">{{ d.nom }}</td>
+            <td class="px-5 py-3 font-medium">{{ translateForUi(d.nom) }}</td>
             <td class="px-5 py-3">{{ CATEGORIE_LABELS[d.categorie] }}</td>
             <td class="px-5 py-3">{{ i18n.t('general.unit.' + d.unite) }}</td>
             <td class="px-5 py-3">{{ formatNumber(d.seuilAlerte) }}</td>
             <td class="px-5 py-3">{{ formatNumber(d.stockActuel) }}</td>
             <td class="px-5 py-3 text-gray-500">{{ d.dureeConservationJours }} {{ i18n.t('denrees.label.daysShort') }}</td>
+            <td class="px-5 py-3">
+              <div class="flex gap-2">
+                <button type="button" class="btn-secondary px-2 py-1" @click="startEdit(d)">✎</button>
+                <button type="button" class="btn-danger px-2 py-1" @click="deleteCurrent(d.id)">🗑</button>
+              </div>
+            </td>
           </tr>
         </tbody>
       </table>

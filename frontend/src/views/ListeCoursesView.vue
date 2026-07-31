@@ -8,6 +8,7 @@ import { useMenuStore } from '@/stores/menu'
 import { usePresenceStore } from '@/stores/presence'
 import { UNITE_LABELS } from '@/types'
 import { formatNumber } from '@/utils/helpers'
+import { translateForUi } from '@/utils/foodTranslator'
 
 const router = useRouter()
 const auth = useAuthStore()
@@ -105,7 +106,7 @@ function createBonFromCourses() {
             :class="b.manque ? 'bg-red-50' : 'bg-white'"
           >
             <td class="px-5 py-3 font-medium" :class="b.manque ? 'text-red-900' : 'text-slate-800'">
-              {{ b.denree?.nom }}
+              {{ translateForUi(b.denree?.nom ?? '') }}
             </td>
             <td class="px-5 py-3">
               {{ formatNumber(b.quantiteNecessaire) }}

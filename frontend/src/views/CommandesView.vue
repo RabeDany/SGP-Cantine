@@ -9,6 +9,7 @@ import { useStockStore } from '@/stores/stock'
 import { useI18nStore } from '@/stores/i18n'
 import { UNITE_LABELS, type BonCommande, type LigneReceptionBonCommande } from '@/types'
 import { todayISO } from '@/utils/helpers'
+import { translateForUi } from '@/utils/foodTranslator'
 
 const auth = useAuthStore()
 const commandeStore = useCommandeStore()
@@ -246,7 +247,7 @@ function getUsername(id: string) {
           :key="d.id"
           class="rounded-lg border border-gray-200 bg-white p-4"
         >
-          <div class="mb-2 font-medium">{{ d.nom }}</div>
+          <div class="mb-2 font-medium">{{ translateForUi(d.nom) }}</div>
           <div class="text-gray-500 text-sm">{{ d.categorie }} · {{ UNITE_LABELS[d.unite] }}</div>
           <input
             type="number"

@@ -11,6 +11,7 @@ import { useAuthStore } from '@/stores/auth'
 import { useI18nStore } from '@/stores/i18n'
 import { CATEGORIE_LABELS, UNITE_LABELS } from '@/types'
 import { formatDate, formatNumber } from '@/utils/helpers'
+import { translateForUi } from '@/utils/foodTranslator'
 
 const stockStore = useStockStore()
 const menuStore = useMenuStore()
@@ -47,7 +48,7 @@ const manquants = computed(() => menuStore.denreesManquantes.slice(0, 5))
           </h3>
           <ul class="mt-2 space-y-1 text-sm text-amber-800">
             <li v-for="d in alertesPeremption" :key="d.id">
-              <strong>{{ d.nom }}</strong> — {{ i18n.t('dashboard.stock.expiration') }}
+              <strong>{{ translateForUi(d.nom) }}</strong> — {{ i18n.t('dashboard.stock.expiration') }}
               {{ d.datePeremption ? formatDate(d.datePeremption) : i18n.t('general.notAvailable') }}
               ({{ d.joursAvantPeremption }} {{ i18n.t('general.daysAbbreviation') }})
               · Stock : {{ formatNumber(d.stockActuel) }} {{ UNITE_LABELS[d.unite] }}
@@ -91,7 +92,7 @@ const manquants = computed(() => menuStore.denreesManquantes.slice(0, 5))
                 :key="d.id"
                 class="border-b border-gray-100"
               >
-                <td class="py-2.5 pr-4 font-medium">{{ d.nom }}</td>
+                <td class="py-2.5 pr-4 font-medium">{{ translateForUi(d.nom) }}</td>
                 <td class="py-2.5 pr-4 text-gray-500">{{ CATEGORIE_LABELS[d.categorie] }}</td>
                 <td class="py-2.5 pr-4">
                   {{ formatNumber(d.stockActuel) }} {{ UNITE_LABELS[d.unite] }}
@@ -117,7 +118,7 @@ const manquants = computed(() => menuStore.denreesManquantes.slice(0, 5))
             :key="b.denreeId"
             class="flex items-center justify-between rounded-lg bg-red-50 px-3 py-2 text-sm"
           >
-            <span class="font-medium text-red-900">{{ b.denree?.nom }}</span>
+            <span class="font-medium text-red-900">{{ translateForUi(b.denree?.nom ?? '') }}</span>
             <span class="text-red-700">
               −{{ formatNumber(b.manquant) }} {{ b.denree ? UNITE_LABELS[b.denree.unite] : '' }}
             </span>

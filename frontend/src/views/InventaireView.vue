@@ -2,6 +2,7 @@
 import { computed } from 'vue'
 import { useStockStore } from '@/stores/stock'
 import { useI18nStore } from '@/stores/i18n'
+import { translateForUi } from '@/utils/foodTranslator'
 
 const stockStore = useStockStore()
 const i18n = useI18nStore()
@@ -80,7 +81,7 @@ function exportCsv() {
               </td>
             </tr>
             <tr v-for="denree in denreesActives" :key="denree.id">
-              <td class="px-6 py-4 text-gray-900">{{ denree.nom }}</td>
+              <td class="px-6 py-4 text-gray-900">{{ translateForUi(denree.nom) }}</td>
               <td class="px-6 py-4 text-gray-900">{{ denree.stockActuel }}</td>
               <td class="px-6 py-4">
                 <span

@@ -8,6 +8,7 @@ import { useI18nStore } from '@/stores/i18n'
 import { useStockStore } from '@/stores/stock'
 import { CATEGORIE_LABELS, UNITE_LABELS, type Denree } from '@/types'
 import { formatDate, formatNumber } from '@/utils/helpers'
+import { translateForUi } from '@/utils/foodTranslator'
 
 const router = useRouter()
 const auth = useAuthStore()
@@ -132,7 +133,7 @@ function getDenreeName(denreeId: string) {
               'bg-amber-50/30': d.status === 'warning',
             }"
           >
-            <td class="px-5 py-3 font-medium">{{ d.nom }}</td>
+            <td class="px-5 py-3 font-medium">{{ translateForUi(d.nom) }}</td>
             <td class="px-5 py-3 text-gray-600">{{ CATEGORIE_LABELS[d.categorie] }}</td>
             <td class="px-5 py-3">
               <span class="font-semibold">{{ formatNumber(d.stockActuel) }}</span>
@@ -188,7 +189,7 @@ function getDenreeName(denreeId: string) {
           >
             <div class="mb-2 flex items-center justify-between gap-3">
               <div>
-                <p class="font-medium">{{ denree.nom }}</p>
+                <p class="font-medium">{{ translateForUi(denree.nom) }}</p>
                 <p class="text-xs text-gray-500">{{ i18n.t('stock.modal.currentStock') }} : {{ formatNumber(denree.stockActuel) }} {{ UNITE_LABELS[denree.unite] }}</p>
               </div>
               <div class="w-32">

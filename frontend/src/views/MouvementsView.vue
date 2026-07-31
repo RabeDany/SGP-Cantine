@@ -11,6 +11,7 @@ import {
   type UniteMesure,
 } from '@/types'
 import { formatDate, formatNumber, todayISO } from '@/utils/helpers'
+import { translateForUi } from '@/utils/foodTranslator'
 
 const auth = useAuthStore()
 const stockStore = useStockStore()
@@ -147,7 +148,7 @@ function getDenreeNom(id: string) {
         <select v-model="entreeForm.denreeId" class="input" required>
           <option value="">— {{ i18n.t('general.select') }} —</option>
           <option v-for="d in stockStore.denrees.filter((x) => x.actif)" :key="d.id" :value="d.id">
-            {{ d.nom }} ({{ formatNumber(d.stockActuel) }} {{ i18n.t(UNITE_LABEL_KEYS[d.unite]) }})
+            {{ translateForUi(d.nom) }} ({{ formatNumber(d.stockActuel) }} {{ i18n.t(UNITE_LABEL_KEYS[d.unite]) }})
           </option>
         </select>
       </div>
@@ -188,7 +189,7 @@ function getDenreeNom(id: string) {
         <select v-model="sortieForm.denreeId" class="input" required>
           <option value="">— {{ i18n.t('general.select') }} —</option>
           <option v-for="d in stockStore.denrees.filter((x) => x.actif)" :key="d.id" :value="d.id">
-            {{ d.nom }} ({{ formatNumber(d.stockActuel) }} {{ i18n.t(UNITE_LABEL_KEYS[d.unite]) }})
+            {{ translateForUi(d.nom) }} ({{ formatNumber(d.stockActuel) }} {{ i18n.t(UNITE_LABEL_KEYS[d.unite]) }})
           </option>
         </select>
       </div>
@@ -216,7 +217,7 @@ function getDenreeNom(id: string) {
             :value="jour.recetteId || ''"
             :disabled="!jour.recetteId"
           >
-            {{ i18n.t(JOUR_LABEL_KEYS[jour.jour]) }} — {{ menuStore.getRecette(jour.recetteId ?? '')?.nom ?? i18n.t('mouvements.placeholder.noRecipe') }}
+            {{ i18n.t(JOUR_LABEL_KEYS[jour.jour]) }} — {{ translateForUi(menuStore.getRecette(jour.recetteId ?? '')?.nom ?? i18n.t('mouvements.placeholder.noRecipe')) }}
           </option>
         </select>
       </div>
@@ -251,7 +252,7 @@ function getDenreeNom(id: string) {
                 {{ m.type === 'entree' ? i18n.t('mouvements.status.entry') : i18n.t('mouvements.status.exit') }}
               </span>
             </td>
-            <td class="px-5 py-3 font-medium">{{ getDenreeNom(m.denreeId) }}</td>
+            <td class="px-5 py-3 font-medium">{{ translateForUi(getDenreeNom(m.denreeId)) }}</td>
             <td class="px-5 py-3">{{ formatNumber(m.quantite) }}</td>
             <td class="px-5 py-3 text-gray-500 text-xs">
               <template v-if="m.type === 'entree'">
@@ -261,7 +262,7 @@ function getDenreeNom(id: string) {
               <template v-else>
                 {{ m.motif ? i18n.t(MOTIF_LABEL_KEYS[m.motif]) : '' }}
                 <template v-if="m.menuId">
-                  · {{ i18n.t('mouvements.detail.linkedRecipe') }} : {{ menuStore.getRecette(m.menuId)?.nom ?? m.menuId }}
+                  · {{ i18n.t('mouvements.detail.linkedRecipe') }} : {{ translateForUi(menuStore.getRecette(m.menuId)?.nom ?? m.menuId) }}
                 </template>
                 {{ m.commentaire ? `· ${m.commentaire}` : '' }}
               </template>

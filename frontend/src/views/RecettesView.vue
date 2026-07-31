@@ -7,6 +7,7 @@ import { useMenuStore } from '@/stores/menu'
 import { useStockStore } from '@/stores/stock'
 import { UNITE_LABELS, type IngredientRecette, type RecetteCategorie } from '@/types'
 import { formatNumber } from '@/utils/helpers'
+import { translateForUi } from '@/utils/foodTranslator'
 
 const menuStore = useMenuStore()
 const stockStore = useStockStore()
@@ -167,7 +168,7 @@ function getDenreeNom(id: string) {
       >
         <div class="mb-3 flex items-start justify-between">
           <div>
-            <h3 class="font-semibold text-gray-900">{{ r.nom }}</h3>
+            <h3 class="font-semibold text-gray-900">{{ translateForUi(r.nom) }}</h3>
             <p class="text-xs text-gray-500 capitalize">{{ r.categorie.replace('_', ' ') }}</p>
           </div>
           <div class="flex items-center gap-2">
@@ -186,7 +187,7 @@ function getDenreeNom(id: string) {
         <p class="mb-3 text-sm text-gray-600">{{ r.instructions }}</p>
         <ul class="space-y-1 text-sm">
           <li v-for="ing in r.ingredients" :key="ing.denreeId" class="flex justify-between text-gray-700">
-            <span>{{ getDenreeNom(ing.denreeId) }}</span>
+            <span>{{ translateForUi(getDenreeNom(ing.denreeId)) }}</span>
             <span class="text-gray-500">
               {{ formatNumber(ing.quantiteParPortion, 3) }}
               {{ stockStore.getDenree(ing.denreeId) ? UNITE_LABELS[stockStore.getDenree(ing.denreeId)!.unite] : '' }}

@@ -77,7 +77,7 @@ export const LÉGUMES: FoodEntry[] = [
   { fr: 'céleri', mlg: 'seler', category: 'légumes' },
   { fr: 'laitue', mlg: 'salady', category: 'légumes', aliases_fr: ['salade verte'] },
   { fr: 'persil', mlg: 'peresy', category: 'légumes' },
-  { fr: 'ciboulette', mlg: 'tongolo maitso', category: 'légumes', aliases_fr: ['ciboule'] },
+  { fr: 'ciboulette', mlg: 'tongolo maintso', category: 'légumes', aliases_fr: ['ciboule'] },
   { fr: 'gingembre', mlg: 'sakamalao', category: 'légumes', aliases_mlg: ['zihary'] },
   { fr: 'pousse de bambou', mlg: 'fehy voloafo', category: 'légumes' },
   { fr: 'feuilles de manioc', mlg: 'ravintoto', category: 'légumes', notes: 'Utilisées dans le plat traditionnel ravitoto' },
@@ -88,7 +88,7 @@ export const LÉGUMES: FoodEntry[] = [
 // ============================================================
 export const LÉGUMINEUSES: FoodEntry[] = [
   { fr: 'haricot', mlg: 'tsaramaso', category: 'légumineuses', aliases_fr: ['haricots'] },
-  { fr: 'haricot rouge', mlg: 'tsaramaso mena', category: 'légumineuses' },
+  { fr: 'haricots rouges', mlg: 'tsaramaso mena', category: 'légumineuses' },
   { fr: 'haricot blanc', mlg: 'tsaramaso fotsy', category: 'légumineuses' },
   { fr: 'lentille', mlg: 'antsoroka', category: 'légumineuses', aliases_fr: ['lentilles'] },
   { fr: 'pois du cap', mlg: 'kapily', category: 'légumineuses', notes: 'Très consommé à Madagascar' },
@@ -130,7 +130,7 @@ export const POISSONS: FoodEntry[] = [
   { fr: 'crevette', mlg: 'orana', category: 'poissons', aliases_fr: ['crevettes'] },
   { fr: 'crabe', mlg: 'patsa', category: 'poissons' },
   { fr: 'calamar', mlg: 'biby ranomasina', category: 'poissons', aliases_fr: ['encornet'] },
-  { fr: 'poisson séché', mlg: 'kitoza trondro', category: 'poissons', notes: 'Méthode de conservation traditionnelle' },
+  { fr: 'poisson séché', mlg: 'trondro maina', category: 'poissons', notes: 'Méthode de conservation traditionnelle' },
   { fr: 'poisson salé', mlg: 'trondro sira', category: 'poissons' },
 ]
 
@@ -206,6 +206,7 @@ export const HUILES: FoodEntry[] = [
   { fr: 'huile d\'arachide', mlg: 'menaka voanjo', category: 'huiles_graisses' },
   { fr: 'graisse', mlg: 'tavy', category: 'huiles_graisses' },
   { fr: 'margarine', mlg: 'margarina', category: 'huiles_graisses' },
+  { fr: 'huile de coco', mlg: 'menaka voanio', category: 'huiles_graisses' },
 ]
 
 // ============================================================

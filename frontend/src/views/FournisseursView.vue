@@ -5,6 +5,7 @@ import { useCommandeStore } from '@/stores/commande'
 import { useI18nStore } from '@/stores/i18n'
 import { useStockStore } from '@/stores/stock'
 import { UNITE_LABELS } from '@/types'
+import { translateForUi } from '@/utils/foodTranslator'
 
 const commandeStore = useCommandeStore()
 const stockStore = useStockStore()
@@ -66,7 +67,7 @@ function toggleProduit(id: string) {
             :class="produits.includes(d.id) ? 'border-brand-600 bg-brand-50 text-brand-900' : 'border-gray-200 bg-white text-gray-700'"
             @click="toggleProduit(d.id)"
           >
-            {{ d.nom }} ({{ UNITE_LABELS[d.unite] }})
+            {{ translateForUi(d.nom) }} ({{ UNITE_LABELS[d.unite] }})
           </button>
         </div>
       </div>
@@ -97,7 +98,7 @@ function toggleProduit(id: string) {
             <td class="px-5 py-3">{{ f.contact }}</td>
             <td class="px-5 py-3 text-gray-600">
               <span v-if="f.produits.length">
-                {{ f.produits.map((p) => stockStore.getDenree(p)?.nom ?? p).join(', ') }}
+                {{ f.produits.map((p) => translateForUi(stockStore.getDenree(p)?.nom ?? p)).join(', ') }}
               </span>
               <span v-else>—</span>
             </td>

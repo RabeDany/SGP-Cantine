@@ -81,6 +81,14 @@ export const useStockStore = defineStore('stock', () => {
     }
   }
 
+  function deleteDenree(id: string) {
+    const idx = denrees.value.findIndex((d) => d.id === id)
+    if (idx >= 0) {
+      denrees.value[idx].actif = false
+      persist()
+    }
+  }
+
   function enregistrerEntree(data: {
     denreeId: string
     date: string
@@ -168,6 +176,7 @@ export const useStockStore = defineStore('stock', () => {
     getStockStatus,
     createDenree,
     updateDenree,
+    deleteDenree,
     enregistrerEntree,
     enregistrerSortie,
   }

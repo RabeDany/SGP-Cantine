@@ -4,6 +4,7 @@ import PageHeader from '@/components/PageHeader.vue'
 import { useMenuStore } from '@/stores/menu'
 import { usePresenceStore } from '@/stores/presence'
 import { useStockStore } from '@/stores/stock'
+import { useI18nStore } from '@/stores/i18n'
 import {
   buildAttendanceReportData,
   buildMenuReportData,
@@ -12,10 +13,12 @@ import {
   formatNumber,
   toCsv,
 } from '@/utils/helpers'
+import { translateForUi } from '@/utils/foodTranslator'
 
 const stockStore = useStockStore()
 const presenceStore = usePresenceStore()
 const menuStore = useMenuStore()
+const i18n = useI18nStore()
 
 const currentMonth = computed(() => new Date().toISOString().slice(0, 7))
 
@@ -141,45 +144,45 @@ function printCurrentSection() {
 <template>
   <div>
     <PageHeader
-      title="Rapports & exports"
-      subtitle="Rapports de stock, fréquentation et fiche de menu prêts à imprimer ou exporter (US-16, US-17, US-18, US-22)"
+      :title="i18n.t('rapports.title')"
+      :subtitle="i18n.t('rapports.subtitle')"
     />
 
     <div class="mb-6 flex flex-wrap gap-3">
-      <button type="button" class="btn-secondary" @click="exportStockCsv">Exporter stock CSV</button>
-      <button type="button" class="btn-secondary" @click="exportStockJson">Exporter stock JSON</button>
-      <button type="button" class="btn-secondary" @click="exportAttendanceCsv">Exporter présences CSV</button>
-      <button type="button" class="btn-primary" @click="exportGlobalJson">Exporter tout en JSON</button>
-      <button type="button" class="btn-primary" @click="printCurrentSection">Imprimer le rapport</button>
+      <button type="button" class="btn-secondary" @click="exportStockCsv">{{ i18n.t('rapports.export.stockCsv') }}</button>
+      <button type="button" class="btn-secondary" @click="exportStockJson">{{ i18n.t('rapports.export.stockJson') }}</button>
+      <button type="button" class="btn-secondary" @click="exportAttendanceCsv">{{ i18n.t('rapports.export.attendanceCsv') }}</button>
+      <button type="button" class="btn-primary" @click="exportGlobalJson">{{ i18n.t('rapports.export.globalJson') }}</button>
+      <button type="button" class="btn-primary" @click="printCurrentSection">{{ i18n.t('rapports.export.print') }}</button>
     </div>
 
     <div class="grid gap-6 xl:grid-cols-2">
       <section class="card print-card">
         <div class="mb-4 flex items-center justify-between">
           <div>
-            <h2 class="text-lg font-semibold text-gray-900">Rapport de stock — {{ stockReport.period }}</h2>
-            <p class="text-sm text-gray-500">État mensuel du stock et alertes de rupture.</p>
+            <h2 class="text-lg font-semibold text-gray-900">{{ i18n.t('rapports.stock.title', { period: stockReport.period }) }}</h2>
+            <p class="text-sm text-gray-500">{{ i18n.t('rapports.stock.subtitle') }}</p>
           </div>
           <span class="rounded-full bg-blue-50 px-3 py-1 text-sm font-medium text-blue-700">US-16</span>
         </div>
 
         <div class="mb-4 grid gap-3 sm:grid-cols-3">
           <div class="rounded-lg bg-gray-50 p-3">
-            <p class="text-xs text-gray-500">Denrées référencées</p>
+            <p class="text-xs text-gray-500">{{ i18n.t('rapports.stock.items') }}</p>
             <p class="text-xl font-semibold">{{ stockReport.totalItems }}</p>
           </div>
           <div class="rounded-lg bg-gray-50 p-3">
-            <p class="text-xs text-gray-500">Mouvements</p>
+            <p class="text-xs text-gray-500">{{ i18n.t('rapports.stock.movements') }}</p>
             <p class="text-xl font-semibold">{{ stockReport.movementsCount }}</p>
           </div>
           <div class="rounded-lg bg-gray-50 p-3">
-            <p class="text-xs text-gray-500">Sous seuil</p>
+            <p class="text-xs text-gray-500">{{ i18n.t('rapports.stock.lowItems') }}</p>
             <p class="text-xl font-semibold text-amber-700">{{ stockReport.lowStockItems.length }}</p>
           </div>
         </div>
 
         <div class="mb-4">
-          <div class="mb-2 text-sm font-semibold text-gray-700">Résumé</div>
+          <div class="mb-2 text-sm font-semibold text-gray-700">{{ i18n.t('rapports.stock.summary') }}</div>
           <div class="flex flex-wrap gap-2">
             <span v-for="item in stockReport.summary" :key="item.label" class="rounded-full bg-earth-50 px-3 py-1 text-sm text-gray-700">
               {{ item.label }} : {{ item.value }}
@@ -191,19 +194,19 @@ function printCurrentSection() {
           <table class="w-full text-sm">
             <thead class="bg-gray-50 text-left text-xs uppercase tracking-wide text-gray-500">
               <tr>
-                <th class="px-3 py-2">Denrée</th>
-                <th class="px-3 py-2">Stock</th>
-                <th class="px-3 py-2">Seuil</th>
-                <th class="px-3 py-2">État</th>
+                <th class="px-3 py-2">{{ i18n.t('rapports.stock.table.denree') }}</th>
+                <th class="px-3 py-2">{{ i18n.t('rapports.stock.table.stock') }}</th>
+                <th class="px-3 py-2">{{ i18n.t('rapports.stock.table.threshold') }}</th>
+                <th class="px-3 py-2">{{ i18n.t('rapports.stock.table.state') }}</th>
               </tr>
             </thead>
             <tbody>
               <tr v-for="item in stockReport.lowStockItems" :key="item.id" class="border-t border-gray-100">
-                <td class="px-3 py-2 font-medium text-gray-900">{{ item.nom }}</td>
+                <td class="px-3 py-2 font-medium text-gray-900">{{ translateForUi(item.nom) }}</td>
                 <td class="px-3 py-2">{{ formatNumber(item.stockActuel, 0) }} {{ item.unite }}</td>
                 <td class="px-3 py-2">{{ formatNumber(item.seuilAlerte, 0) }} {{ item.unite }}</td>
                 <td class="px-3 py-2">
-                  <span class="rounded-full bg-amber-100 px-2.5 py-0.5 text-xs font-medium text-amber-800">À surveiller</span>
+                  <span class="rounded-full bg-amber-100 px-2.5 py-0.5 text-xs font-medium text-amber-800">{{ i18n.t('rapports.stock.watch') }}</span>
                 </td>
               </tr>
             </tbody>
@@ -214,23 +217,23 @@ function printCurrentSection() {
       <section class="card print-card">
         <div class="mb-4 flex items-center justify-between">
           <div>
-            <h2 class="text-lg font-semibold text-gray-900">Rapport de fréquentation — {{ currentMonth }}</h2>
-            <p class="text-sm text-gray-500">Repas servis et taux d’absentéisme.</p>
+            <h2 class="text-lg font-semibold text-gray-900">{{ i18n.t('rapports.attendance.title', { month: currentMonth }) }}</h2>
+            <p class="text-sm text-gray-500">{{ i18n.t('rapports.attendance.subtitle') }}</p>
           </div>
           <span class="rounded-full bg-green-50 px-3 py-1 text-sm font-medium text-green-700">US-17</span>
         </div>
 
         <div class="mb-4 grid gap-3 sm:grid-cols-3">
           <div class="rounded-lg bg-gray-50 p-3">
-            <p class="text-xs text-gray-500">Repas servis</p>
+            <p class="text-xs text-gray-500">{{ i18n.t('rapports.attendance.mealsServed') }}</p>
             <p class="text-xl font-semibold">{{ attendanceReport.totalMealsServed }}</p>
           </div>
           <div class="rounded-lg bg-gray-50 p-3">
-            <p class="text-xs text-gray-500">Taux présence moyen</p>
+            <p class="text-xs text-gray-500">{{ i18n.t('rapports.attendance.averageRate') }}</p>
             <p class="text-xl font-semibold">{{ attendanceReport.averageAttendanceRate }} %</p>
           </div>
           <div class="rounded-lg bg-gray-50 p-3">
-            <p class="text-xs text-gray-500">Absentéisme</p>
+            <p class="text-xs text-gray-500">{{ i18n.t('rapports.attendance.absenteeism') }}</p>
             <p class="text-xl font-semibold text-amber-700">{{ attendanceReport.absentRate }} %</p>
           </div>
         </div>
@@ -239,12 +242,12 @@ function printCurrentSection() {
           <div v-for="row in attendanceReport.dailyRows" :key="row.date" class="rounded-lg border border-gray-100 p-3">
             <div class="mb-2 flex items-center justify-between text-sm">
               <span class="font-medium text-gray-900">{{ formatDate(row.date) }}</span>
-              <span class="text-gray-500">{{ row.presents }} / {{ row.inscrits }} présents</span>
+              <span class="text-gray-500">{{ i18n.t('rapports.attendance.presentCount', { present: row.presents, inscrits: row.inscrits }) }}</span>
             </div>
             <div class="h-2 rounded-full bg-gray-100">
               <div class="h-2 rounded-full bg-brand-600" :style="{ width: `${Math.max(8, row.rate)}%` }"></div>
             </div>
-            <p class="mt-2 text-xs text-gray-500">Taux de présence : {{ row.rate }} %</p>
+            <p class="mt-2 text-xs text-gray-500">{{ i18n.t('rapports.attendance.presenceRate', { rate: row.rate }) }}</p>
           </div>
         </div>
       </section>
@@ -253,44 +256,44 @@ function printCurrentSection() {
     <section id="menu-print-section" class="mt-6 card print-card">
       <div class="mb-4 flex items-center justify-between">
         <div>
-          <h2 class="text-lg font-semibold text-gray-900">Fiche de menu hebdomadaire — {{ formatDate(menuReport.week) }}</h2>
-          <p class="text-sm text-gray-500">Version imprimable pour affiche ou transmission.</p>
+          <h2 class="text-lg font-semibold text-gray-900">{{ i18n.t('rapports.menu.title', { date: formatDate(menuReport.week) }) }}</h2>
+          <p class="text-sm text-gray-500">{{ i18n.t('rapports.menu.subtitle') }}</p>
         </div>
         <span class="rounded-full bg-purple-50 px-3 py-1 text-sm font-medium text-purple-700">US-18</span>
       </div>
 
       <div class="mb-4 grid gap-3 sm:grid-cols-3">
         <div class="rounded-lg bg-gray-50 p-3">
-          <p class="text-xs text-gray-500">Portions prévues</p>
+          <p class="text-xs text-gray-500">{{ i18n.t('rapports.menu.portions') }}</p>
           <p class="text-xl font-semibold">{{ menuReport.totalPortions }}</p>
         </div>
         <div class="rounded-lg bg-gray-50 p-3">
-          <p class="text-xs text-gray-500">Jours planifiés</p>
+          <p class="text-xs text-gray-500">{{ i18n.t('rapports.menu.days') }}</p>
           <p class="text-xl font-semibold">{{ menuReport.mealsByDay.length }}</p>
         </div>
         <div class="rounded-lg bg-gray-50 p-3">
-          <p class="text-xs text-gray-500">Ingrédients</p>
+          <p class="text-xs text-gray-500">{{ i18n.t('rapports.menu.ingredients') }}</p>
           <p class="text-xl font-semibold">{{ menuReport.ingredients.length }}</p>
         </div>
       </div>
 
       <div class="grid gap-4 lg:grid-cols-2">
         <div>
-          <h3 class="mb-2 text-sm font-semibold text-gray-700">Planning du menu</h3>
+          <h3 class="mb-2 text-sm font-semibold text-gray-700">{{ i18n.t('rapports.menu.planning') }}</h3>
           <ul class="space-y-2">
             <li v-for="meal in menuReport.mealsByDay" :key="meal.day" class="rounded-lg border border-gray-100 p-3 text-sm">
               <div class="font-medium text-gray-900">{{ meal.day }}</div>
-              <div class="text-gray-600">{{ meal.recette }}</div>
-              <div class="text-gray-500">{{ meal.portions }} portions</div>
+              <div class="text-gray-600">{{ translateForUi(meal.recette) }}</div>
+              <div class="text-gray-500">{{ i18n.t('rapports.menu.mealPortions', { count: meal.portions }) }}</div>
             </li>
           </ul>
         </div>
 
         <div>
-          <h3 class="mb-2 text-sm font-semibold text-gray-700">Besoin en ingrédients</h3>
+          <h3 class="mb-2 text-sm font-semibold text-gray-700">{{ i18n.t('rapports.menu.needs') }}</h3>
           <ul class="space-y-2">
             <li v-for="ingredient in menuReport.ingredients" :key="ingredient.denree" class="rounded-lg border border-gray-100 p-3 text-sm">
-              <div class="font-medium text-gray-900">{{ ingredient.denree }}</div>
+              <div class="font-medium text-gray-900">{{ translateForUi(ingredient.denree) }}</div>
               <div class="text-gray-600">{{ formatNumber(ingredient.quantite, 2) }} {{ ingredient.unite }}</div>
             </li>
           </ul>
