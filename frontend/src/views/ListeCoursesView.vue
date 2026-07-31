@@ -82,7 +82,7 @@ function createBonFromCourses() {
         :disabled="!menuStore.denreesManquantes.length"
         @click="createBonFromCourses"
       >
-        Créer un bon depuis les besoins
+        {{ i18n.t('courses.createOrder') }}
       </button>
     </div>
 
@@ -119,21 +119,21 @@ function createBonFromCourses() {
               <template v-if="b.manque">
                 {{ formatNumber(b.manquant) }} {{ b.denree ? UNITE_LABELS[b.denree.unite] : '' }}
               </template>
-              <template v-else>—</template>
+              <template v-else>{{ i18n.t('general.none') }}</template>
             </td>
             <td class="px-5 py-3">
               <span
                 class="rounded-full px-2 py-0.5 text-xs font-medium"
                 :class="b.manque ? 'bg-red-200 text-red-900' : 'bg-emerald-100 text-emerald-800'"
               >
-                {{ b.manque ? 'À commander' : 'Suffisant' }}
+                {{ b.manque ? i18n.t('courses.status.missing') : i18n.t('courses.status.enough') }}
               </span>
             </td>
           </tr>
         </tbody>
         <tfoot class="bg-slate-50 text-sm font-semibold text-slate-700">
           <tr>
-            <td class="px-5 py-3">Totaux</td>
+            <td class="px-5 py-3">{{ i18n.t('courses.total') }}</td>
             <td class="px-5 py-3">{{ formatNumber(totalQuantite) }}</td>
             <td class="px-5 py-3">{{ formatNumber(totalStock) }}</td>
             <td class="px-5 py-3">{{ totalManquants > 0 ? formatNumber(totalManquants) : '—' }}</td>

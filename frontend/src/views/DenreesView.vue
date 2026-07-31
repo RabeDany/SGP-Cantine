@@ -83,7 +83,7 @@ function submit() {
         <label class="label">{{ i18n.t('denrees.label.unit') }}</label>
         <select v-model="form.unite" class="input">
           <option v-for="(label, key) in UNITE_LABELS" :key="key" :value="key">
-            {{ label }}
+            {{ i18n.t('general.unit.' + key) }}
           </option>
         </select>
       </div>
@@ -124,7 +124,7 @@ function submit() {
           <tr v-for="d in stockStore.denrees.filter((x) => x.actif)" :key="d.id" class="border-t">
             <td class="px-5 py-3 font-medium">{{ d.nom }}</td>
             <td class="px-5 py-3">{{ CATEGORIE_LABELS[d.categorie] }}</td>
-            <td class="px-5 py-3">{{ UNITE_LABELS[d.unite] }}</td>
+            <td class="px-5 py-3">{{ i18n.t('general.unit.' + d.unite) }}</td>
             <td class="px-5 py-3">{{ formatNumber(d.seuilAlerte) }}</td>
             <td class="px-5 py-3">{{ formatNumber(d.stockActuel) }}</td>
             <td class="px-5 py-3 text-gray-500">{{ d.dureeConservationJours }} {{ i18n.t('denrees.label.daysShort') }}</td>

@@ -6,12 +6,9 @@ import { useI18nStore } from '@/stores/i18n'
 import { useMenuStore } from '@/stores/menu'
 import { useStockStore } from '@/stores/stock'
 import {
-  JOURS_SEMAINE,
-  MOTIF_LABELS,
-  PROVENANCE_LABELS,
-  UNITE_LABELS,
   type MotifSortie,
   type ProvenanceStock,
+  type UniteMesure,
 } from '@/types'
 import { formatDate, formatNumber, todayISO } from '@/utils/helpers'
 
@@ -19,6 +16,33 @@ const auth = useAuthStore()
 const stockStore = useStockStore()
 const menuStore = useMenuStore()
 const i18n = useI18nStore()
+
+const UNITE_LABEL_KEYS: Record<UniteMesure, string> = {
+  kg: 'general.unit.kg',
+  litre: 'general.unit.litre',
+  unite: 'general.unit.unite',
+}
+
+const PROVENANCE_LABEL_KEYS: Record<ProvenanceStock, string> = {
+  achat_local: 'mouvements.provenance.achat_local',
+  don: 'mouvements.provenance.don',
+  partenariat: 'mouvements.provenance.partenariat',
+}
+
+const MOTIF_LABEL_KEYS: Record<MotifSortie, string> = {
+  preparation_repas: 'mouvements.motif.preparation_repas',
+  perte: 'mouvements.motif.perte',
+  avarie: 'mouvements.motif.avarie',
+  transfert: 'mouvements.motif.transfert',
+}
+
+const JOUR_LABEL_KEYS = [
+  'mouvements.day.lundi',
+  'mouvements.day.mardi',
+  'mouvements.day.mercredi',
+  'mouvements.day.jeudi',
+  'mouvements.day.vendredi',
+] as const
 
 const tab = ref<'entree' | 'sortie' | 'historique'>('entree')
 const message = ref('')
@@ -57,7 +81,7 @@ function submitEntree() {
     error.value = result.error!
     return
   }
-  message.value = 'Entrée enregistrée — stock mis à jour.'
+  message.value = i18n.t('mouvements.message.entrySaved')
   entreeForm.value.quantite = 0
   entreeForm.value.numeroBon = ''
 }
@@ -75,7 +99,7 @@ function submitSortie() {
     error.value = result.error!
     return
   }
-  message.value = 'Sortie enregistrée — stock mis à jour.'
+  message.value = i18n.t('mouvements.message.exitSaved')
   sortieForm.value.quantite = 0
   sortieForm.value.commentaire = ''
   sortieForm.value.menuId = ''
@@ -123,7 +147,7 @@ function getDenreeNom(id: string) {
         <select v-model="entreeForm.denreeId" class="input" required>
           <option value="">— {{ i18n.t('general.select') }} —</option>
           <option v-for="d in stockStore.denrees.filter((x) => x.actif)" :key="d.id" :value="d.id">
-            {{ d.nom }} ({{ formatNumber(d.stockActuel) }} {{ UNITE_LABELS[d.unite] }})
+            {{ d.nom }} ({{ formatNumber(d.stockActuel) }} {{ i18n.t(UNITE_LABEL_KEYS[d.unite]) }})
           </option>
         </select>
       </div>
@@ -138,7 +162,7 @@ function getDenreeNom(id: string) {
       <div>
         <label class="label">{{ i18n.t('mouvements.label.origin') }}</label>
         <select v-model="entreeForm.provenance" class="input">
-          <option v-for="(label, key) in PROVENANCE_LABELS" :key="key" :value="key">{{ label }}</option>
+          <option v-for="(labelKey, key) in PROVENANCE_LABEL_KEYS" :key="key" :value="key">{{ i18n.t(labelKey) }}</option>
         </select>
       </div>
       <div>
@@ -164,35 +188,35 @@ function getDenreeNom(id: string) {
         <select v-model="sortieForm.denreeId" class="input" required>
           <option value="">— {{ i18n.t('general.select') }} —</option>
           <option v-for="d in stockStore.denrees.filter((x) => x.actif)" :key="d.id" :value="d.id">
-            {{ d.nom }} ({{ formatNumber(d.stockActuel) }} {{ UNITE_LABELS[d.unite] }})
+            {{ d.nom }} ({{ formatNumber(d.stockActuel) }} {{ i18n.t(UNITE_LABEL_KEYS[d.unite]) }})
           </option>
         </select>
       </div>
       <div>
-        <label class="label">Date</label>
+        <label class="label">{{ i18n.t('general.date') }}</label>
         <input v-model="sortieForm.date" type="date" class="input" required />
       </div>
       <div>
-        <label class="label">Quantité</label>
+        <label class="label">{{ i18n.t('general.quantity') }}</label>
         <input v-model.number="sortieForm.quantite" type="number" min="0.01" step="0.01" class="input" required />
       </div>
       <div>
         <label class="label">{{ i18n.t('mouvements.label.reason') }}</label>
         <select v-model="sortieForm.motif" class="input">
-          <option v-for="(label, key) in MOTIF_LABELS" :key="key" :value="key">{{ label }}</option>
+          <option v-for="(labelKey, key) in MOTIF_LABEL_KEYS" :key="key" :value="key">{{ i18n.t(labelKey) }}</option>
         </select>
       </div>
       <div>
         <label class="label">{{ i18n.t('mouvements.label.menuRecipe') }}</label>
         <select v-model="sortieForm.menuId" class="input">
-          <option value="">— Aucun lien —</option>
+          <option value="">{{ i18n.t('mouvements.placeholder.noLinkedRecipe') }}</option>
           <option
             v-for="jour in menuStore.menuActuel.jours"
             :key="jour.jour"
             :value="jour.recetteId || ''"
             :disabled="!jour.recetteId"
           >
-            {{ JOURS_SEMAINE[jour.jour] }} — {{ menuStore.getRecette(jour.recetteId ?? '')?.nom ?? 'Aucune recette' }}
+            {{ i18n.t(JOUR_LABEL_KEYS[jour.jour]) }} — {{ menuStore.getRecette(jour.recetteId ?? '')?.nom ?? i18n.t('mouvements.placeholder.noRecipe') }}
           </option>
         </select>
       </div>
@@ -231,11 +255,11 @@ function getDenreeNom(id: string) {
             <td class="px-5 py-3">{{ formatNumber(m.quantite) }}</td>
             <td class="px-5 py-3 text-gray-500 text-xs">
               <template v-if="m.type === 'entree'">
-                {{ m.provenance ? PROVENANCE_LABELS[m.provenance] : '' }}
+                {{ m.provenance ? i18n.t(PROVENANCE_LABEL_KEYS[m.provenance]) : '' }}
                 {{ m.numeroBon ? `· ${m.numeroBon}` : '' }}
               </template>
               <template v-else>
-                {{ m.motif ? MOTIF_LABELS[m.motif] : '' }}
+                {{ m.motif ? i18n.t(MOTIF_LABEL_KEYS[m.motif]) : '' }}
                 <template v-if="m.menuId">
                   · {{ i18n.t('mouvements.detail.linkedRecipe') }} : {{ menuStore.getRecette(m.menuId)?.nom ?? m.menuId }}
                 </template>

@@ -72,7 +72,7 @@ function toggleProduit(id: string) {
       </div>
       <div class="lg:col-span-2 flex justify-end">
         <button type="button" class="btn-primary" @click="ajouterFournisseur">
-          Ajouter le fournisseur
+          {{ i18n.t('fournisseurs.button.add') }}
         </button>
       </div>
     </div>

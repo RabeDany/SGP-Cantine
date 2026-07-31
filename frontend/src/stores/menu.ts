@@ -128,6 +128,15 @@ export const useMenuStore = defineStore('menu', () => {
     }
   }
 
+  function deleteRecette(id: string) {
+    const idx = recettes.value.findIndex((r) => r.id === id)
+    if (idx >= 0) {
+      // soft-delete so lists relying on actif work correctly
+      recettes.value[idx].actif = false
+      persist()
+    }
+  }
+
   function invaliderMenu(userId = 'system') {
     if (!menuActuel.value.valide) {
       return { ok: true }
@@ -348,6 +357,7 @@ export const useMenuStore = defineStore('menu', () => {
     recetteEstValide,
     createRecette,
     updateRecette,
+    deleteRecette,
     updateMenuJour,
     invaliderMenu,
     validerMenu,
