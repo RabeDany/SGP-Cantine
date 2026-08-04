@@ -62,8 +62,8 @@ export const useAuthStore = defineStore('auth', () => {
     if (!currentUser.value) return false
     const role = currentUser.value.role
     const access: Record<UserRole, string[]> = {
-      admin: ['dashboard', 'stock', 'denrees', 'mouvements', 'recettes', 'menu', 'courses', 'fournisseurs', 'commandes', 'presences', 'users', 'rapports'],
-      gestionnaire: ['dashboard', 'stock', 'denrees', 'mouvements', 'fournisseurs', 'commandes','courses', 'rapports'],
+      admin: ['dashboard', 'stock', 'inventaire', 'denrees', 'mouvements', 'recettes', 'menu', 'courses', 'fournisseurs', 'commandes', 'presences', 'users', 'rapports'],
+      gestionnaire: ['dashboard', 'stock', 'inventaire', 'denrees', 'mouvements', 'fournisseurs', 'commandes','courses', 'rapports'],
       planificateur: ['dashboard', 'stock', 'recettes', 'menu', 'courses', 'rapports'],
       agent: ['dashboard', 'stock', 'presences'],
     }

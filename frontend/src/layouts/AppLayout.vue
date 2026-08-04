@@ -29,7 +29,7 @@ interface NavItem {
 const allNav: NavItem[] = [
   { labelKey: 'nav.dashboard', to: '/', icon: '📊', module: 'dashboard' },
   { labelKey: 'nav.stock', to: '/stock', icon: '📦', module: 'stock' },
-  { labelKey: 'nav.inventaire', to: '/inventaire', icon: '🧾', module: 'stock' },
+  { labelKey: 'nav.inventaire', to: '/inventaire', icon: '🧾', module: 'inventaire' },
   { labelKey: 'nav.denrees', to: '/denrees', icon: '🌾', module: 'denrees' },
   { labelKey: 'nav.mouvements', to: '/mouvements', icon: '📝', module: 'mouvements' },
   { labelKey: 'nav.recettes', to: '/recettes', icon: '🍲', module: 'recettes' },

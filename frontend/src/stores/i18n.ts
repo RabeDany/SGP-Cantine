@@ -37,6 +37,7 @@ const translations: Record<SupportedLang, Messages> = {
     'dashboard.title': 'Tableau de bord',
     'dashboard.subtitle': 'Bonjour {user} — vue d’ensemble de la cantine',
     'dashboard.alertPeremption': 'denrée(s) expirent dans 7 jours ou moins',
+    'dashboard.alertAdvice': 'Priorisez la rotation des stocks proches de la péremption.',
     'dashboard.noMissing': 'Aucune denrée manquante pour la semaine en cours.',
     'dashboard.viewStock': 'Voir tout le stock →',
     'dashboard.viewCourses': 'Voir la liste complète →',

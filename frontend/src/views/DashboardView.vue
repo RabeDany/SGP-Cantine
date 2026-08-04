@@ -37,7 +37,7 @@ const manquants = computed(() => menuStore.denreesManquantes.slice(0, 5))
 
     <!-- Alertes péremption US-05 -->
     <div
-      v-if="alertesPeremption.length"
+      v-if="alertesPeremption.length && auth.hasRole('admin', 'gestionnaire', 'planificateur')"
       class="mb-6 rounded-xl border border-amber-300 bg-amber-50 px-5 py-4"
     >
       <div class="flex items-start gap-3">
