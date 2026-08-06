@@ -77,7 +77,7 @@ function submitEntree() {
     prixAchat: entreeForm.value.prixAchat || undefined,
     numeroBon: entreeForm.value.numeroBon || undefined,
     datePeremption: entreeForm.value.datePeremption || undefined,
-  })
+  }, auth.currentUser ? { id: auth.currentUser.id, nom: auth.currentUser.nom, role: auth.currentUser.role } : undefined)
   if (!result.ok) {
     error.value = result.error!
     return
@@ -95,7 +95,7 @@ function submitSortie() {
     menuId: sortieForm.value.menuId || undefined,
     userId: auth.currentUser!.id,
     commentaire: sortieForm.value.commentaire || undefined,
-  })
+  }, auth.currentUser ? { id: auth.currentUser.id, nom: auth.currentUser.nom, role: auth.currentUser.role } : undefined)
   if (!result.ok) {
     error.value = result.error!
     return

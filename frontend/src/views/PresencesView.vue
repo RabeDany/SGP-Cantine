@@ -31,10 +31,13 @@ initGlobalForm()
 function submitGlobal() {
   error.value = ''
   message.value = ''
-  const result = presenceStore.enregistrerPointageGlobal({
-    ...globalForm.value,
-    userId: auth.currentUser!.id,
-  })
+  const result = presenceStore.enregistrerPointageGlobal(
+    {
+      ...globalForm.value,
+      userId: auth.currentUser!.id,
+    },
+    auth.currentUser ? { id: auth.currentUser.id, nom: auth.currentUser.nom, role: auth.currentUser.role } : undefined,
+  )
   if (!result.ok) {
     error.value = result.error!
     return
@@ -50,6 +53,7 @@ function updateClasse(classeId: string, presents: number) {
     presents,
     0,
     auth.currentUser!.id,
+    auth.currentUser ? { id: auth.currentUser.id, nom: auth.currentUser.nom, role: auth.currentUser.role } : undefined,
   )
   if (!result.ok) {
     error.value = result.error!

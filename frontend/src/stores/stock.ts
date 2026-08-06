@@ -2,7 +2,8 @@ import { defineStore } from 'pinia'
 import { computed, ref } from 'vue'
 import { mockDenrees, mockMouvements } from '@/data/mockData'
 import { daysUntil, generateId, loadFromStorage, saveToStorage, todayISO } from '@/utils/helpers'
-import type { Denree, DenreeCategorie, MouvementStock, StockStatus, UniteMesure } from '@/types'
+import { useAuditStore } from '@/stores/audit'
+import type { AuditActionType, Denree, DenreeCategorie, MouvementStock, StockStatus, UniteMesure, UserRole } from '@/types'
 
 export const useStockStore = defineStore('stock', () => {
   const denrees = ref<Denree[]>(loadFromStorage('denrees', [...mockDenrees]))
@@ -98,7 +99,7 @@ export const useStockStore = defineStore('stock', () => {
     numeroBon?: string
     userId: string
     datePeremption?: string
-  }) {
+  }, user?: { id: string; nom: string; role: UserRole }) {
     const denree = getDenree(data.denreeId)
     if (!denree) return { ok: false, error: 'Denrée introuvable.' }
 
@@ -118,6 +119,20 @@ export const useStockStore = defineStore('stock', () => {
       createdAt: new Date().toISOString(),
     })
     persist()
+    if (user) {
+      const audit = useAuditStore()
+      void audit.logAction({
+        actionType: 'stock_entry',
+        actionLabel: 'Enregistrement entrée stock',
+        description: `Entrée stock ${data.quantite} ${denree.unite} de ${denree.nom} par ${user.nom}`,
+        module: 'stock',
+        userId: user.id,
+        userName: user.nom,
+        role: user.role,
+        targetId: denree.id,
+        targetType: 'denree',
+      })
+    }
     return { ok: true }
   }
 
@@ -129,7 +144,7 @@ export const useStockStore = defineStore('stock', () => {
     commentaire?: string
     menuId?: string
     userId: string
-  }) {
+  }, user?: { id: string; nom: string; role: UserRole }) {
     const denree = getDenree(data.denreeId)
     if (!denree) return { ok: false, error: 'Denrée introuvable.' }
     if (data.quantite > denree.stockActuel) {
@@ -156,6 +171,20 @@ export const useStockStore = defineStore('stock', () => {
       createdAt: new Date().toISOString(),
     })
     persist()
+    if (user) {
+      const audit = useAuditStore()
+      void audit.logAction({
+        actionType: 'stock_exit',
+        actionLabel: 'Enregistrement sortie stock',
+        description: `Sortie stock ${data.quantite} ${denree.unite} de ${denree.nom} par ${user.nom}`,
+        module: 'stock',
+        userId: user.id,
+        userName: user.nom,
+        role: user.role,
+        targetId: denree.id,
+        targetType: 'denree',
+      })
+    }
     return { ok: true }
   }
 

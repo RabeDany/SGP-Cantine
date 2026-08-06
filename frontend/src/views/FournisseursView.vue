@@ -1,12 +1,14 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 import PageHeader from '@/components/PageHeader.vue'
+import { useAuthStore } from '@/stores/auth'
 import { useCommandeStore } from '@/stores/commande'
 import { useI18nStore } from '@/stores/i18n'
 import { useStockStore } from '@/stores/stock'
 import { UNITE_LABELS } from '@/types'
 import { translateForUi } from '@/utils/foodTranslator'
 
+const auth = useAuthStore()
 const commandeStore = useCommandeStore()
 const stockStore = useStockStore()
 const i18n = useI18nStore()
@@ -24,12 +26,17 @@ const fournisseurOptions = computed(() =>
 
 function ajouterFournisseur() {
   if (!nom.value.trim() || !contact.value.trim() || !localisation.value.trim()) return
-  commandeStore.createFournisseur({
-    nom: nom.value.trim(),
-    contact: contact.value.trim(),
-    localisation: localisation.value.trim(),
-    produits: produits.value,
-  })
+  commandeStore.createFournisseur(
+    {
+      nom: nom.value.trim(),
+      contact: contact.value.trim(),
+      localisation: localisation.value.trim(),
+      produits: produits.value,
+    },
+    auth.currentUser
+      ? { id: auth.currentUser.id, nom: auth.currentUser.nom, role: auth.currentUser.role }
+      : undefined,
+  )
   nom.value = ''
   contact.value = ''
   localisation.value = ''

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onMounted, ref } from 'vue'
+import { computed, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import PageHeader from '@/components/PageHeader.vue'
 import { useAuthStore } from '@/stores/auth'
@@ -42,12 +42,19 @@ function persistDefaultFournisseur() {
   }
 }
 
+function resolveRouteString(queryValue: string | string[] | undefined) {
+  if (Array.isArray(queryValue)) {
+    return queryValue[0]
+  }
+  return queryValue
+}
+
 function prefillFromListeCourses() {
   if (prefillLoaded.value) return
   prefillLoaded.value = true
 
-  const fromCourses = route.query.fromCourses === '1'
-  const fromStock = route.query.fromStock === '1'
+  const fromCourses = resolveRouteString(route.query.fromCourses) === '1'
+  const fromStock = resolveRouteString(route.query.fromStock) === '1'
 
   if (fromCourses) {
     const needs = menuStore.denreesManquantes
@@ -66,8 +73,8 @@ function prefillFromListeCourses() {
   }
 
   if (fromStock) {
-    const linesParam = route.query.lines
-    if (typeof linesParam === 'string') {
+    const linesParam = resolveRouteString(route.query.lines)
+    if (linesParam) {
       try {
         const lines = JSON.parse(linesParam) as Array<{ denreeId: string; quantite: number }>
         lines.forEach((line) => {
@@ -88,19 +95,34 @@ onMounted(() => {
   prefillFromListeCourses()
 })
 
+watch(
+  () => route.query,
+  () => {
+    if (!prefillLoaded.value) {
+      prefillFromListeCourses()
+    }
+  },
+  { deep: true },
+)
+
 function submitBonCommande() {
   if (!fournisseurId.value || !dateCommande.value || !dateLivraisonSouhaitee.value) return
   const lignes = Object.entries(quantites.value)
     .filter(([, qte]) => qte > 0)
     .map(([denreeId, qte]) => ({ denreeId, quantite: qte }))
   if (!lignes.length) return
-  commandeStore.createBonCommande({
-    fournisseurId: fournisseurId.value,
-    emetteurId: auth.currentUser?.id ?? 'unknown',
-    dateCommande: dateCommande.value,
-    dateLivraisonSouhaitee: dateLivraisonSouhaitee.value,
-    lignes,
-  })
+  commandeStore.createBonCommande(
+    {
+      fournisseurId: fournisseurId.value,
+      emetteurId: auth.currentUser?.id ?? 'unknown',
+      dateCommande: dateCommande.value,
+      dateLivraisonSouhaitee: dateLivraisonSouhaitee.value,
+      lignes,
+    },
+    auth.currentUser
+      ? { id: auth.currentUser.id, nom: auth.currentUser.nom, role: auth.currentUser.role }
+      : undefined,
+  )
   quantites.value = {}
 }
 
@@ -125,7 +147,7 @@ function validerBon(bonId: string) {
     validationError.value = 'Un autre utilisateur doit valider ce bon.'
     return
   }
-  if (!commandeStore.validateBonCommande(bonId, auth.currentUser.id)) {
+  if (!commandeStore.validateBonCommande(bonId, auth.currentUser.id, auth.currentUser ? { id: auth.currentUser.id, nom: auth.currentUser.nom, role: auth.currentUser.role } : undefined)) {
     validationError.value = 'Impossible de valider ce bon, il est peut-être déjà validé.'
   }
 }
@@ -187,7 +209,12 @@ function confirmReception() {
     }
   }
 
-  if (!commandeStore.receiveBonCommande(receptionBon.value.id, receptionLignesArray, auth.currentUser.id)) {
+  if (!commandeStore.receiveBonCommande(
+    receptionBon.value.id,
+    receptionLignesArray,
+    auth.currentUser.id,
+    auth.currentUser ? { id: auth.currentUser.id, nom: auth.currentUser.nom, role: auth.currentUser.role } : undefined,
+  )) {
     receptionError.value = 'Erreur lors de la réception. Vérifiez le statut du bon.'
     return
   }

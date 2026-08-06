@@ -12,6 +12,47 @@ export type UniteMesure = 'kg' | 'litre' | 'unite'
 
 export type ProvenanceStock = 'achat_local' | 'don' | 'partenariat'
 
+export type AuditActionType =
+  | 'login'
+  | 'logout'
+  | 'user_create'
+  | 'user_update'
+  | 'user_toggle_active'
+  | 'supplier_create'
+  | 'supplier_update'
+  | 'order_create'
+  | 'order_validate'
+  | 'order_receive'
+  | 'stock_entry'
+  | 'stock_exit'
+  | 'menu_validate'
+  | 'menu_update'
+  | 'presence_global'
+  | 'presence_class'
+  | 'inventory_validate'
+  | 'denree_create'
+  | 'denree_update'
+  | 'denree_delete'
+  | 'unknown'
+
+export interface AuditEntry {
+  id: string
+  userId: string
+  userName: string
+  role: UserRole
+  module: string
+  actionType: AuditActionType
+  actionLabel: string
+  description: string
+  targetId?: string
+  targetType?: string
+  detail?: string
+  timestamp: string
+  location: string
+  previousHash: string
+  hash: string
+}
+
 export type MotifSortie = 'preparation_repas' | 'perte' | 'avarie' | 'transfert'
 
 export type RecetteCategorie = 'dejeuner' | 'complement'

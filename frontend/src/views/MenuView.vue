@@ -65,7 +65,7 @@ function validerMenu() {
     return
   }
 
-  const result = menuStore.validerMenu(auth.currentUser.id)
+  const result = menuStore.validerMenu(auth.currentUser.id, auth.currentUser ? { id: auth.currentUser.id, nom: auth.currentUser.nom, role: auth.currentUser.role } : undefined)
   if (!result.ok) {
     validationError.value = result.error ?? 'Échec de la validation du menu.'
     return
@@ -77,7 +77,7 @@ function validerMenu() {
 function reouvrirMenu() {
   validationError.value = ''
   validationMessage.value = ''
-  const result = menuStore.invaliderMenu(auth.currentUser?.id ?? 'system')
+  const result = menuStore.invaliderMenu(auth.currentUser?.id ?? 'system', auth.currentUser ? { id: auth.currentUser.id, nom: auth.currentUser.nom, role: auth.currentUser.role } : undefined)
   if (!result.ok) {
     validationError.value = result.error ?? 'Échec de l’annulation de la validation.'
     return
@@ -97,7 +97,12 @@ function formatMenuLabel(menu: MenuHebdo) {
 
 function updateJour(jour: number, recetteId: string) {
   const j = menuStore.menuActuel.jours.find((x) => x.jour === jour)!
-  menuStore.updateMenuJour(jour, recetteId || null, j.portionsPrevues)
+  menuStore.updateMenuJour(
+    jour,
+    recetteId || null,
+    j.portionsPrevues,
+    auth.currentUser ? { id: auth.currentUser.id, nom: auth.currentUser.nom, role: auth.currentUser.role } : undefined,
+  )
 }
 
 function updatePortions(jour: number, portions: number) {

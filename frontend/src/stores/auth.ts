@@ -2,6 +2,7 @@ import { defineStore } from 'pinia'
 import { computed, ref } from 'vue'
 import { mockUsers } from '@/data/mockData'
 import { createMockJwt, hashPassword, loadFromStorage, saveToStorage } from '@/utils/helpers'
+import { useAuditStore } from '@/stores/audit'
 import type { User, UserRole } from '@/types'
 import { ROLE_LABELS } from '@/types'
 
@@ -46,10 +47,33 @@ export const useAuthStore = defineStore('auth', () => {
       token: createMockJwt(user.id, expiresAt),
     }
     saveToStorage(SESSION_KEY, session.value)
+    const audit = useAuditStore()
+    void audit.logAction({
+      actionType: 'login',
+      actionLabel: 'Connexion',
+      description: `Connexion réussie par ${user.nom}`,
+      module: 'auth',
+      userId: user.id,
+      userName: user.nom,
+      role: user.role,
+    })
     return { ok: true }
   }
 
   function logout() {
+    const current = currentUser.value
+    if (current) {
+      const audit = useAuditStore()
+      void audit.logAction({
+        actionType: 'logout',
+        actionLabel: 'Déconnexion',
+        description: `Déconnexion de ${current.nom}`,
+        module: 'auth',
+        userId: current.id,
+        userName: current.nom,
+        role: current.role,
+      })
+    }
     session.value = null
     localStorage.removeItem('sgp-cantine-session')
   }
@@ -62,7 +86,7 @@ export const useAuthStore = defineStore('auth', () => {
     if (!currentUser.value) return false
     const role = currentUser.value.role
     const access: Record<UserRole, string[]> = {
-      admin: ['dashboard', 'stock', 'inventaire', 'denrees', 'mouvements', 'recettes', 'menu', 'courses', 'fournisseurs', 'commandes', 'presences', 'users', 'rapports'],
+      admin: ['dashboard', 'stock', 'inventaire', 'denrees', 'mouvements', 'recettes', 'menu', 'courses', 'fournisseurs', 'commandes', 'presences', 'users', 'rapports', 'audit'],
       gestionnaire: ['dashboard', 'stock', 'inventaire', 'denrees', 'mouvements', 'fournisseurs', 'commandes','courses', 'rapports'],
       planificateur: ['dashboard', 'stock', 'recettes', 'menu', 'courses', 'rapports'],
       agent: ['dashboard', 'stock', 'presences'],
@@ -78,6 +102,20 @@ export const useAuthStore = defineStore('auth', () => {
       id,
     })
     persistUsers()
+    if (currentUser.value) {
+      const audit = useAuditStore()
+      void audit.logAction({
+        actionType: 'user_create',
+        actionLabel: 'Création utilisateur',
+        description: `Nouvel utilisateur ${data.nom} créé par ${currentUser.value.nom}`,
+        module: 'users',
+        userId: currentUser.value.id,
+        userName: currentUser.value.nom,
+        role: currentUser.value.role,
+        targetId: id,
+        targetType: 'user',
+      })
+    }
     return id
   }
 
@@ -90,6 +128,20 @@ export const useAuthStore = defineStore('auth', () => {
         password: data.password ? hashPassword(data.password) : users.value[idx].password,
       }
       persistUsers()
+      if (currentUser.value) {
+        const audit = useAuditStore()
+        void audit.logAction({
+          actionType: 'user_update',
+          actionLabel: 'Modification utilisateur',
+          description: `Utilisateur ${users.value[idx].nom} modifié par ${currentUser.value.nom}`,
+          module: 'users',
+          userId: currentUser.value.id,
+          userName: currentUser.value.nom,
+          role: currentUser.value.role,
+          targetId: id,
+          targetType: 'user',
+        })
+      }
     }
   }
 
@@ -98,6 +150,20 @@ export const useAuthStore = defineStore('auth', () => {
     if (user && user.id !== currentUser.value?.id) {
       user.actif = !user.actif
       persistUsers()
+      if (currentUser.value) {
+        const audit = useAuditStore()
+        void audit.logAction({
+          actionType: 'user_toggle_active',
+          actionLabel: user.actif ? 'Activation utilisateur' : 'Désactivation utilisateur',
+          description: `Utilisateur ${user.nom} ${user.actif ? 'activé' : 'désactivé'} par ${currentUser.value.nom}`,
+          module: 'users',
+          userId: currentUser.value.id,
+          userName: currentUser.value.nom,
+          role: currentUser.value.role,
+          targetId: id,
+          targetType: 'user',
+        })
+      }
     }
   }
 

@@ -2,16 +2,19 @@ import { defineStore } from 'pinia'
 import { computed, ref } from 'vue'
 import { mockMenu, mockRecettes } from '@/data/mockData'
 import { generateId, loadFromStorage, saveToStorage, todayISO } from '@/utils/helpers'
+import { useAuditStore } from '@/stores/audit'
 import { useStockStore } from '@/stores/stock'
 import { usePresenceStore } from '@/stores/presence'
 import { JOURS_SEMAINE } from '@/types'
 import type {
+  AuditActionType,
   BesoinDenree,
   IngredientRecette,
   MenuHebdo,
   Recette,
   RecetteCategorie,
   SortiePreparationLigne,
+  UserRole,
 } from '@/types'
 
 function getWeekStart(date = new Date()): string {
@@ -137,7 +140,7 @@ export const useMenuStore = defineStore('menu', () => {
     }
   }
 
-  function invaliderMenu(userId = 'system') {
+  function invaliderMenu(userId = 'system', user?: { id: string; nom: string; role: UserRole }) {
     if (!menuActuel.value.valide) {
       return { ok: true }
     }
@@ -150,7 +153,7 @@ export const useMenuStore = defineStore('menu', () => {
         quantite: movement.quantite,
         provenance: 'don',
         userId: movement.userId || userId,
-      })
+      }, user)
       if (!result.ok) {
         return { ok: false, error: result.error ?? 'Erreur lors de l’annulation de validation.' }
       }
@@ -161,10 +164,24 @@ export const useMenuStore = defineStore('menu', () => {
     delete menuActuel.value.validationParId
     menuActuel.value.validationMouvements = []
     persist()
+    if (user) {
+      const audit = useAuditStore()
+      void audit.logAction({
+        actionType: 'menu_update',
+        actionLabel: 'Annulation validation menu',
+        description: `Validation du menu annulée par ${user.nom}`,
+        module: 'menu',
+        userId: user.id,
+        userName: user.nom,
+        role: user.role,
+        targetId: menuActuel.value.id,
+        targetType: 'menu',
+      })
+    }
     return { ok: true }
   }
 
-  function updateMenuJour(jour: number, recetteId: string | null, portionsPrevues: number) {
+  function updateMenuJour(jour: number, recetteId: string | null, portionsPrevues: number, user?: { id: string; nom: string; role: UserRole }) {
     const j = menuActuel.value.jours.find((x) => x.jour === jour)
     if (!j) return
 
@@ -177,7 +194,7 @@ export const useMenuStore = defineStore('menu', () => {
     j.portionsPrevues = portionsPrevues
 
     if (menuActuel.value.valide) {
-      const result = invaliderMenu()
+      const result = invaliderMenu(undefined, user)
       if (!result.ok) {
         j.recetteId = previousState.recetteId
         j.portionsPrevues = previousState.portionsPrevues
@@ -186,9 +203,23 @@ export const useMenuStore = defineStore('menu', () => {
     }
 
     persist()
+    if (user) {
+      const audit = useAuditStore()
+      void audit.logAction({
+        actionType: 'menu_update',
+        actionLabel: 'Modification menu',
+        description: `Menu modifié par ${user.nom} sur le jour ${jour + 1}`,
+        module: 'menu',
+        userId: user.id,
+        userName: user.nom,
+        role: user.role,
+        targetId: menuActuel.value.id,
+        targetType: 'menu',
+      })
+    }
   }
 
-  function validerMenu(userId: string) {
+  function validerMenu(userId: string, user?: { id: string; nom: string; role: UserRole }) {
     if (menuActuel.value.valide) {
       return { ok: false, error: 'Ce menu a déjà été validé.' }
     }
@@ -240,6 +271,20 @@ export const useMenuStore = defineStore('menu', () => {
       commentaire: `Préparation ${sortie.jourLabel} - ${sortie.recetteNom}`,
     }))
     persist()
+    if (user) {
+      const audit = useAuditStore()
+      void audit.logAction({
+        actionType: 'menu_validate',
+        actionLabel: 'Validation menu',
+        description: `Menu validé par ${user.nom}`,
+        module: 'menu',
+        userId: user.id,
+        userName: user.nom,
+        role: user.role,
+        targetId: menuActuel.value.id,
+        targetType: 'menu',
+      })
+    }
     return { ok: true }
   }
 

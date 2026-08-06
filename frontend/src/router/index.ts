@@ -92,6 +92,12 @@ const router = createRouter({
           component: () => import('@/views/RapportsView.vue'),
           meta: { module: 'rapports', roles: ['admin', 'gestionnaire', 'planificateur'] },
         },
+        {
+          path: 'audit',
+          name: 'audit',
+          component: () => import('@/views/AuditView.vue'),
+          meta: { module: 'audit', roles: ['admin'] },
+        },
       ],
     },
     {

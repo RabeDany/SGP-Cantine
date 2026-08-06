@@ -2,7 +2,8 @@ import { defineStore } from 'pinia'
 import { ref } from 'vue'
 import { mockBonCommandes, mockFournisseurs } from '@/data/mockData'
 import { generateId, loadFromStorage, saveToStorage, todayISO } from '@/utils/helpers'
-import type { BonCommande, Fournisseur, LigneReceptionBonCommande } from '@/types'
+import { useAuditStore } from '@/stores/audit'
+import type { AuditActionType, BonCommande, Fournisseur, LigneReceptionBonCommande, UserRole } from '@/types'
 
 export const useCommandeStore = defineStore('commande', () => {
   const fournisseurs = ref<Fournisseur[]>(loadFromStorage('fournisseurs', [...mockFournisseurs]))
@@ -22,7 +23,7 @@ export const useCommandeStore = defineStore('commande', () => {
     contact: string
     localisation: string
     produits: string[]
-  }) {
+  }, user?: { id: string; nom: string; role: UserRole }) {
     const id = generateId('f')
     fournisseurs.value.push({
       id,
@@ -33,6 +34,20 @@ export const useCommandeStore = defineStore('commande', () => {
       actif: true,
     })
     persist()
+    if (user) {
+      const audit = useAuditStore()
+      void audit.logAction({
+        actionType: 'supplier_create',
+        actionLabel: 'Création fournisseur',
+        description: `Fournisseur ${data.nom} créé par ${user.nom}`,
+        module: 'commande',
+        userId: user.id,
+        userName: user.nom,
+        role: user.role,
+        targetId: id,
+        targetType: 'supplier',
+      })
+    }
     return id
   }
 
@@ -50,7 +65,7 @@ export const useCommandeStore = defineStore('commande', () => {
     dateCommande: string
     dateLivraisonSouhaitee: string
     lignes: { denreeId: string; quantite: number }[]
-  }) {
+  }, user?: { id: string; nom: string; role: UserRole }) {
     const id = generateId('bc')
     const bon: BonCommande = {
       id,
@@ -63,10 +78,24 @@ export const useCommandeStore = defineStore('commande', () => {
     }
     bonsCommande.value.unshift(bon)
     persist()
+    if (user) {
+      const audit = useAuditStore()
+      void audit.logAction({
+        actionType: 'order_create',
+        actionLabel: 'Création bon de commande',
+        description: `Bon ${id} créé par ${user.nom}`,
+        module: 'commande',
+        userId: user.id,
+        userName: user.nom,
+        role: user.role,
+        targetId: id,
+        targetType: 'order',
+      })
+    }
     return id
   }
 
-  function validateBonCommande(id: string, valideurId: string) {
+  function validateBonCommande(id: string, valideurId: string, user?: { id: string; nom: string; role: UserRole }) {
     const bon = bonsCommande.value.find((b) => b.id === id)
     if (!bon || bon.statut !== 'emitted' || bon.emetteurId === valideurId || bon.valideurId) {
       return false
@@ -75,10 +104,24 @@ export const useCommandeStore = defineStore('commande', () => {
     bon.valideurId = valideurId
     bon.dateValidation = new Date().toISOString()
     persist()
+    if (user) {
+      const audit = useAuditStore()
+      void audit.logAction({
+        actionType: 'order_validate',
+        actionLabel: 'Validation bon de commande',
+        description: `Bon ${id} validé par ${user.nom}`,
+        module: 'commande',
+        userId: user.id,
+        userName: user.nom,
+        role: user.role,
+        targetId: id,
+        targetType: 'order',
+      })
+    }
     return true
   }
 
-  function receiveBonCommande(id: string, receptionLignes: LigneReceptionBonCommande[], userId: string) {
+  function receiveBonCommande(id: string, receptionLignes: LigneReceptionBonCommande[], userId: string, user?: { id: string; nom: string; role: UserRole }) {
     const bon = bonsCommande.value.find((b) => b.id === id)
     if (!bon || bon.statut !== 'validated' || !receptionLignes.length) {
       return false
@@ -95,6 +138,20 @@ export const useCommandeStore = defineStore('commande', () => {
     bon.receptionParId = userId
     bon.receptionLignes = receptionLignes
     persist()
+    if (user) {
+      const audit = useAuditStore()
+      void audit.logAction({
+        actionType: 'order_receive',
+        actionLabel: 'Réception bon de commande',
+        description: `Bon ${id} réceptionné par ${user.nom}`,
+        module: 'commande',
+        userId: user.id,
+        userName: user.nom,
+        role: user.role,
+        targetId: id,
+        targetType: 'order',
+      })
+    }
     return true
   }
 

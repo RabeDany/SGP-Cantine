@@ -2,7 +2,8 @@ import { defineStore } from 'pinia'
 import { computed, ref } from 'vue'
 import { mockClasses, mockPointages } from '@/data/mockData'
 import { generateId, loadFromStorage, saveToStorage, todayISO } from '@/utils/helpers'
-import type { Classe, PointagePresence } from '@/types'
+import { useAuditStore } from '@/stores/audit'
+import type { AuditActionType, Classe, PointagePresence, UserRole } from '@/types'
 
 export const usePresenceStore = defineStore('presence', () => {
   const classes = ref<Classe[]>(loadFromStorage('classes', [...mockClasses]))
@@ -60,7 +61,7 @@ export const usePresenceStore = defineStore('presence', () => {
     presents: number
     exemptions: number
     userId: string
-  }) {
+  }, user?: { id: string; nom: string; role: UserRole }) {
     const today = todayISO()
     const inscrits = totalInscrits.value
     if (data.presents + data.exemptions > inscrits) {
@@ -88,6 +89,20 @@ export const usePresenceStore = defineStore('presence', () => {
       })
     }
     persist()
+    if (user) {
+      const audit = useAuditStore()
+      void audit.logAction({
+        actionType: 'presence_global',
+        actionLabel: 'Pointage global',
+        description: `Pointage global enregistré par ${user.nom}`,
+        module: 'presence',
+        userId: user.id,
+        userName: user.nom,
+        role: user.role,
+        targetId: data.userId,
+        targetType: 'attendance',
+      })
+    }
     return { ok: true }
   }
 
@@ -96,6 +111,7 @@ export const usePresenceStore = defineStore('presence', () => {
     presents: number,
     exemptions: number,
     userId: string,
+    user?: { id: string; nom: string; role: UserRole },
   ) {
     const today = todayISO()
     const classe = classes.value.find((c) => c.id === classeId)
@@ -125,6 +141,20 @@ export const usePresenceStore = defineStore('presence', () => {
       })
     }
     persist()
+    if (user) {
+      const audit = useAuditStore()
+      void audit.logAction({
+        actionType: 'presence_class',
+        actionLabel: 'Pointage par classe',
+        description: `Pointage de la classe ${classe?.nom ?? classeId} enregistré par ${user.nom}`,
+        module: 'presence',
+        userId: user.id,
+        userName: user.nom,
+        role: user.role,
+        targetId: classeId,
+        targetType: 'class',
+      })
+    }
     return { ok: true }
   }
 
