@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import Icon from '@/components/Icon.vue'
+
 defineProps<{
   label: string
   value: string | number
@@ -22,7 +24,7 @@ const colors = {
         <p class="text-xs font-medium uppercase tracking-wide opacity-70">{{ label }}</p>
         <p class="mt-1 text-2xl font-bold">{{ value }}</p>
       </div>
-      <span v-if="icon" class="text-2xl">{{ icon }}</span>
+      <Icon v-if="icon" :name="icon" className="h-10 w-10 text-current" />
     </div>
   </div>
 </template>

@@ -92,11 +92,12 @@ export interface Fournisseur {
   id: string
   nom: string
   contact: string
+  localisation: string
   produits: string[]
   actif: boolean
 }
 
-export type StatutBonCommande = 'emitted' | 'validated' | 'received'
+export type StatutBonCommande = 'emitted' | 'validated' | 'received' | 'partially_received'
 
 export interface LigneBonCommande {
   denreeId: string

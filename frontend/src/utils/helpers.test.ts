@@ -56,7 +56,7 @@ describe('report helpers', () => {
     expect(data.mealsByDay).toHaveLength(2)
   })
 
-  it('validateInventoryEntries flags high variance and requires a comment', () => {
+  it('validateInventoryEntries flags any variance and requires a comment', () => {
     const rows = validateInventoryEntries([
       { denreeId: 'd1', nom: 'Riz', unite: 'kg', stockTheorique: 100, stockPhysique: 96, commentaire: '' },
       { denreeId: 'd2', nom: 'Poisson', unite: 'kg', stockTheorique: 100, stockPhysique: 70, commentaire: '' },
@@ -64,9 +64,9 @@ describe('report helpers', () => {
 
     expect(rows[0].ecart).toBe(-4)
     expect(rows[0].tauxEcartPct).toBe(4)
-    expect(rows[0].requiresComment).toBe(false)
+    expect(rows[0].requiresComment).toBe(true)
     expect(rows[1].requiresComment).toBe(true)
-    expect(rows[1].errors).toContain('Un commentaire est obligatoire si l’écart dépasse 5 % du stock théorique.')
+    expect(rows[0].errors).toContain('Un commentaire est obligatoire pour tout écart entre stock physique et stock théorique.')
   })
 
   it('toCsv renders a simple csv payload', () => {

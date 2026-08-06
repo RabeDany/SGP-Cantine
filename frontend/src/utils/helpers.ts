@@ -198,6 +198,29 @@ export function buildMenuReportData(
   }
 }
 
+export function validateInventoryEntries(rows: Array<{ denreeId: string; nom: string; unite: string; stockTheorique: number; stockPhysique: number; commentaire: string }>) {
+  return rows.map((row) => {
+    const ecart = row.stockPhysique - row.stockTheorique
+    const tauxEcartPct = row.stockTheorique
+      ? Number(((Math.abs(ecart) / row.stockTheorique) * 100).toFixed(1))
+      : 0
+    const requiresComment = ecart !== 0
+    const errors: string[] = []
+
+    if (requiresComment && !row.commentaire.trim()) {
+      errors.push('Un commentaire est obligatoire pour tout écart entre stock physique et stock théorique.')
+    }
+
+    return {
+      ...row,
+      ecart,
+      tauxEcartPct,
+      requiresComment,
+      errors,
+    }
+  })
+}
+
 export function toCsv(rows: Array<Record<string, string | number | boolean>>): string {
   if (!rows.length) return ''
   const headers = Object.keys(rows[0])

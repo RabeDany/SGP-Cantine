@@ -2,6 +2,7 @@
 import { computed } from 'vue'
 import { RouterLink } from 'vue-router'
 import PageHeader from '@/components/PageHeader.vue'
+import Icon from '@/components/Icon.vue'
 import StatCard from '@/components/StatCard.vue'
 import StockBadge from '@/components/StockBadge.vue'
 import { useStockStore } from '@/stores/stock'
@@ -41,7 +42,7 @@ const manquants = computed(() => menuStore.denreesManquantes.slice(0, 5))
       class="mb-6 rounded-xl border border-amber-300 bg-amber-50 px-5 py-4"
     >
       <div class="flex items-start gap-3">
-        <span class="text-xl">⚠️</span>
+        <Icon name="warning" className="text-xl text-amber-900" />
         <div>
           <h3 class="font-semibold text-amber-900">
             {{ alertesPeremption.length }} {{ i18n.t('dashboard.alertPeremption') }}
@@ -62,13 +63,13 @@ const manquants = computed(() => menuStore.denreesManquantes.slice(0, 5))
     </div>
 
     <div class="mb-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-      <StatCard :label="i18n.t('dashboard.cards.denrees')" :value="stats.total" icon="📦" color="blue" />
-      <StatCard :label="i18n.t('dashboard.cards.ok')" :value="stats.ok" icon="✅" color="green" />
-      <StatCard :label="i18n.t('dashboard.cards.low')" :value="stats.warning + stats.critical" icon="⚠️" color="amber" />
+      <StatCard :label="i18n.t('dashboard.cards.denrees')" :value="stats.total" icon="box" color="blue" />
+      <StatCard :label="i18n.t('dashboard.cards.ok')" :value="stats.ok" icon="check-circle" color="green" />
+      <StatCard :label="i18n.t('dashboard.cards.low')" :value="stats.warning + stats.critical" icon="warning" color="amber" />
       <StatCard
         :label="i18n.t('dashboard.cards.presences')"
         :value="presenceStore.pointageEffectue ? presenceStore.totalPresentsAujourdhui : '—'"
-        icon="👥"
+        icon="user"
         color="gray"
       />
     </div>

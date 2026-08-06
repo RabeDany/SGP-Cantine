@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 import { RouterLink, RouterView, useRoute, useRouter } from 'vue-router'
+import Icon from '@/components/Icon.vue'
 import { useAuthStore } from '@/stores/auth'
 import { useCommandeStore } from '@/stores/commande'
 import { useMenuStore } from '@/stores/menu'
@@ -27,19 +28,19 @@ interface NavItem {
 }
 
 const allNav: NavItem[] = [
-  { labelKey: 'nav.dashboard', to: '/', icon: '📊', module: 'dashboard' },
-  { labelKey: 'nav.stock', to: '/stock', icon: '📦', module: 'stock' },
-  { labelKey: 'nav.inventaire', to: '/inventaire', icon: '🧾', module: 'inventaire' },
-  { labelKey: 'nav.denrees', to: '/denrees', icon: '🌾', module: 'denrees' },
-  { labelKey: 'nav.mouvements', to: '/mouvements', icon: '📝', module: 'mouvements' },
-  { labelKey: 'nav.recettes', to: '/recettes', icon: '🍲', module: 'recettes' },
-  { labelKey: 'nav.menu', to: '/menu', icon: '📅', module: 'menu' },
-  { labelKey: 'nav.presences', to: '/presences', icon: '✅', module: 'presences' },
-  { labelKey: 'nav.courses', to: '/courses', icon: '🛒', module: 'courses' },
-  { labelKey: 'nav.rapports', to: '/rapports', icon: '📈', module: 'rapports' },
-  { labelKey: 'nav.fournisseurs', to: '/fournisseurs', icon: '🏪', module: 'fournisseurs' },
-  { labelKey: 'nav.commandes', to: '/commandes', icon: '🧾', module: 'commandes' },
-  { labelKey: 'nav.users', to: '/users', icon: '👤', module: 'users' },
+  { labelKey: 'nav.dashboard', to: '/', icon: 'chart-bar', module: 'dashboard' },
+  { labelKey: 'nav.stock', to: '/stock', icon: 'box', module: 'stock' },
+  { labelKey: 'nav.inventaire', to: '/inventaire', icon: 'document', module: 'inventaire' },
+  { labelKey: 'nav.denrees', to: '/denrees', icon: 'leaf', module: 'denrees' },
+  { labelKey: 'nav.mouvements', to: '/mouvements', icon: 'pencil', module: 'mouvements' },
+  { labelKey: 'nav.recettes', to: '/recettes', icon: 'bowl', module: 'recettes' },
+  { labelKey: 'nav.menu', to: '/menu', icon: 'calendar', module: 'menu' },
+  { labelKey: 'nav.presences', to: '/presences', icon: 'check-circle', module: 'presences' },
+  { labelKey: 'nav.courses', to: '/courses', icon: 'shopping-cart', module: 'courses' },
+  { labelKey: 'nav.rapports', to: '/rapports', icon: 'chart-line', module: 'rapports' },
+  { labelKey: 'nav.fournisseurs', to: '/fournisseurs', icon: 'store', module: 'fournisseurs' },
+  { labelKey: 'nav.commandes', to: '/commandes', icon: 'receipt', module: 'commandes' },
+  { labelKey: 'nav.users', to: '/users', icon: 'user', module: 'users' },
 ]
 
 const navItems = computed(() => allNav.filter((n) => auth.canAccess(n.module)))
@@ -109,8 +110,8 @@ const notifications = computed(() => {
     <aside class="flex w-64 shrink-0 flex-col border-r border-earth-200 bg-white">
       <div class="border-b border-earth-200 px-5 py-5">
         <div class="flex items-center gap-3">
-          <div class="flex h-10 w-10 items-center justify-center rounded-lg bg-brand-600 text-lg text-white">
-            🍽
+          <div class="flex h-10 w-10 items-center justify-center rounded-lg bg-brand-600 text-white">
+            <Icon name="bowl" className="h-6 w-6" />
           </div>
           <div>
             <h1 class="text-sm font-bold text-gray-900">SGP-Cantine</h1>
@@ -131,7 +132,7 @@ const notifications = computed(() => {
               : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
           "
         >
-          <span>{{ item.icon }}</span>
+          <Icon :name="item.icon" className="h-5 w-5" />
           {{ i18n.t(item.labelKey) }}
         </RouterLink>
       </nav>

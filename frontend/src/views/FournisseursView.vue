@@ -13,6 +13,7 @@ const i18n = useI18nStore()
 const search = ref('')
 const nom = ref('')
 const contact = ref('')
+const localisation = ref('')
 const produits = ref<string[]>([])
 
 const fournisseurOptions = computed(() =>
@@ -22,14 +23,16 @@ const fournisseurOptions = computed(() =>
 )
 
 function ajouterFournisseur() {
-  if (!nom.value.trim() || !contact.value.trim()) return
+  if (!nom.value.trim() || !contact.value.trim() || !localisation.value.trim()) return
   commandeStore.createFournisseur({
     nom: nom.value.trim(),
     contact: contact.value.trim(),
+    localisation: localisation.value.trim(),
     produits: produits.value,
   })
   nom.value = ''
   contact.value = ''
+  localisation.value = ''
   produits.value = []
 }
 
@@ -55,6 +58,10 @@ function toggleProduit(id: string) {
       <div>
         <label class="label">{{ i18n.t('fournisseurs.contact') }}</label>
         <input v-model="contact" class="input" :placeholder="i18n.t('fournisseurs.placeholder.contact')" />
+      </div>
+      <div>
+        <label class="label">{{ i18n.t('fournisseurs.location') }}</label>
+        <input v-model="localisation" class="input" :placeholder="i18n.t('fournisseurs.placeholder.location')" />
       </div>
       <div class="lg:col-span-2">
         <p class="label">{{ i18n.t('fournisseurs.products') }}</p>
@@ -89,6 +96,7 @@ function toggleProduit(id: string) {
           <tr class="text-left text-xs text-gray-500">
             <th class="px-5 py-3">{{ i18n.t('fournisseurs.table.name') }}</th>
             <th class="px-5 py-3">{{ i18n.t('fournisseurs.table.contact') }}</th>
+            <th class="px-5 py-3">{{ i18n.t('fournisseurs.table.location') }}</th>
             <th class="px-5 py-3">{{ i18n.t('fournisseurs.table.products') }}</th>
           </tr>
         </thead>
@@ -96,6 +104,7 @@ function toggleProduit(id: string) {
           <tr v-for="f in fournisseurOptions" :key="f.id" class="border-t border-gray-100">
             <td class="px-5 py-3 font-medium">{{ f.nom }}</td>
             <td class="px-5 py-3">{{ f.contact }}</td>
+            <td class="px-5 py-3">{{ f.localisation || '—' }}</td>
             <td class="px-5 py-3 text-gray-600">
               <span v-if="f.produits.length">
                 {{ f.produits.map((p) => translateForUi(stockStore.getDenree(p)?.nom ?? p)).join(', ') }}

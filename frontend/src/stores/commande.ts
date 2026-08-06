@@ -20,6 +20,7 @@ export const useCommandeStore = defineStore('commande', () => {
   function createFournisseur(data: {
     nom: string
     contact: string
+    localisation: string
     produits: string[]
   }) {
     const id = generateId('f')
@@ -27,6 +28,7 @@ export const useCommandeStore = defineStore('commande', () => {
       id,
       nom: data.nom,
       contact: data.contact,
+      localisation: data.localisation,
       produits: data.produits,
       actif: true,
     })
@@ -81,11 +83,14 @@ export const useCommandeStore = defineStore('commande', () => {
     if (!bon || bon.statut !== 'validated' || !receptionLignes.length) {
       return false
     }
+
     const totalRecue = receptionLignes.reduce((sum, ligne) => sum + ligne.quantiteRecue, 0)
     const totalCommandee = receptionLignes.reduce((sum, ligne) => sum + ligne.quantiteCommandee, 0)
-    bon.statut = 'received'
+    const ecart = totalCommandee - totalRecue
+
+    bon.statut = totalRecue >= totalCommandee ? 'received' : 'partially_received'
     bon.quantiteRecue = totalRecue
-    bon.ecart = totalRecue - totalCommandee
+    bon.ecart = ecart
     bon.dateReception = todayISO()
     bon.receptionParId = userId
     bon.receptionLignes = receptionLignes

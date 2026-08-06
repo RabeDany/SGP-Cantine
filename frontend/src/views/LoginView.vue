@@ -3,6 +3,7 @@ import { ref } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import { useI18nStore } from '@/stores/i18n'
+import Icon from '@/components/Icon.vue'
 
 const auth = useAuthStore()
 const router = useRouter()
@@ -44,8 +45,8 @@ async function submit() {
   <div class="flex min-h-screen items-center justify-center bg-gradient-to-br from-brand-50 via-earth-50 to-brand-100 p-4">
     <div class="w-full max-w-md">
       <div class="mb-8 text-center">
-        <div class="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-brand-600 text-3xl text-white shadow-lg">
-          🍽
+        <div class="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-brand-600 text-white shadow-lg">
+          <Icon name="bowl" className="h-8 w-8" />
         </div>
         <h1 class="text-2xl font-bold text-gray-900">{{ i18n.t('login.title') }}</h1>
         <p class="mt-2 text-sm text-gray-600">

@@ -166,7 +166,7 @@ function confirmReception() {
       denreeId,
       quantiteCommandee: data.quantiteCommandee,
       quantiteRecue: data.quantiteRecue,
-      ecart: data.quantiteRecue - data.quantiteCommandee,
+      ecart: data.quantiteCommandee - data.quantiteRecue,
       commentaire: data.commentaire || undefined,
     }),
   )
@@ -195,12 +195,27 @@ function confirmReception() {
   closeReceptionModal()
 }
 
+function totalReceptionCommandee() {
+  return Object.values(receptionLines.value).reduce((sum, line) => sum + line.quantiteCommandee, 0)
+}
+
+function totalReceptionRecue() {
+  return Object.values(receptionLines.value).reduce((sum, line) => sum + line.quantiteRecue, 0)
+}
+
+function totalReceptionEcart() {
+  return totalReceptionCommandee() - totalReceptionRecue()
+}
+
+function receptionHasSurplus() {
+  return totalReceptionEcart() < 0
+}
+
 function formatStatut(statut: string) {
-  return statut === 'emitted'
-    ? i18n.t('commandes.status.emitted')
-    : statut === 'validated'
-    ? i18n.t('commandes.status.validated')
-    : i18n.t('commandes.status.received')
+  if (statut === 'emitted') return i18n.t('commandes.status.emitted')
+  if (statut === 'validated') return i18n.t('commandes.status.validated')
+  if (statut === 'partially_received') return i18n.t('commandes.status.partiallyReceived')
+  return i18n.t('commandes.status.received')
 }
 
 function getFournisseurName(id: string) {
@@ -330,7 +345,7 @@ function getUsername(id: string) {
               >
                 {{ i18n.t('commandes.reception') }}
               </button>
-              <div v-if="bon.statut === 'received'" class="text-xs text-gray-600">
+              <div v-if="bon.statut === 'received' || bon.statut === 'partially_received'" class="text-xs text-gray-600">
                 Qté reçue: {{ bon.quantiteRecue }} · Écart: {{ bon.ecart }}
               </div>
             </td>
@@ -421,7 +436,7 @@ function getUsername(id: string) {
                   />
                 </label>
                 <p class="text-sm text-gray-500">
-                  Écart : {{ receptionLines[ligne.denreeId].quantiteRecue - receptionLines[ligne.denreeId].quantiteCommandee }}
+                  Écart : {{ receptionLines[ligne.denreeId].quantiteCommandee - receptionLines[ligne.denreeId].quantiteRecue }}
                 </p>
               </div>
             </div>
@@ -440,10 +455,13 @@ function getUsername(id: string) {
         <div class="mt-4 flex flex-col gap-3 sm:flex-row sm:justify-between">
           <div class="space-y-1 text-sm text-gray-600">
             <p>Quantité totale reçue :
-              {{ Object.values(receptionLines).reduce((sum, line) => sum + line.quantiteRecue, 0) }}
+              {{ totalReceptionRecue() }}
             </p>
             <p>Écart total :
-              {{ Object.values(receptionLines).reduce((sum, line) => sum + (line.quantiteRecue - line.quantiteCommandee), 0) }}
+              {{ totalReceptionEcart() }}
+            </p>
+            <p v-if="receptionHasSurplus()" class="text-sm text-yellow-700">
+              Attention : écart négatif détecté, surplus de réception. Vérifiez la livraison.
             </p>
           </div>
           <div class="flex gap-2">
