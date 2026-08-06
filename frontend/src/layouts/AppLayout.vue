@@ -161,14 +161,28 @@ const notifications = computed(() => {
           <div class="flex items-center gap-3">
             <div class="flex items-center gap-2 rounded-full border border-earth-200 bg-earth-50 px-3 py-1 text-xs text-gray-600">
               <span>{{ i18n.t('header.language') }}:</span>
-              <select
-                v-model="i18n.language"
-                @change="i18n.setLanguage(i18n.language)"
-                class="bg-transparent text-xs"
-              >
-                <option value="fr">FR</option>
-                <option value="mg">MG</option>
-              </select>
+              <div class="flex items-center rounded-full bg-white p-1">
+                <button
+                  type="button"
+                  @click="i18n.setLanguage('fr')"
+                  :class="[
+                    'rounded-full px-3 py-1 text-xs font-semibold transition-colors',
+                    i18n.language === 'fr' ? 'bg-brand-600 text-white' : 'text-gray-600 hover:bg-gray-100',
+                  ]"
+                >
+                  FR
+                </button>
+                <button
+                  type="button"
+                  @click="i18n.setLanguage('mg')"
+                  :class="[
+                    'rounded-full px-3 py-1 text-xs font-semibold transition-colors',
+                    i18n.language === 'mg' ? 'bg-brand-600 text-white' : 'text-gray-600 hover:bg-gray-100',
+                  ]"
+                >
+                  MG
+                </button>
+              </div>
             </div>
             <div class="relative">
               <button
