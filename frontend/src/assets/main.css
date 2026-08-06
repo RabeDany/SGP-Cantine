@@ -24,6 +24,34 @@
   .card {
     @apply rounded-xl border border-gray-200 bg-white p-5 shadow-sm;
   }
+  .page-content {
+    animation: fade-in-up 320ms ease-out both;
+  }
+  .page-enter-active,
+  .page-leave-active {
+    transition: opacity 320ms ease, transform 320ms ease;
+  }
+  .page-enter-from,
+  .page-leave-to {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  .page-enter-to,
+  .page-leave-from {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  @keyframes fade-in-up {
+    from {
+      opacity: 0;
+      transform: translateY(16px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
   .badge-ok {
     @apply inline-flex items-center rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-medium text-green-800;
   }
