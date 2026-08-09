@@ -227,7 +227,7 @@ const notifications = computed(() => {
       <div class="flex-1 overflow-y-auto p-8">
         <RouterView v-slot="{ Component }">
           <transition name="page" mode="out-in">
-            <component :is="Component" :key="route.fullPath" class="page-content" />
+            <component :is="Component" :key="route.name" class="page-content" />
           </transition>
         </RouterView>
       </div>
