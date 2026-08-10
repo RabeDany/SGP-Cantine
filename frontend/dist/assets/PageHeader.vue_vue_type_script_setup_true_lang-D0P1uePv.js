@@ -1,5 +1,0 @@
-<<<<<<<< HEAD:frontend/dist/assets/PageHeader.vue_vue_type_script_setup_true_lang-C0i9etFt.js
-import{d as o,c as e,a as c,t as s,h as n,o as a}from"./index-D3DMnbCv.js";const i={class:"mb-6"},l={class:"text-2xl font-bold text-gray-900"},r={key:0,class:"mt-1 text-sm text-gray-500"},u=o({__name:"PageHeader",props:{title:{},subtitle:{}},setup(t){return(m,d)=>(a(),e("div",i,[c("h2",l,s(t.title),1),t.subtitle?(a(),e("p",r,s(t.subtitle),1)):n("",!0)]))}});export{u as _};
-========
-import{d as o,c as e,a as c,t as s,h as n,o as a}from"./index-B4ATna3R.js";const i={class:"mb-6"},l={class:"text-2xl font-bold text-gray-900"},r={key:0,class:"mt-1 text-sm text-gray-500"},u=o({__name:"PageHeader",props:{title:{},subtitle:{}},setup(t){return(m,d)=>(a(),e("div",i,[c("h2",l,s(t.title),1),t.subtitle?(a(),e("p",r,s(t.subtitle),1)):n("",!0)]))}});export{u as _};
->>>>>>>> main:frontend/dist/assets/PageHeader.vue_vue_type_script_setup_true_lang-D0P1uePv.js

@@ -37,6 +37,14 @@ export const mockUsers: User[] = [
     actif: true,
   },
   {
+    id: 'u_president',
+    username: 'president',
+    password: hashPassword('president123'),
+    nom: 'Lalao Rabenirina',
+    role: 'admin',
+    actif: true,
+  },
+  {
     id: 'u2',
     username: 'stock',
     password: hashPassword('stock123'),

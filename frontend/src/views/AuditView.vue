@@ -42,6 +42,11 @@ function formatTimestamp(timestamp: string) {
 }
 
 const integrityStatus = computed(() => (auditStore.verifyChain() ? 'OK' : 'ALTÉRÉ'))
+const signedReport = computed(() => auditStore.getSignedAuditReport())
+
+function exportAuditReport() {
+  auditStore.exportAuditReport()
+}
 </script>
 
 <template>
@@ -81,9 +86,15 @@ const integrityStatus = computed(() => (auditStore.verifyChain() ? 'OK' : 'ALTÉ
         <div>
           <p class="text-sm text-gray-500">{{ i18n.t('audit.integrity') }} : <span class="font-semibold">{{ integrityStatus }}</span></p>
           <p class="text-xs text-gray-500">{{ i18n.t('audit.notice') }}</p>
+          <p class="mt-2 text-xs text-gray-500">Signature de rapport : {{ signedReport.signature }}</p>
         </div>
-        <div class="rounded-full bg-sky-50 px-3 py-1 text-sm font-medium text-sky-700">
-          {{ filteredEntries.length }} {{ i18n.t('audit.entries') }}
+        <div class="flex items-center gap-3">
+          <button type="button" class="btn-secondary" @click="exportAuditReport()">
+            Exporter le rapport
+          </button>
+          <div class="rounded-full bg-sky-50 px-3 py-1 text-sm font-medium text-sky-700">
+            {{ filteredEntries.length }} {{ i18n.t('audit.entries') }}
+          </div>
         </div>
       </div>
     </div>

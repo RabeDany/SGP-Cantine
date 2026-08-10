@@ -208,7 +208,7 @@ export interface SortiePreparationLigne {
 export type StockStatus = 'ok' | 'warning' | 'critical'
 
 export const ROLE_LABELS: Record<UserRole, string> = {
-  admin: 'Administrateur',
+  admin: 'Président du CGCS / Directeur',
   gestionnaire: 'Gestionnaire stock',
   planificateur: 'Planificateur menu',
   agent: 'Agent cantine',

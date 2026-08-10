@@ -13,20 +13,16 @@ function getLocationInfo(): string {
   return `${host} · ${platform} · ${userAgent}`
 }
 
-async function computeHash(value: string): Promise<string> {
-  if (typeof crypto !== 'undefined' && typeof crypto.subtle?.digest === 'function') {
-    const buffer = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(value))
-    return Array.from(new Uint8Array(buffer))
-      .map((byte) => byte.toString(16).padStart(2, '0'))
-      .join('')
+function computeHashSync(value: string): string {
+  let hash = 2166136261
+  for (let i = 0; i < value.length; i += 1) {
+    const code = value.charCodeAt(i)
+    hash ^= code
+    hash = Math.imul(hash, 16777619)
   }
 
-  let hash = 0
-  for (let i = 0; i < value.length; i += 1) {
-    hash = (hash << 5) - hash + value.charCodeAt(i)
-    hash |= 0
-  }
-  return `f_${hash.toString(16)}`
+  const signed = hash >>> 0
+  return signed.toString(16).padStart(8, '0')
 }
 
 function buildHashPayload(entry: AuditEntry) {
@@ -35,8 +31,18 @@ function buildHashPayload(entry: AuditEntry) {
   return JSON.stringify(payload)
 }
 
+function getSignedHashForEntry(entry: AuditEntry): string {
+  const payload = buildHashPayload(entry)
+  return computeHashSync(payload)
+}
+
+function normalizeEntries(raw: AuditEntry[] = []): AuditEntry[] {
+  if (!Array.isArray(raw)) return []
+  return raw.filter((entry) => entry && typeof entry === 'object')
+}
+
 export const useAuditStore = defineStore('audit', () => {
-  const entries = ref<AuditEntry[]>(loadFromStorage<AuditEntry[]>(STORAGE_KEY, []))
+  const entries = ref<AuditEntry[]>(normalizeEntries(loadFromStorage<AuditEntry[]>(STORAGE_KEY, [])))
 
   const actionTypes = computed(() =>
     Array.from(new Set(entries.value.map((entry) => entry.actionType))),
@@ -50,7 +56,32 @@ export const useAuditStore = defineStore('audit', () => {
     return entries.value[0]?.hash ?? '0'
   }
 
-  async function logAction(data: {
+  function getSignedAuditReport() {
+    const reportPayload = JSON.stringify(entries.value)
+    return {
+      generatedAt: new Date().toISOString(),
+      integrity: verifyChain(),
+      entries: entries.value,
+      signature: computeHashSync(reportPayload),
+    }
+  }
+
+  function exportAuditReport() {
+    if (typeof document === 'undefined') return
+
+    const report = getSignedAuditReport()
+    const blob = new Blob([JSON.stringify(report, null, 2)], { type: 'application/json' })
+    const url = URL.createObjectURL(blob)
+    const link = document.createElement('a')
+    link.href = url
+    link.download = `sgp-cantine-audit-${new Date().toISOString().slice(0, 10)}.json`
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+    URL.revokeObjectURL(url)
+  }
+
+  function logAction(data: {
     actionType: AuditActionType
     actionLabel: string
     description: string
@@ -77,22 +108,29 @@ export const useAuditStore = defineStore('audit', () => {
       timestamp: new Date().toISOString(),
       location: getLocationInfo(),
       previousHash: getPreviousHash(),
-      hash: 'pending',
+      hash: '',
     }
 
+    entry.hash = getSignedHashForEntry(entry)
     entries.value.unshift(entry)
-    persist()
-
-    const hashPayload = buildHashPayload(entry)
-    entry.hash = await computeHash(hashPayload)
     persist()
   }
 
   function verifyChain(): boolean {
+    if (!Array.isArray(entries.value) || entries.value.length === 0) {
+      return true
+    }
+
     for (let index = 0; index < entries.value.length; index += 1) {
       const current = entries.value[index]
-      const next = entries.value[index + 1]
+      if (!current || !current.hash) return false
 
+      const recomputedHash = getSignedHashForEntry(current)
+      if (current.hash !== recomputedHash) {
+        return false
+      }
+
+      const next = entries.value[index + 1]
       if (index === entries.value.length - 1) {
         if (current.previousHash !== '0') {
           return false
@@ -101,6 +139,7 @@ export const useAuditStore = defineStore('audit', () => {
         return false
       }
     }
+
     return true
   }
 
@@ -109,5 +148,7 @@ export const useAuditStore = defineStore('audit', () => {
     actionTypes,
     logAction,
     verifyChain,
+    getSignedAuditReport,
+    exportAuditReport,
   }
 })
