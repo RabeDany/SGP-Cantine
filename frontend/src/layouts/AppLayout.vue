@@ -19,6 +19,7 @@ const presenceStore = usePresenceStore()
 const stockStore = useStockStore()
 const i18n = useI18nStore()
 const showNotifications = ref(false)
+const sidebarCollapsed = ref(false)
 
 interface NavItem {
   labelKey: string
@@ -45,6 +46,7 @@ const allNav: NavItem[] = [
 ]
 
 const navItems = computed(() => allNav.filter((n) => auth.canAccess(n.module)))
+const sidebarWidthClass = computed(() => (sidebarCollapsed.value ? 'w-20' : 'w-64'))
 
 function isActive(path: string) {
   if (path === '/') return route.path === '/'
@@ -108,16 +110,19 @@ const notifications = computed(() => {
 
 <template>
   <div class="flex min-h-screen bg-earth-50">
-    <aside class="flex w-64 shrink-0 flex-col border-r border-earth-200 bg-white">
-      <div class="border-b border-earth-200 px-5 py-5">
-        <div class="flex items-center gap-3">
-          <div class="flex h-10 w-10 items-center justify-center rounded-lg bg-brand-600 text-white">
+    <aside :class="['flex shrink-0 flex-col border-r border-earth-200 bg-white transition-all duration-200', sidebarWidthClass]">
+      <div class="border-b border-earth-200 px-3 py-4">
+        <div class="flex items-center gap-2">
+          <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-brand-600 text-white">
             <Icon name="bowl" className="h-6 w-6" />
           </div>
-          <div>
-            <h1 class="text-sm font-bold text-gray-900">SGP-Cantine</h1>
-            <p class="text-xs text-gray-500">{{ ECOLE_INFO.nom }}</p>
+
+          <div v-if="!sidebarCollapsed" class="min-w-0 flex-1">
+            <h1 class="truncate text-sm font-bold text-gray-900">SGP-Cantine</h1>
+            <p class="truncate text-xs text-gray-500">{{ ECOLE_INFO.nom }}</p>
           </div>
+
+    
         </div>
       </div>
 
@@ -127,26 +132,29 @@ const notifications = computed(() => {
           :key="item.to"
           :to="item.to"
           class="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors"
-          :class="
+          :class="[
             isActive(item.to)
               ? 'bg-brand-50 text-brand-800'
-              : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
-          "
+              : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900',
+            sidebarCollapsed ? 'justify-center px-2' : 'justify-start',
+          ]"
+          :title="sidebarCollapsed ? i18n.t(item.labelKey) : undefined"
         >
-          <Icon :name="item.icon" className="h-5 w-5" />
-          {{ i18n.t(item.labelKey) }}
+          <Icon :name="item.icon" className="h-5 w-5 shrink-0" />
+          <span v-if="!sidebarCollapsed" class="truncate">{{ i18n.t(item.labelKey) }}</span>
         </RouterLink>
       </nav>
 
       <div class="border-t border-earth-200 p-4">
-        <div class="mb-3 rounded-lg bg-earth-50 px-3 py-2">
+        <div v-if="!sidebarCollapsed" class="mb-3 rounded-lg bg-earth-50 px-3 py-2">
           <p class="text-sm font-medium text-gray-900">{{ auth.currentUser?.nom }}</p>
           <p class="text-xs text-gray-500">
             {{ auth.roleLabel(auth.currentUser!.role) }}
           </p>
         </div>
         <button type="button" class="btn-secondary w-full text-xs" @click="logout">
-          {{ i18n.t('header.logout') }}
+          <span v-if="!sidebarCollapsed">{{ i18n.t('header.logout') }}</span>
+          <Icon v-else name="user" className="h-4 w-4 mx-auto" />
         </button>
       </div>
     </aside>
@@ -154,7 +162,15 @@ const notifications = computed(() => {
     <main class="flex flex-1 flex-col overflow-hidden">
       <header class="border-b border-earth-200 bg-white px-8 py-4">
         <div class="flex items-center justify-between">
-          <div>
+          <div class="flex items-center gap-3">
+            <button
+              type="button"
+              class="flex h-9 w-9 items-center justify-center rounded-lg border border-earth-200 bg-white text-gray-700 transition hover:bg-gray-100"
+              :title="sidebarCollapsed ? 'Ouvrir la sidebar' : 'Réduire la sidebar'"
+              @click="sidebarCollapsed = !sidebarCollapsed"
+            >
+              <Icon name="menu" className="h-4 w-4" />
+            </button>
             <p class="text-xs font-medium uppercase tracking-wide text-brand-600">
               {{ ECOLE_INFO.commune }} · {{ ECOLE_INFO.region }}
             </p>
@@ -228,7 +244,7 @@ const notifications = computed(() => {
       <div class="flex-1 overflow-y-auto p-8">
         <RouterView v-slot="{ Component }">
           <transition name="page" mode="out-in">
-            <component :is="Component" :key="route.fullPath" class="page-content" />
+            <component :is="Component" :key="route.name" class="page-content" />
           </transition>
         </RouterView>
       </div>
