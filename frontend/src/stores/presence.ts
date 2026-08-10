@@ -176,6 +176,75 @@ export const usePresenceStore = defineStore('presence', () => {
     )
   })
 
+  function formatPeriodLabel(dateIso: string, kind: 'day' | 'week' | 'month') {
+    const date = new Date(`${dateIso}T00:00:00`)
+
+    if (kind === 'day') {
+      return date.toLocaleDateString('fr-FR', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric',
+      })
+    }
+
+    if (kind === 'week') {
+      const start = new Date(date)
+      const day = start.getDay() || 7
+      start.setDate(start.getDate() - day + 1)
+      const end = new Date(start)
+      end.setDate(start.getDate() + 6)
+
+      return `${start.toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit' })} - ${end.toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit' })}`
+    }
+
+    return date.toLocaleDateString('fr-FR', {
+      month: 'long',
+      year: 'numeric',
+    })
+  }
+
+  function getPresenceHistorySummary(
+    classId: string | null = null,
+    kind: 'day' | 'week' | 'month' = 'day',
+  ) {
+    const relevant = pointages.value.filter((pointage) => {
+      if (classId === null) return pointage.classeId === null
+      return pointage.classeId === classId
+    })
+
+    const groups = new Map<string, { presents: number; inscrits: number }>()
+
+    for (const pointage of relevant) {
+      let key = pointage.date
+
+      if (kind === 'week') {
+        const date = new Date(`${pointage.date}T00:00:00`)
+        const day = date.getDay() || 7
+        date.setDate(date.getDate() - day + 1)
+        key = date.toISOString().split('T')[0]
+      }
+
+      if (kind === 'month') {
+        key = pointage.date.slice(0, 7)
+      }
+
+      const current = groups.get(key) ?? { presents: 0, inscrits: 0 }
+      current.presents += pointage.presents
+      current.inscrits += pointage.inscrits
+      groups.set(key, current)
+    }
+
+    return Array.from(groups.entries())
+      .map(([key, value]) => ({
+        key,
+        label: formatPeriodLabel(key, kind),
+        presents: value.presents,
+        inscrits: value.inscrits,
+        taux: value.inscrits > 0 ? Math.round((value.presents / value.inscrits) * 100) : 0,
+      }))
+      .sort((a, b) => a.key.localeCompare(b.key))
+  }
+
   return {
     classes,
     pointages,
@@ -187,6 +256,7 @@ export const usePresenceStore = defineStore('presence', () => {
     getPointageGlobalPourDate,
     totalPresentsPourDate,
     isPointageEffectuePourDate,
+    getPresenceHistorySummary,
     enregistrerPointageGlobal,
     enregistrerPointageParClasse,
   }

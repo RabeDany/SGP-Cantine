@@ -78,7 +78,7 @@ const router = createRouter({
           path: 'presences',
           name: 'presences',
           component: () => import('@/views/PresencesView.vue'),
-          meta: { module: 'presences' , roles: ['admin', 'agent']},
+          meta: { module: 'presences', roles: ['admin', 'agent', 'inspecteur'] },
         },
         {
           path: 'users',
