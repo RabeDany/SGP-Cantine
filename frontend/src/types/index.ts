@@ -1,4 +1,4 @@
-export type UserRole = 'admin' | 'gestionnaire' | 'planificateur' | 'agent'
+export type UserRole = 'admin' | 'gestionnaire' | 'planificateur' | 'agent' | 'inspecteur'
 
 export type DenreeCategorie =
   | 'cereale'
@@ -212,6 +212,7 @@ export const ROLE_LABELS: Record<UserRole, string> = {
   gestionnaire: 'Gestionnaire stock',
   planificateur: 'Planificateur menu',
   agent: 'Agent cantine',
+  inspecteur: 'Responsable Communal / Inspecteur',
 }
 
 export const CATEGORIE_LABELS: Record<DenreeCategorie, string> = {

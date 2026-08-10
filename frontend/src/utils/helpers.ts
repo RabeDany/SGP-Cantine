@@ -40,6 +40,22 @@ export interface MenuReportData {
   ingredients: Array<{ denree: string; unite: string; quantite: number }>
 }
 
+export interface ConsumptionReportItem {
+  denreeId: string
+  denree: string
+  unite: string
+  quantity: number
+  mealsServed: number
+  ratio: number
+}
+
+export interface ConsumptionReportData {
+  period: string
+  totalMealsServed: number
+  totalConsumed: number
+  items: ConsumptionReportItem[]
+}
+
 export function loadFromStorage<T>(key: string, fallback: T): T {
   try {
     const raw = localStorage.getItem(STORAGE_PREFIX + key)
@@ -195,6 +211,56 @@ export function buildMenuReportData(
       unite: denreesById[denreeId]?.unite ?? 'unite',
       quantite: Number(quantite.toFixed(3)),
     })),
+  }
+}
+
+export function buildConsumptionReportData(
+  denrees: Array<{ id: string; nom: string; unite: string }>,
+  mouvements: Array<{ denreeId: string; type: 'entree' | 'sortie'; quantite: number; date: string; motif?: string }>,
+  pointages: Array<{ date: string; presents: number }>,
+  period: string,
+): ConsumptionReportData {
+  const periodLabel = period || 'Période sélectionnée'
+  const mealsServed = pointages
+    .filter((pointage) => pointage.date.startsWith(periodLabel === 'Période sélectionnée' ? '' : period))
+    .reduce((sum, pointage) => sum + pointage.presents, 0)
+
+  const totals = new Map<string, { denreeId: string; denree: string; unite: string; quantity: number }>()
+
+  mouvements
+    .filter((mouvement) => mouvement.type === 'sortie')
+    .filter((mouvement) => (period === 'Période sélectionnée' ? true : mouvement.date.startsWith(period)))
+    .forEach((mouvement) => {
+      const denree = denrees.find((item) => item.id === mouvement.denreeId)
+      if (!denree) return
+
+      const current = totals.get(denree.id) ?? {
+        denreeId: denree.id,
+        denree: denree.nom,
+        unite: denree.unite,
+        quantity: 0,
+      }
+
+      current.quantity += mouvement.quantite
+      totals.set(denree.id, current)
+    })
+
+  const items = Array.from(totals.values())
+    .map((item) => ({
+      denreeId: item.denreeId,
+      denree: item.denree,
+      unite: item.unite,
+      quantity: item.quantity,
+      mealsServed: mealsServed || 0,
+      ratio: mealsServed > 0 ? Number((item.quantity / mealsServed).toFixed(3)) : 0,
+    }))
+    .sort((a, b) => b.quantity - a.quantity)
+
+  return {
+    period: periodLabel,
+    totalMealsServed: mealsServed,
+    totalConsumed: items.reduce((sum, item) => sum + item.quantity, 0),
+    items,
   }
 }
 

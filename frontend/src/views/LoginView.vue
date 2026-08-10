@@ -20,6 +20,7 @@ const demoAccounts = [
   { user: 'stock', pass: 'stock123', role: 'Gestionnaire stock' },
   { user: 'cuisine', pass: 'cuisine123', role: 'Planificateur' },
   { user: 'agent', pass: 'agent123', role: 'Agent cantine' },
+  { user: 'inspecteur', pass: 'inspecteur123', role: 'Responsable Communal / Inspecteur' },
 ]
 
 function fillDemo(user: string, pass: string) {

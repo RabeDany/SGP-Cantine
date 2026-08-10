@@ -68,6 +68,14 @@ export const mockUsers: User[] = [
     role: 'agent',
     actif: true,
   },
+  {
+    id: 'u_inspecteur',
+    username: 'inspecteur',
+    password: hashPassword('inspecteur123'),
+    nom: 'Mamy Randrianasolo',
+    role: 'inspecteur',
+    actif: true,
+  },
 ]
 
 export const mockDenrees: Denree[] = [
