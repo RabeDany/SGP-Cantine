@@ -194,6 +194,47 @@ export const useStockStore = defineStore('stock', () => {
       .slice(0, 20),
   )
 
+  const mouvementsSorties = computed(() =>
+    mouvements.value.filter((movement) => movement.type === 'sortie'),
+  )
+
+  const volumeGaspillage = computed(() =>
+    mouvementsSorties.value
+      .filter((movement) => movement.motif === 'perte' || movement.motif === 'avarie')
+      .reduce((sum, movement) => sum + movement.quantite, 0),
+  )
+
+  const volumeSorties = computed(() =>
+    mouvementsSorties.value.reduce((sum, movement) => sum + movement.quantite, 0),
+  )
+
+  const tauxGaspillage = computed(() =>
+    volumeSorties.value ? (volumeGaspillage.value / volumeSorties.value) * 100 : 0,
+  )
+
+  const rupturesActives = computed(() =>
+    denreesAvecStatut.value.filter((d) => d.status === 'critical').length,
+  )
+
+  const prixUnitaireMoyen = computed(() => {
+    const prixParDenree = new Map<string, { quantite: number; montant: number }>()
+    mouvements.value
+      .filter((movement) => movement.type === 'entree' && movement.prixAchat != null && movement.quantite > 0)
+      .forEach((movement) => {
+        const current = prixParDenree.get(movement.denreeId) ?? { quantite: 0, montant: 0 }
+        current.quantite += movement.quantite
+        current.montant += movement.prixAchat ?? 0
+        prixParDenree.set(movement.denreeId, current)
+      })
+
+    return Object.fromEntries(
+      Array.from(prixParDenree.entries()).map(([denreeId, data]) => [
+        denreeId,
+        data.quantite > 0 ? data.montant / data.quantite : 0,
+      ]),
+    ) as Record<string, number>
+  })
+
   return {
     denrees,
     mouvements,
@@ -201,6 +242,12 @@ export const useStockStore = defineStore('stock', () => {
     alertesPeremption,
     statsStock,
     mouvementsRecents,
+    mouvementsSorties,
+    volumeGaspillage,
+    volumeSorties,
+    tauxGaspillage,
+    rupturesActives,
+    prixUnitaireMoyen,
     getDenree,
     getStockStatus,
     createDenree,

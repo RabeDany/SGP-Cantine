@@ -95,10 +95,11 @@ const notifications = computed(() => {
 
     const stockCritique = stockStore.denreesAvecStatut.filter((d) => d.status === 'critical')
     if (stockCritique.length) {
+      const names = stockCritique.map((d) => d.nom).join(', ')
       list.push({
-        id: `stock-${stockCritique[0].id}`,
+        id: 'stock-critique',
         title: 'Stock critique',
-        message: `${stockCritique[0].nom} est à un niveau critique.`,
+        message: `${names} ${stockCritique.length > 1 ? 'sont' : 'est'} à un niveau critique.`,
         type: 'danger',
       })
     }
