@@ -38,6 +38,7 @@ const allNav: NavItem[] = [
   { labelKey: 'nav.menu', to: '/menu', icon: 'calendar', module: 'menu' },
   { labelKey: 'nav.presences', to: '/presences', icon: 'check-circle', module: 'presences' },
   { labelKey: 'nav.courses', to: '/courses', icon: 'shopping-cart', module: 'courses' },
+  { labelKey: 'nav.prevision', to: '/prevision', icon: 'chart-line', module: 'prevision' },
   { labelKey: 'nav.rapports', to: '/rapports', icon: 'chart-line', module: 'rapports' },
   { labelKey: 'nav.audit', to: '/audit', icon: 'shield-check', module: 'audit' },
   { labelKey: 'nav.fournisseurs', to: '/fournisseurs', icon: 'store', module: 'fournisseurs' },

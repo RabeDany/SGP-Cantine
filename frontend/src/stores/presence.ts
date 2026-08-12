@@ -245,6 +245,44 @@ export const usePresenceStore = defineStore('presence', () => {
       .sort((a, b) => a.key.localeCompare(b.key))
   }
 
+  function getAttendancePredictionHistory(days = 28) {
+    return getPresenceHistorySummary(null, 'day').slice(-days)
+  }
+
+  function getAttendancePredictionData() {
+    const history = getAttendancePredictionHistory()
+    const byWeekday = new Map<number, { sum: number; count: number }>()
+    let historySum = 0
+
+    for (const row of history) {
+      const weekday = new Date(`${row.key}T00:00:00`).getDay()
+      const stats = byWeekday.get(weekday) ?? { sum: 0, count: 0 }
+      stats.sum += row.taux
+      stats.count += 1
+      byWeekday.set(weekday, stats)
+      historySum += row.taux
+    }
+
+    const overallAverage = history.length ? historySum / history.length : 0
+    return { byWeekday, overallAverage }
+  }
+
+  function predictAttendanceForDate(dateIso: string) {
+    const { byWeekday, overallAverage } = getAttendancePredictionData()
+    const date = new Date(`${dateIso}T00:00:00`)
+    const weekdayStats = byWeekday.get(date.getDay())
+    const predictedRate = Number(
+      ((weekdayStats ? weekdayStats.sum / weekdayStats.count : overallAverage) || 0).toFixed(1),
+    )
+    const lowerRate = Math.max(0, predictedRate - 8)
+    const upperRate = Math.min(100, predictedRate + 8)
+    const predictedCount = Math.round((totalInscrits.value * predictedRate) / 100)
+    const lowerCount = Math.round((totalInscrits.value * lowerRate) / 100)
+    const upperCount = Math.round((totalInscrits.value * upperRate) / 100)
+
+    return { predictedRate, lowerRate, upperRate, predictedCount, lowerCount, upperCount }
+  }
+
   return {
     classes,
     pointages,
@@ -257,6 +295,9 @@ export const usePresenceStore = defineStore('presence', () => {
     totalPresentsPourDate,
     isPointageEffectuePourDate,
     getPresenceHistorySummary,
+    getAttendancePredictionHistory,
+    getAttendancePredictionData,
+    predictAttendanceForDate,
     enregistrerPointageGlobal,
     enregistrerPointageParClasse,
   }

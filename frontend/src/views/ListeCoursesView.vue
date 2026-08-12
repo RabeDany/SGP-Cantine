@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { computed } from 'vue'
-import { useRouter } from 'vue-router'
+import { computed, onMounted, ref, watch } from 'vue'
+import { useRoute, useRouter, type LocationQueryValue } from 'vue-router'
 import PageHeader from '@/components/PageHeader.vue'
 import { useAuthStore } from '@/stores/auth'
 import { useI18nStore } from '@/stores/i18n'
@@ -10,11 +10,26 @@ import { UNITE_LABELS } from '@/types'
 import { formatNumber } from '@/utils/helpers'
 import { translateForUi } from '@/utils/foodTranslator'
 
+const route = useRoute()
 const router = useRouter()
 const auth = useAuthStore()
 const i18n = useI18nStore()
 const menuStore = useMenuStore()
 const presenceStore = usePresenceStore()
+
+const usePrediction = ref(false)
+
+function resolveRouteString(queryValue: LocationQueryValue | LocationQueryValue[] | null | undefined) {
+  if (Array.isArray(queryValue)) {
+    const first = queryValue[0]
+    return typeof first === 'string' ? first : undefined
+  }
+  return typeof queryValue === 'string' ? queryValue : undefined
+}
+
+function applyRoutePrediction() {
+  usePrediction.value = resolveRouteString(route.query.prediction) === '1'
+}
 
 const portionsUtilisees = computed(() =>
   presenceStore.pointageEffectue
@@ -22,23 +37,80 @@ const portionsUtilisees = computed(() =>
     : menuStore.menuActuel.jours[0]?.portionsPrevues ?? 0,
 )
 
-const totalArticles = computed(() => menuStore.listeCourses.length)
+const classicalCoursesByDenree = computed(() =>
+  new Map(menuStore.listeCourses.map((item) => [item.denreeId, item.quantiteNecessaire])),
+)
+
+const courses = computed(() => {
+  const list = usePrediction.value ? menuStore.getListeCoursesAjustee() : menuStore.listeCourses
+  return list.map((item) => {
+    const classicalNeed = classicalCoursesByDenree.value.get(item.denreeId) ?? 0
+    return {
+      ...item,
+      classicalNeed,
+      delta: item.quantiteNecessaire - classicalNeed,
+    }
+  })
+})
+
+const totalArticles = computed(() => courses.value.length)
 const totalQuantite = computed(() =>
-  menuStore.listeCourses.reduce((sum, b) => sum + b.quantiteNecessaire, 0),
+  courses.value.reduce((sum, b) => sum + b.quantiteNecessaire, 0),
 )
 const totalStock = computed(() =>
-  menuStore.listeCourses.reduce((sum, b) => sum + b.stockDisponible, 0),
+  courses.value.reduce((sum, b) => sum + b.stockDisponible, 0),
 )
 const totalManquants = computed(() =>
-  menuStore.denreesManquantes.reduce((s, b) => s + b.manquant, 0),
+  courses.value.filter((b) => b.manque).reduce((s, b) => s + b.manquant, 0),
 )
 const calculMode = computed(() =>
-  presenceStore.pointageEffectue ? i18n.t('courses.mode.present') : i18n.t('courses.mode.planned'),
+  presenceStore.pointageEffectue
+    ? i18n.t('courses.mode.present')
+    : usePrediction.value
+      ? i18n.t('courses.mode.predicted')
+      : i18n.t('courses.mode.planned'),
+)
+
+const adjustmentLabel = computed(() =>
+  usePrediction.value ? i18n.t('courses.adjustment.enabled') : i18n.t('courses.adjustment.disabled'),
+)
+
+const totalDelta = computed(() =>
+  courses.value.reduce((sum, item) => sum + item.delta, 0),
 )
 
 function createBonFromCourses() {
-  router.push({ name: 'commandes', query: { fromCourses: '1' } })
+  const lignes = courses.value
+    .filter((b) => b.manque)
+    .map((b) => ({ denreeId: b.denreeId, quantite: b.manquant }))
+
+  if (usePrediction.value) {
+    router.push({
+      name: 'commandes',
+      query: {
+        fromCourses: '1',
+        lines: JSON.stringify(lignes),
+      },
+    })
+  } else {
+    router.push({ name: 'commandes', query: { fromCourses: '1' } })
+  }
 }
+
+function togglePrediction() {
+  usePrediction.value = !usePrediction.value
+}
+
+onMounted(() => {
+  applyRoutePrediction()
+})
+
+watch(
+  () => route.query.prediction,
+  () => {
+    applyRoutePrediction()
+  },
+)
 </script>
 
 <template>
@@ -71,20 +143,29 @@ function createBonFromCourses() {
             {{ formatNumber(totalManquants) }}
           </p>
           <p class="text-xs" :class="totalManquants > 0 ? 'text-red-600' : 'text-green-600'">
-            {{ i18n.t('courses.requiresOrder', { count: menuStore.denreesManquantes.length }) }}
+            {{ i18n.t('courses.requiresOrder', { count: courses.filter((b) => b.manque).length }) }}
           </p>
         </div>
       </div>
 
-      <button
-        v-if="auth.canAccess('commandes')"
-        type="button"
-        class="btn-primary h-12 w-full sm:w-auto"
-        :disabled="!menuStore.denreesManquantes.length"
-        @click="createBonFromCourses"
-      >
-        {{ i18n.t('courses.createOrder') }}
-      </button>
+      <div class="flex flex-col gap-3 sm:flex-row sm:items-center">
+        <button
+          v-if="auth.canAccess('commandes')"
+          type="button"
+          class="btn-primary h-12 w-full sm:w-auto"
+          :disabled="!courses.filter((b) => b.manque).length"
+          @click="createBonFromCourses"
+        >
+          {{ i18n.t('courses.createOrder') }}
+        </button>
+        <button
+          type="button"
+          class="btn-secondary h-12 w-full sm:w-auto"
+          @click="togglePrediction"
+        >
+          {{ adjustmentLabel }}
+        </button>
+      </div>
     </div>
 
     <div class="card overflow-x-auto p-0">
@@ -93,6 +174,8 @@ function createBonFromCourses() {
           <tr class="text-left text-xs text-gray-500 uppercase tracking-wide">
             <th class="px-5 py-3">{{ i18n.t('courses.table.ingredients') }}</th>
             <th class="px-5 py-3">{{ i18n.t('courses.table.need') }}</th>
+            <th v-if="usePrediction" class="px-5 py-3">{{ i18n.t('courses.table.classicalNeed') }}</th>
+            <th v-if="usePrediction" class="px-5 py-3">{{ i18n.t('courses.table.delta') }}</th>
             <th class="px-5 py-3">{{ i18n.t('courses.table.available') }}</th>
             <th class="px-5 py-3">{{ i18n.t('courses.table.missing') }}</th>
             <th class="px-5 py-3">{{ i18n.t('courses.table.status') }}</th>
@@ -100,7 +183,7 @@ function createBonFromCourses() {
         </thead>
         <tbody>
           <tr
-            v-for="b in menuStore.listeCourses"
+            v-for="b in courses"
             :key="b.denreeId"
             class="border-t"
             :class="b.manque ? 'bg-red-50' : 'bg-white'"
@@ -111,6 +194,16 @@ function createBonFromCourses() {
             <td class="px-5 py-3">
               {{ formatNumber(b.quantiteNecessaire) }}
               {{ b.denree ? UNITE_LABELS[b.denree.unite] : '' }}
+            </td>
+            <td v-if="usePrediction" class="px-5 py-3 text-slate-600">
+              {{ formatNumber(b.classicalNeed) }}
+              {{ b.denree ? UNITE_LABELS[b.denree.unite] : '' }}
+            </td>
+            <td v-if="usePrediction" class="px-5 py-3 font-semibold" :class="b.delta > 0 ? 'text-blue-700' : b.delta < 0 ? 'text-green-700' : 'text-gray-500'">
+              <template v-if="b.delta !== 0">
+                {{ b.delta > 0 ? '+' : '' }}{{ formatNumber(b.delta) }} {{ b.denree ? UNITE_LABELS[b.denree.unite] : '' }}
+              </template>
+              <template v-else>—</template>
             </td>
             <td class="px-5 py-3 text-slate-700">
               {{ formatNumber(b.stockDisponible) }}
@@ -136,13 +229,15 @@ function createBonFromCourses() {
           <tr>
             <td class="px-5 py-3">{{ i18n.t('courses.total') }}</td>
             <td class="px-5 py-3">{{ formatNumber(totalQuantite) }}</td>
+            <td v-if="usePrediction" class="px-5 py-3">{{ formatNumber(totalDelta) }}</td>
+            <td v-if="usePrediction" class="px-5 py-3">&nbsp;</td>
             <td class="px-5 py-3">{{ formatNumber(totalStock) }}</td>
             <td class="px-5 py-3">{{ totalManquants > 0 ? formatNumber(totalManquants) : '—' }}</td>
             <td class="px-5 py-3">&nbsp;</td>
           </tr>
         </tfoot>
       </table>
-      <p v-if="!menuStore.listeCourses.length" class="p-8 text-center text-gray-500">
+      <p v-if="!courses.length" class="p-8 text-center text-gray-500">
         {{ i18n.t('courses.notCalculated') }}
       </p>
     </div>

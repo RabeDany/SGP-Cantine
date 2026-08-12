@@ -296,7 +296,7 @@ export const useMenuStore = defineStore('menu', () => {
     }
   }
 
-  function calculerBesoins(): BesoinDenree[] {
+  function calculerBesoins(usePrediction = false): BesoinDenree[] {
     const stockStore = useStockStore()
     const presenceStore = usePresenceStore()
     const besoins = new Map<string, number>()
@@ -310,9 +310,10 @@ export const useMenuStore = defineStore('menu', () => {
       const dateJour = new Date(jourDate)
       dateJour.setDate(dateJour.getDate() + jour.jour)
       const dateJourISO = dateJour.toISOString().split('T')[0]
-      const portions =
-        presenceStore.isPointageEffectuePourDate(dateJourISO)
-          ? presenceStore.totalPresentsPourDate(dateJourISO)
+      const portions = presenceStore.isPointageEffectuePourDate(dateJourISO)
+        ? presenceStore.totalPresentsPourDate(dateJourISO)
+        : usePrediction
+          ? presenceStore.predictAttendanceForDate(dateJourISO).predictedCount
           : jour.portionsPrevues
 
       for (const ing of recette.ingredients) {
@@ -333,17 +334,26 @@ export const useMenuStore = defineStore('menu', () => {
     })
   }
 
-  const listeCourses = computed(() => {
-    if (menuActuel.value.valide) return []
-
+  function buildListeCourses(besoins: BesoinDenree[]) {
     const stockStore = useStockStore()
-    return calculerBesoins()
+    return besoins
       .map((b) => {
         const denree = stockStore.getDenree(b.denreeId)
         return { ...b, denree, manque: b.manquant > 0 }
       })
       .sort((a, b) => b.manquant - a.manquant)
+  }
+
+  const listeCourses = computed(() => {
+    if (menuActuel.value.valide) return []
+
+    return buildListeCourses(calculerBesoins(false))
   })
+
+  function getListeCoursesAjustee() {
+    if (menuActuel.value.valide) return []
+    return buildListeCourses(calculerBesoins(true))
+  }
 
   const denreesManquantes = computed(() =>
     listeCourses.value.filter((b) => b.manque),
@@ -408,5 +418,6 @@ export const useMenuStore = defineStore('menu', () => {
     validerMenu,
     setMenuActuel,
     calculerBesoins,
+    getListeCoursesAjustee,
   }
 })

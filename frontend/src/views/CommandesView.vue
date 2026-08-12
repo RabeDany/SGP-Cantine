@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, onMounted, ref, watch } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
+import { useRoute, useRouter, type LocationQueryValue } from 'vue-router'
 import PageHeader from '@/components/PageHeader.vue'
 import { useAuthStore } from '@/stores/auth'
 import { useCommandeStore } from '@/stores/commande'
@@ -42,11 +42,12 @@ function persistDefaultFournisseur() {
   }
 }
 
-function resolveRouteString(queryValue: string | string[] | undefined) {
+function resolveRouteString(queryValue: LocationQueryValue | LocationQueryValue[] | null | undefined) {
   if (Array.isArray(queryValue)) {
-    return queryValue[0]
+    const first = queryValue[0]
+    return typeof first === 'string' ? first : undefined
   }
-  return queryValue
+  return typeof queryValue === 'string' ? queryValue : undefined
 }
 
 function prefillFromListeCourses() {
@@ -57,6 +58,25 @@ function prefillFromListeCourses() {
   const fromStock = resolveRouteString(route.query.fromStock) === '1'
 
   if (fromCourses) {
+    const linesParam = resolveRouteString(route.query.lines)
+    if (linesParam) {
+      try {
+        const lines = JSON.parse(linesParam) as Array<{ denreeId: string; quantite: number }>
+        if (lines.length) {
+          lines.forEach((line) => {
+            if (line.quantite > 0) {
+              quantites.value[line.denreeId] = line.quantite
+            }
+          })
+          persistDefaultFournisseur()
+          router.replace({ name: 'commandes' })
+          return
+        }
+      } catch {
+        // ignore malformed payload
+      }
+    }
+
     const needs = menuStore.denreesManquantes
     if (!needs.length) {
       router.replace({ name: 'commandes' })
