@@ -99,6 +99,12 @@ const router = createRouter({
           meta: { module: 'prevision', roles: ['admin', 'gestionnaire'] },
         },
         {
+          path: 'nutrition',
+          name: 'nutrition',
+          component: () => import('@/views/NutritionView.vue'),
+          meta: { module: 'nutrition', roles: ['admin', 'planificateur'] },
+        },
+        {
           path: 'audit',
           name: 'audit',
           component: () => import('@/views/AuditView.vue'),

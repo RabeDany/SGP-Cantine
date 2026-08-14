@@ -17,6 +17,7 @@ const translations: Record<SupportedLang, Messages> = {
     'nav.mouvements': 'Mouvements',
     'nav.recettes': 'Recettes',
     'nav.menu': 'Menu hebdo',
+    'nav.nutrition': 'Nutrition',
     'nav.presences': 'Présences',
     'nav.courses': 'Liste de courses',
     'nav.prevision': 'Prévision',

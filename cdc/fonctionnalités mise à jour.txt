@@ -57,7 +57,7 @@ Export : génération d'un rapport d'audit signé numériquement pour transmissi
 Recommandations de Monsieur Tojo : 
 
 1. Enrichir les tableaux de bord en ajoutant : écoles les plus consommatrices, coût moyen par repas, taux de gaspillage, rupture de stock par région, évolution nutritionnelle.
-2. optimisation multicritères, c'est-à-dire respecter un budget, respecter les stocks, respecter les apports nutritionnels, limiter le gaspillage.
-3. pousser encore un peu plus le module prévision de consommation, en considérant : prévision selon la saison, météo, effectif scolaire, historique 
+2. Votre projet parle déjà de menus équilibrés, c'est bien. Ce serait encore mieux si vous preniez en compte une optimisation multicritères, c'est-à-dire respecter un budget, respecter les stocks, respecter les apports nutritionnels, limiter le gaspillage.
+3. Pousser encore un peu plus le module prévision de consommation, en considérant : prévision selon la saison, météo, effectif scolaire, historique.
 4. Pousser encore un peu plus le module synchronisation multi-sites, en ajoutant : stratégie hors ligne (Offline First), résolution des conflits, reprise après coupure réseau...
 5. Pour renforcer la sécurité, ajouter : journal d'audit détaillé, signature numérique des validations, sauvegardes automatiques, chiffrement des données sensibles.

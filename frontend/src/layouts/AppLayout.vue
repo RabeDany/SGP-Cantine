@@ -36,6 +36,7 @@ const allNav: NavItem[] = [
   { labelKey: 'nav.mouvements', to: '/mouvements', icon: 'pencil', module: 'mouvements' },
   { labelKey: 'nav.recettes', to: '/recettes', icon: 'bowl', module: 'recettes' },
   { labelKey: 'nav.menu', to: '/menu', icon: 'calendar', module: 'menu' },
+  { labelKey: 'nav.nutrition', to: '/nutrition', icon: 'bowl', module: 'nutrition' },
   { labelKey: 'nav.presences', to: '/presences', icon: 'check-circle', module: 'presences' },
   { labelKey: 'nav.courses', to: '/courses', icon: 'shopping-cart', module: 'courses' },
   { labelKey: 'nav.prevision', to: '/prevision', icon: 'chart-line', module: 'prevision' },
