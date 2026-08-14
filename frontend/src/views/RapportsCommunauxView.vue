@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 import PageHeader from '@/components/PageHeader.vue'
+import Icon from '@/components/Icon.vue'
 import { useCommunalStore } from '@/stores/communal'
 import { useI18nStore } from '@/stores/i18n'
 import { formatNumber } from '@/utils/helpers'
@@ -59,7 +60,7 @@ function printRapport() {
 
     <!-- Bandeau lecture seule -->
     <div class="mb-6 flex items-center gap-3 rounded-xl border border-blue-200 bg-blue-50 px-5 py-3">
-      <span class="text-2xl">🔒</span>
+      <Icon name="shield-check" className="h-6 w-6 shrink-0 text-blue-700" />
       <p class="text-sm text-blue-900">{{ i18n.t('communal.readOnly') }}</p>
     </div>
 
