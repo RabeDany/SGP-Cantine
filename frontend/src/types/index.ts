@@ -33,6 +33,8 @@ export type AuditActionType =
   | 'denree_create'
   | 'denree_update'
   | 'denree_delete'
+  | 'anomalie_detectee'
+  | 'anomalie_statut'
   | 'unknown'
 
 export interface AuditEntry {

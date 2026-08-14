@@ -1,0 +1,63 @@
+Les fonctionnalités avancées : 
+
+Module — Prévision de la Consommation par Machine Learning
+Objectif : anticiper la consommation future des denrées en fonction des données historiques (présences, menus, saisons, jours de la semaine).
+Entrées du modèle : historique des pointages (12 derniers mois), historique des consommations par denrée, calendrier scolaire (vacances, jours fériés), saisonnalité (saison des pluies / saison sèche à Madagascar).
+Sortie : prédiction du nombre d'élèves présents par jour pour les 7 prochains jours, avec intervalle de confiance ; prédiction des quantités consommées par denrée.
+Application métier : ajustement automatique des quantités de la liste de courses générée par le module Planification ; réduction du gaspillage alimentaire et des ruptures de stock.
+Contrainte : le modèle doit fonctionner en local sans appel à une API externe ; entraînement incrémental mensuel à partir des nouvelles données collectées.
+
+Module — Optimisation Nutritionnelle des Menus
+Objectif : garantir que les menus planifiés respectent les apports nutritionnels recommandés pour des enfants de 6 à 12 ans, tout en utilisant les stocks disponibles.
+Base de connaissances nutritionnelles : base de données intégrée des valeurs nutritionnelles (calories, protéines, lipides, glucides, fer, vitamine A) pour chaque denrée du référentiel.
+Moteur de contraintes : pour chaque menu planifié, calcul automatique du bilan nutritionnel total par portion ; comparaison avec les seuils recommandés par l'OMS pour la tranche d'âge concernée.
+Système de recommandation : si un menu est déficient (ex: manque de protéines), suggestion automatique de recettes alternatives ou d'ingrédients complémentaires disponibles en stock.
+Visualisation : graphique radar ou barres montrant la couverture nutritionnelle du menu sur une semaine.
+
+Module — Détection d'Anomalies et Alertes Intelligentes
+Objectif : identifier les comportements inhabituels dans la gestion des stocks et des présences pour signaler d'éventuels gaspillages, erreurs ou détournements.
+Règles de détection :
+Écart anormal entre stock théorique et stock physique lors de l'inventaire (écart > 10%).
+Consommation d'une denrée supérieure à 150% de la moyenne sur les 4 dernières semaines pour le même nombre d'élèves présents.
+Pointage d'élèves supérieur de plus de 20% au nombre d'inscrits sur une journée.
+Sortie de stock enregistrée en dehors des heures de cantine (hors 10h-14h) sans justification.
+Traitement : génération d'une alerte de niveau 1 (information), niveau 2 (avertissement avec notification au directeur), ou niveau 3 (blocage de l'opération jusqu'à validation manuelle).
+Journal d'anomalies : historique consultable de toutes les anomalies détectées avec statut (justifiée, non justifiée, en cours d'investigation).
+
+Module — Synchronisation Multi-Sites avec Résolution de Conflits
+Objectif : permettre à plusieurs écoles d'une même zone communale de partager leurs données (stocks, commandes groupées, rapports agrégés) malgré une connectivité intermittente.
+Architecture : chaque école possède une instance locale autonome ; un nœud central communal (mini-serveur ou poste désigné) agrège les données.
+Mécanisme de synchronisation :
+Export incrémental des modifications depuis la dernière synchronisation (format JSON compressé).
+Transfert par clé USB, réseau local WiFi, ou connexion Internet lorsque disponible.
+Import et fusion automatique au niveau communal.
+Résolution de conflits : en cas de modification concurrente d'une même donnée (ex: deux écoles modifient la fiche d'un fournisseur commun), application de règles de priorité (dernier modificateur gagne, ou validation manuelle par l'administrateur communal).
+Agrégation : génération de rapports consolidés par zone (consommation totale, stocks mutualisables, commandes groupées pour négocier des prix).
+
+Module — Planification Automatique des Menus par Algorithme Génétique
+Objectif : générer automatiquement un planning hebdomadaire optimal respectant les contraintes nutritionnelles, les stocks disponibles, la variété des repas, et les préférences des enfants.
+Contraintes d'optimisation :
+Couverture nutritionnelle minimale à 90% des apports recommandés.
+Utilisation prioritaire des denrées proches de la péremption.
+Pas de répétition d'une même recette dans un intervalle de 5 jours.
+Respect des préférences majoritaires des enfants (données collectées via feedback).
+Algorithme : algorithme génétique avec population initiale de 50 plannings, sélection par score de fitness combinant nutrition, coût, variété et stock.
+Interaction utilisateur : le planificateur peut verrouiller certaines recettes ou jours ; l'algorithme optimise le reste autour de ces contraintes fixes.
+
+Module — Traçabilité Complète et Audit Trail Immuable
+Objectif : garantir l'intégrité des données et la non-répudiation des actions pour la reddition de comptes.
+Mécanisme : chaînage cryptographique des enregistrements d'audit (chaque entrée d'audit contient le hash de l'entrée précédente), formant une chaîne immuable locale.
+Contenu de chaque entrée d'audit : identifiant de l'utilisateur, action réalisée, horodatage précis à la seconde, adresse IP/poste utilisé, hash de l'enregistrement modifié, hash de l'entrée précédente.
+Vérification d'intégrité : fonction permettant de vérifier à tout moment l'intégrité de la chaîne d'audit ; détection de toute altération postérieure.
+Export : génération d'un rapport d'audit signé numériquement pour transmission aux autorités ou bailleurs de fonds.
+
+
+
+
+Recommandations de Monsieur Tojo : 
+
+1. Enrichir les tableaux de bord en ajoutant : écoles les plus consommatrices, coût moyen par repas, taux de gaspillage, rupture de stock par région, évolution nutritionnelle.
+2. optimisation multicritères, c'est-à-dire respecter un budget, respecter les stocks, respecter les apports nutritionnels, limiter le gaspillage.
+3. pousser encore un peu plus le module prévision de consommation, en considérant : prévision selon la saison, météo, effectif scolaire, historique 
+4. Pousser encore un peu plus le module synchronisation multi-sites, en ajoutant : stratégie hors ligne (Offline First), résolution des conflits, reprise après coupure réseau...
+5. Pour renforcer la sécurité, ajouter : journal d'audit détaillé, signature numérique des validations, sauvegardes automatiques, chiffrement des données sensibles.

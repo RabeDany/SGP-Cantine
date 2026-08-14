@@ -41,6 +41,8 @@ const allNav: NavItem[] = [
   { labelKey: 'nav.prevision', to: '/prevision', icon: 'chart-line', module: 'prevision' },
   { labelKey: 'nav.rapports', to: '/rapports', icon: 'chart-line', module: 'rapports' },
   { labelKey: 'nav.audit', to: '/audit', icon: 'shield-check', module: 'audit' },
+  { labelKey: 'nav.anomalies', to: '/anomalies', icon: 'warning', module: 'anomalie' },
+  { labelKey: 'nav.communal', to: '/communal', icon: 'chart-bar', module: 'communal' },
   { labelKey: 'nav.fournisseurs', to: '/fournisseurs', icon: 'store', module: 'fournisseurs' },
   { labelKey: 'nav.commandes', to: '/commandes', icon: 'receipt', module: 'commandes' },
   { labelKey: 'nav.users', to: '/users', icon: 'user', module: 'users' },

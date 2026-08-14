@@ -104,6 +104,18 @@ const router = createRouter({
           component: () => import('@/views/AuditView.vue'),
           meta: { module: 'audit', roles: ['admin', 'inspecteur'] },
         },
+        {
+          path: 'anomalies',
+          name: 'anomalies',
+          component: () => import('@/views/AnomaliesView.vue'),
+          meta: { module: 'anomalie', roles: ['admin', 'inspecteur'] },
+        },
+        {
+          path: 'communal',
+          name: 'communal',
+          component: () => import('@/views/RapportsCommunauxView.vue'),
+          meta: { module: 'communal', roles: ['inspecteur'] },
+        },
       ],
     },
     {
