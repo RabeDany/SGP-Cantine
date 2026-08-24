@@ -304,3 +304,17 @@ export function toCsv(rows: Array<Record<string, string | number | boolean>>): s
   })
   return lines.join('\n')
 }
+
+export const HEURE_CANTINE_DEBUT = 10
+export const HEURE_CANTINE_FIN = 14
+export const SEUIL_POINTAGE_EXCESSIF = 0.2
+
+export function estDansPlageHoraireCantine(date = new Date()): boolean {
+  const minutes = date.getHours() * 60 + date.getMinutes()
+  return minutes >= HEURE_CANTINE_DEBUT * 60 && minutes <= HEURE_CANTINE_FIN * 60
+}
+
+export function depasseSeuilPointage(presents: number, inscrits: number, seuil = SEUIL_POINTAGE_EXCESSIF): boolean {
+  if (inscrits <= 0) return presents > 0
+  return presents > inscrits * (1 + seuil)
+}

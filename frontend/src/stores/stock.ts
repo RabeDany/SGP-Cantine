@@ -3,6 +3,7 @@ import { computed, ref } from 'vue'
 import { mockDenrees, mockMouvements } from '@/data/mockData'
 import { daysUntil, generateId, loadFromStorage, saveToStorage, todayISO } from '@/utils/helpers'
 import { useAuditStore } from '@/stores/audit'
+import { useAnomalieStore } from '@/stores/anomalie'
 import type { AuditActionType, Denree, DenreeCategorie, MouvementStock, StockStatus, UniteMesure, UserRole } from '@/types'
 
 export const useStockStore = defineStore('stock', () => {
@@ -144,7 +145,7 @@ export const useStockStore = defineStore('stock', () => {
     commentaire?: string
     menuId?: string
     userId: string
-  }, user?: { id: string; nom: string; role: UserRole }) {
+  }, user?: { id: string; nom: string; role: UserRole }, options?: { ignorerControleHoraire?: boolean; now?: Date }) {
     const denree = getDenree(data.denreeId)
     if (!denree) return { ok: false, error: 'Denrée introuvable.' }
     if (data.quantite > denree.stockActuel) {
@@ -155,6 +156,28 @@ export const useStockStore = defineStore('stock', () => {
     }
     if (data.motif === 'avarie' && !data.commentaire?.trim()) {
       return { ok: false, error: 'Un commentaire est obligatoire pour une avarie.' }
+    }
+
+    if (!options?.ignorerControleHoraire) {
+      const anomalieStore = useAnomalieStore()
+      const controle = anomalieStore.bloquerSortieHorsHoraire(
+        {
+          denreeId: data.denreeId,
+          denreeNom: denree.nom,
+          quantite: data.quantite,
+          date: data.date,
+          motif: data.motif,
+          commentaire: data.commentaire,
+          menuId: data.menuId,
+          userId: data.userId,
+          payload: { ...data, user },
+          now: options?.now,
+        },
+        user,
+      )
+      if (controle.blocked) {
+        return { ok: false, error: controle.message }
+      }
     }
 
     denree.stockActuel -= data.quantite

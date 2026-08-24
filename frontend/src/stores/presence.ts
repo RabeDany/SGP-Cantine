@@ -3,6 +3,7 @@ import { computed, ref } from 'vue'
 import { mockClasses, mockPointages } from '@/data/mockData'
 import { generateId, loadFromStorage, saveToStorage, todayISO } from '@/utils/helpers'
 import { useAuditStore } from '@/stores/audit'
+import { useAnomalieStore } from '@/stores/anomalie'
 import type { AuditActionType, Classe, PointagePresence, UserRole } from '@/types'
 
 export const usePresenceStore = defineStore('presence', () => {
@@ -26,7 +27,7 @@ export const usePresenceStore = defineStore('presence', () => {
 
       return {
         ...pointage,
-        presents: Math.max(0, Math.min(pointage.presents, maxAllowed)),
+        presents: Math.max(0, pointage.presents),
         inscrits: maxAllowed,
       }
     })
@@ -61,13 +62,25 @@ export const usePresenceStore = defineStore('presence', () => {
     presents: number
     exemptions: number
     userId: string
-  }, user?: { id: string; nom: string; role: UserRole }) {
+  }, user?: { id: string; nom: string; role: UserRole }, options?: { ignorerSeuilPointage?: boolean }) {
     const today = todayISO()
     const inscrits = totalInscrits.value
-    if (data.presents + data.exemptions > inscrits) {
-      return {
-        ok: false,
-        error: `Le total des présents et exemptions ne peut pas dépasser ${inscrits} élèves inscrits.`,
+
+    if (!options?.ignorerSeuilPointage) {
+      const anomalieStore = useAnomalieStore()
+      const controle = anomalieStore.bloquerPointageExcessif(
+        {
+          presents: data.presents,
+          inscrits,
+          exemptions: data.exemptions,
+          date: today,
+          userId: data.userId,
+          payload: { ...data, user },
+        },
+        user,
+      )
+      if (controle.blocked) {
+        return { ok: false, error: controle.message }
       }
     }
 
@@ -112,15 +125,29 @@ export const usePresenceStore = defineStore('presence', () => {
     exemptions: number,
     userId: string,
     user?: { id: string; nom: string; role: UserRole },
+    options?: { ignorerSeuilPointage?: boolean },
   ) {
     const today = todayISO()
     const classe = classes.value.find((c) => c.id === classeId)
     if (!classe) return { ok: false, error: 'Classe introuvable.' }
 
-    if (presents + exemptions > classe.inscritsCantine) {
-      return {
-        ok: false,
-        error: `Le total des présents et exemptions ne peut pas dépasser ${classe.inscritsCantine} inscrits pour ${classe.nom}.`,
+    if (!options?.ignorerSeuilPointage) {
+      const anomalieStore = useAnomalieStore()
+      const controle = anomalieStore.bloquerPointageExcessif(
+        {
+          presents,
+          inscrits: classe.inscritsCantine,
+          exemptions,
+          date: today,
+          classeId,
+          classeNom: classe.nom,
+          userId,
+          payload: { classeId, presents, exemptions, userId, user },
+        },
+        user,
+      )
+      if (controle.blocked) {
+        return { ok: false, error: controle.message }
       }
     }
 

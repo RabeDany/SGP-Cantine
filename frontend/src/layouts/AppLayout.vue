@@ -120,6 +120,15 @@ const notifications = computed(() => {
     })
   }
 
+  if (role === 'admin' && anomalieStore.anomaliesNiveau3.length) {
+    list.push({
+      id: 'anomalies-niveau-3',
+      title: 'Blocage — anomalies niveau 3',
+      message: `${anomalieStore.anomaliesNiveau3.length} opération(s) bloquée(s) (pointage excessif ou sortie hors 10h–14h). Justification requise.`,
+      type: 'danger',
+    })
+  }
+
   return list
 })
 </script>

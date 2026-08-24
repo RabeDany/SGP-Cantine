@@ -1,9 +1,23 @@
 import { defineStore } from 'pinia'
 import { computed, ref } from 'vue'
-import { generateId, loadFromStorage, saveToStorage } from '@/utils/helpers'
+import {
+  depasseSeuilPointage,
+  estDansPlageHoraireCantine,
+  generateId,
+  HEURE_CANTINE_DEBUT,
+  HEURE_CANTINE_FIN,
+  loadFromStorage,
+  saveToStorage,
+} from '@/utils/helpers'
 import { useStockStore } from '@/stores/stock'
 import { useAuditStore } from '@/stores/audit'
-import type { Anomalie, AnomalieNiveau, AnomalieStatut, AnomalieType } from '@/types/anomalie'
+import type {
+  Anomalie,
+  AnomalieNiveau,
+  AnomalieStatut,
+  AnomalieType,
+  OperationBloquee,
+} from '@/types/anomalie'
 import type { UserRole } from '@/types'
 
 const STORAGE_KEY = 'anomalies'
@@ -44,6 +58,8 @@ export const useAnomalieStore = defineStore('anomalie', () => {
       description: string
       denreeId?: string
       utilisateurId?: string
+      cleOperation?: string
+      operationBloquee?: OperationBloquee
       detail?: Record<string, unknown>
     },
     user?: { id: string; nom: string; role: UserRole },
@@ -58,6 +74,8 @@ export const useAnomalieStore = defineStore('anomalie', () => {
       denreeId: data.denreeId,
       dateDetection: new Date().toISOString(),
       utilisateurId: data.utilisateurId,
+      cleOperation: data.cleOperation,
+      operationBloquee: data.operationBloquee,
       detail: data.detail,
     }
     anomalies.value.unshift(anomalie)
@@ -81,10 +99,31 @@ export const useAnomalieStore = defineStore('anomalie', () => {
     return anomalie
   }
 
-  function mettreAJourStatut(id: string, statut: AnomalieStatut, user?: { id: string; nom: string; role: UserRole }) {
+  function mettreAJourStatut(
+    id: string,
+    statut: AnomalieStatut,
+    user?: { id: string; nom: string; role: UserRole },
+    justification?: string,
+  ): { ok: boolean; error?: string } {
     const anomalie = getAnomalie(id)
-    if (!anomalie) return false
+    if (!anomalie) return { ok: false, error: 'Anomalie introuvable.' }
+
+    if (anomalie.niveau === 3 && statut === 'justifiee') {
+      if (user && user.role !== 'admin') {
+        return { ok: false, error: 'Seul le directeur ou le président du CGCS peut lever un blocage niveau 3.' }
+      }
+      if (!justification?.trim()) {
+        return { ok: false, error: 'Une justification est obligatoire pour lever un blocage de niveau 3.' }
+      }
+    }
+
     anomalie.statut = statut
+    if (statut === 'justifiee' && justification?.trim()) {
+      anomalie.justification = justification.trim()
+      anomalie.valideurId = user?.id
+      anomalie.valideurNom = user?.nom
+      anomalie.dateValidation = new Date().toISOString()
+    }
     persist()
 
     if (user) {
@@ -101,7 +140,142 @@ export const useAnomalieStore = defineStore('anomalie', () => {
         targetType: 'anomalie',
       })
     }
-    return true
+
+    return { ok: true }
+  }
+
+  function getAnomalieEnCours(cleOperation: string) {
+    return anomalies.value.find(
+      (a) => a.cleOperation === cleOperation && a.statut === 'en_cours' && a.niveau === 3,
+    )
+  }
+
+  function aUneJustificationValide(cleOperation: string) {
+    return anomalies.value.some(
+      (a) => a.cleOperation === cleOperation && a.statut === 'justifiee' && a.niveau === 3,
+    )
+  }
+
+  function bloquerPointageExcessif(data: {
+    presents: number
+    inscrits: number
+    exemptions: number
+    date: string
+    classeId?: string | null
+    classeNom?: string
+    userId: string
+    payload: Record<string, unknown>
+  }, user?: { id: string; nom: string; role: UserRole }): { blocked: boolean; message?: string } {
+    if (!depasseSeuilPointage(data.presents, data.inscrits)) {
+      return { blocked: false }
+    }
+
+    const cleOperation = data.classeId
+      ? `pointage_classe:${data.date}:${data.classeId}`
+      : `pointage_global:${data.date}`
+
+    if (aUneJustificationValide(cleOperation)) {
+      return { blocked: false }
+    }
+
+    const taux = data.inscrits > 0 ? (data.presents / data.inscrits) * 100 : 0
+    const existante = getAnomalieEnCours(cleOperation)
+    if (existante) {
+      return {
+        blocked: true,
+        message: `Anomalie niveau 3 déjà en cours : pointage supérieur de plus de 20 % aux inscrits. En attente de justification par le directeur ou le président du CGCS.`,
+      }
+    }
+
+    const cible = data.classeNom ? `classe ${data.classeNom}` : 'l’école'
+    logAnomalie(
+      {
+        type: 'pointage_excessif',
+        niveau: 3,
+        titre: `Pointage > 20 % des inscrits — ${cible}`,
+        description: `${data.presents} présents pour ${data.inscrits} inscrits (${taux.toFixed(0)} %). L’opération est bloquée jusqu’à justification du directeur ou du président du CGCS.`,
+        utilisateurId: data.userId,
+        cleOperation,
+        operationBloquee: {
+          kind: data.classeId ? 'pointage_classe' : 'pointage_global',
+          payload: data.payload,
+        },
+        detail: {
+          presents: data.presents,
+          inscrits: data.inscrits,
+          exemptions: data.exemptions,
+          date: data.date,
+          classeId: data.classeId ?? null,
+          taux: Number(taux.toFixed(1)),
+        },
+      },
+      user,
+    )
+
+    return {
+      blocked: true,
+      message: `Anomalie niveau 3 : le pointage dépasse de plus de 20 % le nombre d’inscrits (${data.presents} / ${data.inscrits}). Notification envoyée au directeur et au président du CGCS.`,
+    }
+  }
+
+  function bloquerSortieHorsHoraire(data: {
+    denreeId: string
+    denreeNom: string
+    quantite: number
+    date: string
+    motif?: string
+    commentaire?: string
+    menuId?: string
+    userId: string
+    payload: Record<string, unknown>
+    now?: Date
+  }, user?: { id: string; nom: string; role: UserRole }): { blocked: boolean; message?: string } {
+    const now = data.now ?? new Date()
+    if (estDansPlageHoraireCantine(now)) {
+      return { blocked: false }
+    }
+
+    const cleOperation = `sortie:${data.date}:${data.denreeId}`
+    if (aUneJustificationValide(cleOperation)) {
+      return { blocked: false }
+    }
+
+    const heure = now.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })
+    const existante = getAnomalieEnCours(cleOperation)
+    if (existante) {
+      return {
+        blocked: true,
+        message: `Anomalie niveau 3 déjà en cours : sortie hors plage ${HEURE_CANTINE_DEBUT}h–${HEURE_CANTINE_FIN}h. En attente de justification par le directeur ou le président du CGCS.`,
+      }
+    }
+
+    logAnomalie(
+      {
+        type: 'sortie_hors_horaire',
+        niveau: 3,
+        titre: `Sortie hors ${HEURE_CANTINE_DEBUT}h–${HEURE_CANTINE_FIN}h — ${data.denreeNom}`,
+        description: `Sortie de ${data.quantite} tentée à ${heure}, hors de la plage de cantine. L’opération est bloquée jusqu’à justification du directeur ou du président du CGCS.`,
+        denreeId: data.denreeId,
+        utilisateurId: data.userId,
+        cleOperation,
+        operationBloquee: {
+          kind: 'sortie_stock',
+          payload: data.payload,
+        },
+        detail: {
+          heure,
+          date: data.date,
+          quantite: data.quantite,
+          motif: data.motif,
+        },
+      },
+      user,
+    )
+
+    return {
+      blocked: true,
+      message: `Anomalie niveau 3 : sortie hors ${HEURE_CANTINE_DEBUT}h–${HEURE_CANTINE_FIN}h (${heure}). Notification envoyée au directeur et au président du CGCS.`,
+    }
   }
 
   /**
@@ -280,6 +454,9 @@ export const useAnomalieStore = defineStore('anomalie', () => {
     detecterEcartInventaire,
     detecterConsommationAnormale,
     detecterAutomatiquement,
+    bloquerPointageExcessif,
+    bloquerSortieHorsHoraire,
+    aUneJustificationValide,
     verifierBlocage,
   }
 })

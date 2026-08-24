@@ -17,11 +17,17 @@ const selectedNiveau = ref<AnomalieNiveau | 'all'>('all')
 const selectedStatut = ref<AnomalieStatut | 'all'>('all')
 const startDate = ref('')
 const endDate = ref('')
+const actionError = ref('')
+const actionMessage = ref('')
+const justifyingId = ref<string | null>(null)
+const justificationTexte = ref('')
 
 const typeOptions = computed(() => [
   { label: i18n.t('anomalie.filter.allTypes'), value: 'all' },
   { label: ANOMALIE_TYPE_LABELS.ecart_inventaire, value: 'ecart_inventaire' },
   { label: ANOMALIE_TYPE_LABELS.consommation_anormale, value: 'consommation_anormale' },
+  { label: ANOMALIE_TYPE_LABELS.pointage_excessif, value: 'pointage_excessif' },
+  { label: ANOMALIE_TYPE_LABELS.sortie_hors_horaire, value: 'sortie_hors_horaire' },
 ])
 
 const niveauOptions = computed(() => [
@@ -76,13 +82,47 @@ function statutBadgeClass(statut: AnomalieStatut) {
   return 'bg-slate-100 text-slate-700'
 }
 
-function changerStatut(id: string, statut: AnomalieStatut) {
+function ouvrirJustification(id: string) {
+  justifyingId.value = id
+  justificationTexte.value = ''
+  actionError.value = ''
+  actionMessage.value = ''
+}
+
+function annulerJustification() {
+  justifyingId.value = null
+  justificationTexte.value = ''
+}
+
+function confirmerJustification() {
+  if (!justifyingId.value) return
   const user = auth.currentUser
-  anomalieStore.mettreAJourStatut(
+  const result = anomalieStore.mettreAJourStatut(
+    justifyingId.value,
+    'justifiee',
+    user ? { id: user.id, nom: user.nom, role: user.role } : undefined,
+    justificationTexte.value,
+  )
+  if (!result.ok) {
+    actionError.value = result.error ?? 'Impossible de justifier.'
+    return
+  }
+  actionMessage.value =
+    'Anomalie justifiée. L’opération bloquée peut maintenant être re-saisie par l’agent ou le gestionnaire.'
+  annulerJustification()
+}
+
+function marquerNonJustifiee(id: string) {
+  actionError.value = ''
+  const user = auth.currentUser
+  const result = anomalieStore.mettreAJourStatut(
     id,
-    statut,
+    'non_justifiee',
     user ? { id: user.id, nom: user.nom, role: user.role } : undefined,
   )
+  if (!result.ok) {
+    actionError.value = result.error ?? 'Impossible de mettre à jour le statut.'
+  }
 }
 </script>
 
@@ -93,8 +133,7 @@ function changerStatut(id: string, statut: AnomalieStatut) {
       :subtitle="i18n.t('anomalie.subtitle')"
     />
 
-    <!-- Statistiques -->
-    <div class="mb-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+    <div class="mb-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
       <div class="card p-4">
         <p class="text-sm text-gray-500">{{ i18n.t('anomalie.stats.total') }}</p>
         <p class="mt-2 text-3xl font-semibold text-gray-900">{{ anomalieStore.statsAnomalies.total }}</p>
@@ -108,12 +147,15 @@ function changerStatut(id: string, statut: AnomalieStatut) {
         <p class="mt-2 text-3xl font-semibold text-amber-700">{{ anomalieStore.statsAnomalies.niveau2 }}</p>
       </div>
       <div class="card p-4">
+        <p class="text-sm text-gray-500">{{ i18n.t('anomalie.stats.level3') }}</p>
+        <p class="mt-2 text-3xl font-semibold text-red-700">{{ anomalieStore.statsAnomalies.niveau3 }}</p>
+      </div>
+      <div class="card p-4">
         <p class="text-sm text-gray-500">{{ i18n.t('anomalie.stats.justified') }}</p>
         <p class="mt-2 text-3xl font-semibold text-emerald-700">{{ anomalieStore.statsAnomalies.justifiees }}</p>
       </div>
     </div>
 
-    <!-- Alerte blocage niveau 3 -->
     <div
       v-if="anomalieStore.anomaliesNiveau3.length"
       class="mb-6 rounded-xl border border-red-300 bg-red-50 px-5 py-4"
@@ -134,7 +176,31 @@ function changerStatut(id: string, statut: AnomalieStatut) {
       </div>
     </div>
 
-    <!-- Filtres -->
+    <p v-if="actionMessage" class="mb-4 rounded-lg bg-green-50 px-4 py-2 text-sm text-green-800">{{ actionMessage }}</p>
+    <p v-if="actionError" class="mb-4 rounded-lg bg-red-50 px-4 py-2 text-sm text-red-800">{{ actionError }}</p>
+
+    <div
+      v-if="justifyingId"
+      class="card mb-6 border border-emerald-200 bg-emerald-50"
+    >
+      <h3 class="font-semibold text-emerald-900">{{ i18n.t('anomalie.justify.title') }}</h3>
+      <p class="mt-1 text-sm text-emerald-800">{{ i18n.t('anomalie.justify.help') }}</p>
+      <textarea
+        v-model="justificationTexte"
+        class="input mt-3"
+        rows="3"
+        :placeholder="i18n.t('anomalie.justify.placeholder')"
+      />
+      <div class="mt-3 flex gap-2">
+        <button type="button" class="btn-primary" @click="confirmerJustification">
+          {{ i18n.t('anomalie.action.justify') }}
+        </button>
+        <button type="button" class="btn-secondary" @click="annulerJustification">
+          {{ i18n.t('general.cancel') }}
+        </button>
+      </div>
+    </div>
+
     <div class="card mb-6 grid gap-4 lg:grid-cols-3">
       <div>
         <label class="label">{{ i18n.t('anomalie.filter.search') }}</label>
@@ -174,7 +240,6 @@ function changerStatut(id: string, statut: AnomalieStatut) {
       </div>
     </div>
 
-    <!-- Journal -->
     <div class="card overflow-x-auto p-0">
       <table class="w-full text-sm">
         <thead class="bg-gray-50 text-left text-xs uppercase tracking-wide text-gray-500">
@@ -184,6 +249,7 @@ function changerStatut(id: string, statut: AnomalieStatut) {
             <th class="px-4 py-3">{{ i18n.t('anomalie.table.level') }}</th>
             <th class="px-4 py-3">{{ i18n.t('anomalie.table.title') }}</th>
             <th class="px-4 py-3">{{ i18n.t('anomalie.table.description') }}</th>
+            <th class="px-4 py-3">{{ i18n.t('anomalie.table.justification') }}</th>
             <th class="px-4 py-3">{{ i18n.t('anomalie.table.status') }}</th>
             <th v-if="auth.hasRole('admin')" class="px-4 py-3">{{ i18n.t('anomalie.table.action') }}</th>
           </tr>
@@ -199,24 +265,33 @@ function changerStatut(id: string, statut: AnomalieStatut) {
             </td>
             <td class="px-4 py-3 font-medium text-gray-900">{{ anomalie.titre }}</td>
             <td class="px-4 py-3 text-gray-600">{{ anomalie.description }}</td>
+            <td class="px-4 py-3 text-xs text-gray-600">
+              <template v-if="anomalie.justification">
+                {{ anomalie.justification }}
+                <span v-if="anomalie.valideurNom" class="block text-gray-400">
+                  — {{ anomalie.valideurNom }}
+                </span>
+              </template>
+              <span v-else class="text-gray-400">—</span>
+            </td>
             <td class="px-4 py-3">
               <span class="inline-flex rounded-full px-3 py-1 text-xs font-semibold" :class="statutBadgeClass(anomalie.statut)">
                 {{ ANOMALIE_STATUT_LABELS[anomalie.statut] }}
               </span>
             </td>
             <td v-if="auth.hasRole('admin')" class="px-4 py-3">
-              <div v-if="anomalie.statut === 'en_cours'" class="flex gap-2">
+              <div v-if="anomalie.statut === 'en_cours'" class="flex flex-col gap-2">
                 <button
                   type="button"
                   class="rounded-lg bg-emerald-100 px-3 py-1 text-xs font-semibold text-emerald-800 hover:bg-emerald-200"
-                  @click="changerStatut(anomalie.id, 'justifiee')"
+                  @click="ouvrirJustification(anomalie.id)"
                 >
                   {{ i18n.t('anomalie.action.justify') }}
                 </button>
                 <button
                   type="button"
                   class="rounded-lg bg-red-100 px-3 py-1 text-xs font-semibold text-red-800 hover:bg-red-200"
-                  @click="changerStatut(anomalie.id, 'non_justifiee')"
+                  @click="marquerNonJustifiee(anomalie.id)"
                 >
                   {{ i18n.t('anomalie.action.notJustified') }}
                 </button>
@@ -225,7 +300,9 @@ function changerStatut(id: string, statut: AnomalieStatut) {
             </td>
           </tr>
           <tr v-if="filteredAnomalies.length === 0">
-            <td colspan="7" class="px-4 py-6 text-center text-gray-500">{{ i18n.t('anomalie.noResults') }}</td>
+            <td :colspan="auth.hasRole('admin') ? 8 : 7" class="px-4 py-6 text-center text-gray-500">
+              {{ i18n.t('anomalie.noResults') }}
+            </td>
           </tr>
         </tbody>
       </table>

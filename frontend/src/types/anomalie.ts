@@ -2,7 +2,19 @@ export type AnomalieNiveau = 1 | 2 | 3
 
 export type AnomalieStatut = 'en_cours' | 'justifiee' | 'non_justifiee'
 
-export type AnomalieType = 'ecart_inventaire' | 'consommation_anormale'
+export type AnomalieType =
+  | 'ecart_inventaire'
+  | 'consommation_anormale'
+  | 'pointage_excessif'
+  | 'sortie_hors_horaire'
+
+export type OperationBloqueeKind = 'pointage_global' | 'pointage_classe' | 'sortie_stock'
+
+export interface OperationBloquee {
+  kind: OperationBloqueeKind
+  payload: Record<string, unknown>
+  executed?: boolean
+}
 
 export interface Anomalie {
   id: string
@@ -14,6 +26,12 @@ export interface Anomalie {
   denreeId?: string
   dateDetection: string
   utilisateurId?: string
+  justification?: string
+  valideurId?: string
+  valideurNom?: string
+  dateValidation?: string
+  cleOperation?: string
+  operationBloquee?: OperationBloquee
   detail?: Record<string, unknown>
 }
 
@@ -32,4 +50,6 @@ export const ANOMALIE_STATUT_LABELS: Record<AnomalieStatut, string> = {
 export const ANOMALIE_TYPE_LABELS: Record<AnomalieType, string> = {
   ecart_inventaire: 'Écart d’inventaire',
   consommation_anormale: 'Consommation anormale',
+  pointage_excessif: 'Pointage excessif',
+  sortie_hors_horaire: 'Sortie hors horaires',
 }

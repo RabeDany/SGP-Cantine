@@ -225,6 +225,9 @@ function getDenreeNom(id: string) {
         <label class="label">{{ i18n.t('general.comment') }} {{ sortieForm.motif === 'avarie' ? `(${i18n.t('mouvements.label.required')})` : '' }}</label>
         <textarea v-model="sortieForm.commentaire" class="input" rows="2" />
       </div>
+      <div class="sm:col-span-2 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-800">
+        Les sorties hors plage 10h–14h déclenchent une anomalie de niveau 3 bloquante (US-37). Seuls le directeur ou le président du CGCS peuvent justifier et lever le blocage.
+      </div>
       <div class="sm:col-span-2">
         <button type="submit" class="btn-primary">{{ i18n.t('mouvements.button.submitExit') }}</button>
       </div>

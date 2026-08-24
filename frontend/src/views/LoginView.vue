@@ -17,6 +17,7 @@ const loading = ref(false)
 
 const demoAccounts = [
   { user: 'directeur', pass: 'directeur123', role: 'Administrateur' },
+  { user: 'president', pass: 'president123', role: 'Président CGCS' },
   { user: 'stock', pass: 'stock123', role: 'Gestionnaire stock' },
   { user: 'cuisine', pass: 'cuisine123', role: 'Planificateur' },
   { user: 'agent', pass: 'agent123', role: 'Agent cantine' },

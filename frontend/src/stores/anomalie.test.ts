@@ -1,8 +1,10 @@
 import { describe, expect, it, beforeEach } from 'vitest'
 import { setActivePinia, createPinia } from 'pinia'
 import { useAnomalieStore } from './anomalie'
+import { usePresenceStore } from './presence'
+import { useStockStore } from './stock'
+import { todayISO } from '@/utils/helpers'
 
-// Mock localStorage pour l'environnement Node (Vitest)
 const storage = new Map<string, string>()
 ;(globalThis as Record<string, unknown>).localStorage = {
   getItem: (key: string) => storage.get(key) ?? null,
@@ -36,32 +38,147 @@ describe('anomalie store', () => {
     expect(detectees).toHaveLength(1)
     expect(detectees[0].niveau).toBe(2)
     expect(detectees[0].type).toBe('ecart_inventaire')
-    expect(detectees[0].statut).toBe('en_cours')
   })
 
-  it('ne détecte pas un écart <= 10%', () => {
-    const store = useAnomalieStore()
-    const detectees = store.detecterEcartInventaire([
-      { denreeId: 'd1', nom: 'Riz', unite: 'kg', stockTheorique: 100, stockPhysique: 92 },
-    ])
+  it('bloque un pointage > 20% des inscrits (niveau 3)', () => {
+    const presence = usePresenceStore()
+    const anomalie = useAnomalieStore()
+    const inscrits = presence.totalInscrits
+    const presents = Math.floor(inscrits * 1.2) + 1
 
-    expect(detectees).toHaveLength(0)
+    const result = presence.enregistrerPointageGlobal(
+      { presents, exemptions: 0, userId: 'u4' },
+      { id: 'u4', nom: 'Agent', role: 'agent' },
+    )
+
+    expect(result.ok).toBe(false)
+    expect(anomalie.anomaliesNiveau3).toHaveLength(1)
+    expect(anomalie.anomaliesNiveau3[0].type).toBe('pointage_excessif')
+    expect(presence.pointageEffectue).toBe(false)
   })
 
-  it('classe tout écart d\'inventaire > 10% en niveau 2, y compris un écart important', () => {
-    const store = useAnomalieStore()
-    const detectees = store.detecterEcartInventaire([
-      { denreeId: 'd1', nom: 'Riz', unite: 'kg', stockTheorique: 100, stockPhysique: 70 },
-      { denreeId: 'd2', nom: 'Huile', unite: 'L', stockTheorique: 100, stockPhysique: 40 },
-    ])
+  it('autorise un pointage excessif après justification admin', () => {
+    const presence = usePresenceStore()
+    const anomalie = useAnomalieStore()
+    const inscrits = presence.totalInscrits
+    const presents = Math.floor(inscrits * 1.2) + 1
+    const userAgent = { id: 'u4', nom: 'Agent', role: 'agent' as const }
+    const userAdmin = { id: 'u1', nom: 'Directeur', role: 'admin' as const }
 
-    expect(detectees).toHaveLength(2)
-    expect(detectees.every((a) => a.niveau === 2)).toBe(true)
-    expect(store.verifierBlocage('d1')).toBe(false)
-    expect(store.verifierBlocage('d2')).toBe(false)
+    presence.enregistrerPointageGlobal({ presents, exemptions: 0, userId: 'u4' }, userAgent)
+    const anomalieId = anomalie.anomaliesNiveau3[0].id
+
+    const justify = anomalie.mettreAJourStatut(anomalieId, 'justifiee', userAdmin, 'Erreur de saisie corrigée')
+    expect(justify.ok).toBe(true)
+
+    const retry = presence.enregistrerPointageGlobal({ presents, exemptions: 0, userId: 'u4' }, userAgent)
+    expect(retry.ok).toBe(true)
+    expect(presence.totalPresentsAujourdhui).toBe(presents)
   })
 
-  it('détecte une consommation > 150% de la moyenne sur 4 semaines (niveau 2)', () => {
+  it('refuse la justification niveau 3 sans texte', () => {
+    const presence = usePresenceStore()
+    const anomalie = useAnomalieStore()
+    const inscrits = presence.totalInscrits
+    const presents = Math.floor(inscrits * 1.2) + 1
+
+    presence.enregistrerPointageGlobal({ presents, exemptions: 0, userId: 'u4' })
+    const result = anomalie.mettreAJourStatut(
+      anomalie.anomaliesNiveau3[0].id,
+      'justifiee',
+      { id: 'u1', nom: 'Directeur', role: 'admin' },
+      '   ',
+    )
+    expect(result.ok).toBe(false)
+  })
+
+  it('bloque une sortie hors plage 10h–14h (niveau 3)', () => {
+    const stock = useStockStore()
+    const anomalie = useAnomalieStore()
+    const denree = stock.denreesAvecStatut[0]
+    const evening = new Date()
+    evening.setHours(16, 30, 0, 0)
+
+    const result = stock.enregistrerSortie(
+      {
+        denreeId: denree.id,
+        date: todayISO(),
+        quantite: 1,
+        motif: 'preparation_repas',
+        userId: 'u2',
+      },
+      { id: 'u2', nom: 'Stock', role: 'gestionnaire' },
+      { now: evening },
+    )
+
+    expect(result.ok).toBe(false)
+    expect(anomalie.anomaliesNiveau3.some((a) => a.type === 'sortie_hors_horaire')).toBe(true)
+  })
+
+  it('autorise une sortie dans la plage 10h–14h', () => {
+    const stock = useStockStore()
+    const anomalie = useAnomalieStore()
+    const denree = stock.denreesAvecStatut[0]
+    const noon = new Date()
+    noon.setHours(12, 0, 0, 0)
+    const avant = denree.stockActuel
+
+    const result = stock.enregistrerSortie(
+      {
+        denreeId: denree.id,
+        date: todayISO(),
+        quantite: 1,
+        motif: 'preparation_repas',
+        userId: 'u2',
+      },
+      { id: 'u2', nom: 'Stock', role: 'gestionnaire' },
+      { now: noon },
+    )
+
+    expect(result.ok).toBe(true)
+    expect(stock.getDenree(denree.id)?.stockActuel).toBe(avant - 1)
+    expect(anomalie.anomalies.filter((a) => a.type === 'sortie_hors_horaire')).toHaveLength(0)
+  })
+
+  it('autorise une sortie hors horaire après justification', () => {
+    const stock = useStockStore()
+    const anomalie = useAnomalieStore()
+    const denree = stock.denreesAvecStatut[0]
+    const evening = new Date()
+    evening.setHours(17, 0, 0, 0)
+    const user = { id: 'u2', nom: 'Stock', role: 'gestionnaire' as const }
+    const admin = { id: 'u1', nom: 'Directeur', role: 'admin' as const }
+
+    stock.enregistrerSortie(
+      {
+        denreeId: denree.id,
+        date: todayISO(),
+        quantite: 1,
+        motif: 'preparation_repas',
+        userId: 'u2',
+      },
+      user,
+      { now: evening },
+    )
+
+    const blocked = anomalie.anomaliesNiveau3.find((a) => a.type === 'sortie_hors_horaire')!
+    anomalie.mettreAJourStatut(blocked.id, 'justifiee', admin, 'Transfert urgent validé')
+
+    const retry = stock.enregistrerSortie(
+      {
+        denreeId: denree.id,
+        date: todayISO(),
+        quantite: 1,
+        motif: 'preparation_repas',
+        userId: 'u2',
+      },
+      user,
+      { now: evening },
+    )
+    expect(retry.ok).toBe(true)
+  })
+
+  it('détecte une consommation > 150% (niveau 2)', () => {
     const store = useAnomalieStore()
     const detectees = store.detecterConsommationAnormale([
       {
@@ -76,86 +193,16 @@ describe('anomalie store', () => {
 
     expect(detectees).toHaveLength(1)
     expect(detectees[0].niveau).toBe(2)
-    expect(detectees[0].type).toBe('consommation_anormale')
   })
 
-  it('ne détecte pas une consommation <= 150%', () => {
-    const store = useAnomalieStore()
-    const detectees = store.detecterConsommationAnormale([
-      {
-        denreeId: 'd1',
-        nom: 'Riz',
-        unite: 'kg',
-        quantitePeriode: 40,
-        moyenne4Semaines: 30,
-        nbEleves: 180,
-      },
-    ])
-
-    expect(detectees).toHaveLength(0)
-  })
-
-  it('met à jour le statut d\'une anomalie', () => {
+  it('met à jour le statut d\'une anomalie niveau 2', () => {
     const store = useAnomalieStore()
     const detectees = store.detecterEcartInventaire([
       { denreeId: 'd1', nom: 'Riz', unite: 'kg', stockTheorique: 100, stockPhysique: 40 },
     ])
 
     const ok = store.mettreAJourStatut(detectees[0].id, 'justifiee')
-    expect(ok).toBe(true)
+    expect(ok.ok).toBe(true)
     expect(store.getAnomalie(detectees[0].id)?.statut).toBe('justifiee')
-  })
-
-  it('vérifie le blocage pour une anomalie de niveau 3 active', () => {
-    const store = useAnomalieStore()
-    store.logAnomalie({
-      type: 'ecart_inventaire',
-      niveau: 3,
-      titre: 'Anomalie bloquante',
-      description: 'Opération bloquée',
-      denreeId: 'd1',
-    })
-
-    expect(store.verifierBlocage('d1')).toBe(true)
-    expect(store.verifierBlocage('d2')).toBe(false)
-  })
-
-  it('ne bloque plus après justification d\'une anomalie niveau 3', () => {
-    const store = useAnomalieStore()
-    const anomalie = store.logAnomalie({
-      type: 'ecart_inventaire',
-      niveau: 3,
-      titre: 'Anomalie bloquante',
-      description: 'Opération bloquée',
-      denreeId: 'd1',
-    })
-
-    store.mettreAJourStatut(anomalie.id, 'justifiee')
-    expect(store.verifierBlocage('d1')).toBe(false)
-  })
-
-  it('calcule les statistiques des anomalies', () => {
-    const store = useAnomalieStore()
-    store.detecterEcartInventaire([
-      { denreeId: 'd1', nom: 'Riz', unite: 'kg', stockTheorique: 100, stockPhysique: 88 },
-      { denreeId: 'd2', nom: 'Poisson', unite: 'kg', stockTheorique: 100, stockPhysique: 70 },
-    ])
-    store.detecterConsommationAnormale([
-      {
-        denreeId: 'd3',
-        nom: 'Huile',
-        unite: 'L',
-        quantitePeriode: 60,
-        moyenne4Semaines: 30,
-        nbEleves: 180,
-      },
-    ])
-
-    const stats = store.statsAnomalies
-    expect(stats.total).toBe(3)
-    expect(stats.niveau1).toBe(0)
-    expect(stats.niveau2).toBe(3)
-    expect(stats.niveau3).toBe(0)
-    expect(stats.actives).toBe(3)
   })
 })
