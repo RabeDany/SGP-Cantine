@@ -108,10 +108,15 @@ export const useAnomalieStore = defineStore('anomalie', () => {
     const anomalie = getAnomalie(id)
     if (!anomalie) return { ok: false, error: 'Anomalie introuvable.' }
 
-    if (anomalie.niveau === 3 && statut === 'justifiee') {
-      if (user && user.role !== 'admin') {
-        return { ok: false, error: 'Seul le directeur ou le président du CGCS peut lever un blocage niveau 3.' }
+    // US-38 — seuls le directeur / président (admin) peuvent modifier les statuts
+    if (!user || user.role !== 'admin') {
+      return {
+        ok: false,
+        error: 'Seul le directeur ou le président du CGCS peut modifier le statut d’une anomalie.',
       }
+    }
+
+    if (anomalie.niveau === 3 && statut === 'justifiee') {
       if (!justification?.trim()) {
         return { ok: false, error: 'Une justification est obligatoire pour lever un blocage de niveau 3.' }
       }

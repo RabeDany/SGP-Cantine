@@ -84,12 +84,16 @@ Concevoir un progiciel autonome et open source permettant à un comité de canti
 ### 3.3 Module — Détection d'Anomalies et Alertes Intelligentes
 - **Objectif** : identifier les comportements inhabituels dans la gestion des stocks et des présences pour signaler d'éventuels gaspillages, erreurs ou détournements.
 - **Règles de détection** :
-  - Écart anormal entre stock théorique et stock physique lors de l'inventaire (écart > 10%).
-  - Consommation d'une denrée supérieure à 150% de la moyenne sur les 4 dernières semaines pour le même nombre d'élèves présents.
-  - Pointage d'élèves supérieur de plus de 20% au nombre d'inscrits sur une journée.
-  - Sortie de stock enregistrée en dehors des heures de cantine (hors 10h-14h) sans justification.
+  - Écart anormal entre stock théorique et stock physique lors de l'inventaire (écart > 10%). (niveau 2)
+  - Consommation d'une denrée supérieure à 150% de la moyenne sur les 4 dernières semaines pour le même nombre d'élèves présents.(niveau 2)
+  - Pointage d'élèves supérieur de plus de 20% au nombre d'inscrits sur une journée. (niveau 3)
+  - Sortie de stock enregistrée en dehors des heures de cantine (hors 10h-14h) sans justification. (niveau 3)
 - **Traitement** : génération d'une alerte de niveau 1 (information), niveau 2 (avertissement avec notification au directeur), ou niveau 3 (blocage de l'opération jusqu'à validation manuelle).
 - **Journal d'anomalies** : historique consultable de toutes les anomalies détectées avec statut (justifiée, non justifiée, en cours d'investigation).
+- **Anomalies** : 
+  - niveau 1 : Des écarts mineurs ne nécessitant pas d'action, des alertes informatives sans risque de détournement
+  - niveau 2 : Écart d'inventaire > 10%, Surconsommation > 150%
+  - niveau 3 : Pointage supérieur de 20% aux inscrits, Sortie de stock hors horaire 10h–14h
 
 ### 3.4 Module — Synchronisation Multi-Sites avec Résolution de Conflits
 - **Objectif** : permettre à plusieurs écoles d'une même zone communale de partager leurs données (stocks, commandes groupées, rapports agrégés) malgré une connectivité intermittente.

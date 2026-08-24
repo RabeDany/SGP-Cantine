@@ -36,9 +36,9 @@ export interface Anomalie {
 }
 
 export const ANOMALIE_NIVEAU_LABELS: Record<AnomalieNiveau, string> = {
-  1: 'Niveau 1 — Information',
-  2: 'Niveau 2 — Avertissement',
-  3: 'Niveau 3 — Bloquant',
+  1: 'Niveau 1',
+  2: 'Niveau 2',
+  3: 'Niveau 3',
 }
 
 export const ANOMALIE_STATUT_LABELS: Record<AnomalieStatut, string> = {

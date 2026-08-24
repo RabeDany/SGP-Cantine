@@ -195,14 +195,41 @@ describe('anomalie store', () => {
     expect(detectees[0].niveau).toBe(2)
   })
 
-  it('met à jour le statut d\'une anomalie niveau 2', () => {
+  it('met à jour le statut d\'une anomalie niveau 2 (admin uniquement)', () => {
     const store = useAnomalieStore()
     const detectees = store.detecterEcartInventaire([
       { denreeId: 'd1', nom: 'Riz', unite: 'kg', stockTheorique: 100, stockPhysique: 40 },
     ])
 
-    const ok = store.mettreAJourStatut(detectees[0].id, 'justifiee')
+    const refused = store.mettreAJourStatut(
+      detectees[0].id,
+      'justifiee',
+      { id: 'u_inspecteur', nom: 'Inspecteur', role: 'inspecteur' },
+    )
+    expect(refused.ok).toBe(false)
+
+    const ok = store.mettreAJourStatut(
+      detectees[0].id,
+      'justifiee',
+      { id: 'u1', nom: 'Directeur', role: 'admin' },
+    )
     expect(ok.ok).toBe(true)
     expect(store.getAnomalie(detectees[0].id)?.statut).toBe('justifiee')
+  })
+
+  it('refuse toute modification de statut sans rôle admin (US-38)', () => {
+    const store = useAnomalieStore()
+    const detectees = store.detecterEcartInventaire([
+      { denreeId: 'd1', nom: 'Riz', unite: 'kg', stockTheorique: 100, stockPhysique: 80 },
+    ])
+
+    expect(store.mettreAJourStatut(detectees[0].id, 'non_justifiee').ok).toBe(false)
+    expect(
+      store.mettreAJourStatut(
+        detectees[0].id,
+        'non_justifiee',
+        { id: 'u4', nom: 'Agent', role: 'agent' },
+      ).ok,
+    ).toBe(false)
   })
 })

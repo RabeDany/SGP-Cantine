@@ -11,6 +11,9 @@ const anomalieStore = useAnomalieStore()
 const auth = useAuthStore()
 const i18n = useI18nStore()
 
+const canEditStatut = computed(() => auth.hasRole('admin'))
+const isInspecteur = computed(() => auth.hasRole('inspecteur'))
+
 const searchText = ref('')
 const selectedType = ref<AnomalieType | 'all'>('all')
 const selectedNiveau = ref<AnomalieNiveau | 'all'>('all')
@@ -21,6 +24,11 @@ const actionError = ref('')
 const actionMessage = ref('')
 const justifyingId = ref<string | null>(null)
 const justificationTexte = ref('')
+
+function nomUtilisateur(userId?: string) {
+  if (!userId) return '—'
+  return auth.users.find((u) => u.id === userId)?.nom ?? userId
+}
 
 const typeOptions = computed(() => [
   { label: i18n.t('anomalie.filter.allTypes'), value: 'all' },
@@ -83,6 +91,7 @@ function statutBadgeClass(statut: AnomalieStatut) {
 }
 
 function ouvrirJustification(id: string) {
+  if (!canEditStatut.value) return
   justifyingId.value = id
   justificationTexte.value = ''
   actionError.value = ''
@@ -95,7 +104,7 @@ function annulerJustification() {
 }
 
 function confirmerJustification() {
-  if (!justifyingId.value) return
+  if (!justifyingId.value || !canEditStatut.value) return
   const user = auth.currentUser
   const result = anomalieStore.mettreAJourStatut(
     justifyingId.value,
@@ -113,6 +122,7 @@ function confirmerJustification() {
 }
 
 function marquerNonJustifiee(id: string) {
+  if (!canEditStatut.value) return
   actionError.value = ''
   const user = auth.currentUser
   const result = anomalieStore.mettreAJourStatut(
@@ -132,6 +142,13 @@ function marquerNonJustifiee(id: string) {
       :title="i18n.t('anomalie.title')"
       :subtitle="i18n.t('anomalie.subtitle')"
     />
+
+    <div
+      v-if="isInspecteur"
+      class="mb-4 rounded-lg border border-blue-200 bg-blue-50 px-4 py-3 text-sm text-blue-800"
+    >
+      {{ i18n.t('anomalie.readOnly') }}
+    </div>
 
     <div class="mb-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
       <div class="card p-4">
@@ -180,7 +197,7 @@ function marquerNonJustifiee(id: string) {
     <p v-if="actionError" class="mb-4 rounded-lg bg-red-50 px-4 py-2 text-sm text-red-800">{{ actionError }}</p>
 
     <div
-      v-if="justifyingId"
+      v-if="justifyingId && canEditStatut"
       class="card mb-6 border border-emerald-200 bg-emerald-50"
     >
       <h3 class="font-semibold text-emerald-900">{{ i18n.t('anomalie.justify.title') }}</h3>
@@ -249,9 +266,10 @@ function marquerNonJustifiee(id: string) {
             <th class="px-4 py-3">{{ i18n.t('anomalie.table.level') }}</th>
             <th class="px-4 py-3">{{ i18n.t('anomalie.table.title') }}</th>
             <th class="px-4 py-3">{{ i18n.t('anomalie.table.description') }}</th>
+            <th class="px-4 py-3">{{ i18n.t('anomalie.table.user') }}</th>
             <th class="px-4 py-3">{{ i18n.t('anomalie.table.justification') }}</th>
             <th class="px-4 py-3">{{ i18n.t('anomalie.table.status') }}</th>
-            <th v-if="auth.hasRole('admin')" class="px-4 py-3">{{ i18n.t('anomalie.table.action') }}</th>
+            <th v-if="canEditStatut" class="px-4 py-3">{{ i18n.t('anomalie.table.action') }}</th>
           </tr>
         </thead>
         <tbody>
@@ -265,6 +283,9 @@ function marquerNonJustifiee(id: string) {
             </td>
             <td class="px-4 py-3 font-medium text-gray-900">{{ anomalie.titre }}</td>
             <td class="px-4 py-3 text-gray-600">{{ anomalie.description }}</td>
+            <td class="px-4 py-3 text-sm text-gray-700 whitespace-nowrap">
+              {{ nomUtilisateur(anomalie.utilisateurId) }}
+            </td>
             <td class="px-4 py-3 text-xs text-gray-600">
               <template v-if="anomalie.justification">
                 {{ anomalie.justification }}
@@ -279,7 +300,7 @@ function marquerNonJustifiee(id: string) {
                 {{ ANOMALIE_STATUT_LABELS[anomalie.statut] }}
               </span>
             </td>
-            <td v-if="auth.hasRole('admin')" class="px-4 py-3">
+            <td v-if="canEditStatut" class="px-4 py-3">
               <div v-if="anomalie.statut === 'en_cours'" class="flex flex-col gap-2">
                 <button
                   type="button"
@@ -300,7 +321,7 @@ function marquerNonJustifiee(id: string) {
             </td>
           </tr>
           <tr v-if="filteredAnomalies.length === 0">
-            <td :colspan="auth.hasRole('admin') ? 8 : 7" class="px-4 py-6 text-center text-gray-500">
+            <td :colspan="canEditStatut ? 9 : 8" class="px-4 py-6 text-center text-gray-500">
               {{ i18n.t('anomalie.noResults') }}
             </td>
           </tr>
