@@ -7,6 +7,7 @@ import { useCommandeStore } from '@/stores/commande'
 import { useMenuStore } from '@/stores/menu'
 import { usePresenceStore } from '@/stores/presence'
 import { useStockStore } from '@/stores/stock'
+import { useAnomalieStore } from '@/stores/anomalie'
 import { useI18nStore } from '@/stores/i18n'
 import { ECOLE_INFO } from '@/data/mockData'
 
@@ -17,6 +18,7 @@ const commandeStore = useCommandeStore()
 const menuStore = useMenuStore()
 const presenceStore = usePresenceStore()
 const stockStore = useStockStore()
+const anomalieStore = useAnomalieStore()
 const i18n = useI18nStore()
 const showNotifications = ref(false)
 const sidebarCollapsed = ref(false)
@@ -107,6 +109,15 @@ const notifications = computed(() => {
         type: 'danger',
       })
     }
+  }
+
+  if (role === 'admin' && anomalieStore.anomaliesNiveau2.length) {
+    list.push({
+      id: 'anomalies-niveau-2',
+      title: 'Avertissement — anomalies niveau 2',
+      message: `${anomalieStore.anomaliesNiveau2.length} écart(s) d’inventaire ou surconsommation(s) en cours d’investigation.`,
+      type: 'warning',
+    })
   }
 
   return list

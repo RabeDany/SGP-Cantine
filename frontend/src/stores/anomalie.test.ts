@@ -27,14 +27,14 @@ describe('anomalie store', () => {
     storage.clear()
   })
 
-  it('detecte un écart d\'inventaire > 10% avec niveau 1 (10-20%)', () => {
+  it('détecte un écart d\'inventaire > 10% en niveau 2 (avertissement)', () => {
     const store = useAnomalieStore()
     const detectees = store.detecterEcartInventaire([
       { denreeId: 'd1', nom: 'Riz', unite: 'kg', stockTheorique: 100, stockPhysique: 88 },
     ])
 
     expect(detectees).toHaveLength(1)
-    expect(detectees[0].niveau).toBe(1)
+    expect(detectees[0].niveau).toBe(2)
     expect(detectees[0].type).toBe('ecart_inventaire')
     expect(detectees[0].statut).toBe('en_cours')
   })
@@ -48,24 +48,17 @@ describe('anomalie store', () => {
     expect(detectees).toHaveLength(0)
   })
 
-  it('détecte un écart > 20% avec niveau 2', () => {
+  it('classe tout écart d\'inventaire > 10% en niveau 2, y compris un écart important', () => {
     const store = useAnomalieStore()
     const detectees = store.detecterEcartInventaire([
       { denreeId: 'd1', nom: 'Riz', unite: 'kg', stockTheorique: 100, stockPhysique: 70 },
+      { denreeId: 'd2', nom: 'Huile', unite: 'L', stockTheorique: 100, stockPhysique: 40 },
     ])
 
-    expect(detectees).toHaveLength(1)
-    expect(detectees[0].niveau).toBe(2)
-  })
-
-  it('détecte un écart > 50% avec niveau 3 (bloquant)', () => {
-    const store = useAnomalieStore()
-    const detectees = store.detecterEcartInventaire([
-      { denreeId: 'd1', nom: 'Riz', unite: 'kg', stockTheorique: 100, stockPhysique: 40 },
-    ])
-
-    expect(detectees).toHaveLength(1)
-    expect(detectees[0].niveau).toBe(3)
+    expect(detectees).toHaveLength(2)
+    expect(detectees.every((a) => a.niveau === 2)).toBe(true)
+    expect(store.verifierBlocage('d1')).toBe(false)
+    expect(store.verifierBlocage('d2')).toBe(false)
   })
 
   it('détecte une consommation > 150% de la moyenne sur 4 semaines (niveau 2)', () => {
@@ -115,9 +108,13 @@ describe('anomalie store', () => {
 
   it('vérifie le blocage pour une anomalie de niveau 3 active', () => {
     const store = useAnomalieStore()
-    store.detecterEcartInventaire([
-      { denreeId: 'd1', nom: 'Riz', unite: 'kg', stockTheorique: 100, stockPhysique: 40 },
-    ])
+    store.logAnomalie({
+      type: 'ecart_inventaire',
+      niveau: 3,
+      titre: 'Anomalie bloquante',
+      description: 'Opération bloquée',
+      denreeId: 'd1',
+    })
 
     expect(store.verifierBlocage('d1')).toBe(true)
     expect(store.verifierBlocage('d2')).toBe(false)
@@ -125,11 +122,15 @@ describe('anomalie store', () => {
 
   it('ne bloque plus après justification d\'une anomalie niveau 3', () => {
     const store = useAnomalieStore()
-    const detectees = store.detecterEcartInventaire([
-      { denreeId: 'd1', nom: 'Riz', unite: 'kg', stockTheorique: 100, stockPhysique: 40 },
-    ])
+    const anomalie = store.logAnomalie({
+      type: 'ecart_inventaire',
+      niveau: 3,
+      titre: 'Anomalie bloquante',
+      description: 'Opération bloquée',
+      denreeId: 'd1',
+    })
 
-    store.mettreAJourStatut(detectees[0].id, 'justifiee')
+    store.mettreAJourStatut(anomalie.id, 'justifiee')
     expect(store.verifierBlocage('d1')).toBe(false)
   })
 
@@ -138,14 +139,23 @@ describe('anomalie store', () => {
     store.detecterEcartInventaire([
       { denreeId: 'd1', nom: 'Riz', unite: 'kg', stockTheorique: 100, stockPhysique: 88 },
       { denreeId: 'd2', nom: 'Poisson', unite: 'kg', stockTheorique: 100, stockPhysique: 70 },
-      { denreeId: 'd3', nom: 'Huile', unite: 'L', stockTheorique: 100, stockPhysique: 40 },
+    ])
+    store.detecterConsommationAnormale([
+      {
+        denreeId: 'd3',
+        nom: 'Huile',
+        unite: 'L',
+        quantitePeriode: 60,
+        moyenne4Semaines: 30,
+        nbEleves: 180,
+      },
     ])
 
     const stats = store.statsAnomalies
     expect(stats.total).toBe(3)
-    expect(stats.niveau1).toBe(1)
-    expect(stats.niveau2).toBe(1)
-    expect(stats.niveau3).toBe(1)
+    expect(stats.niveau1).toBe(0)
+    expect(stats.niveau2).toBe(3)
+    expect(stats.niveau3).toBe(0)
     expect(stats.actives).toBe(3)
   })
 })

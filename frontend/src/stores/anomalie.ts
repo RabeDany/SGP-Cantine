@@ -106,9 +106,7 @@ export const useAnomalieStore = defineStore('anomalie', () => {
 
   /**
    * Règle §3.3 — Écart anormal entre stock théorique et stock physique lors de l'inventaire (écart > 10%).
-   * Niveau 1 : écart 10–20% (info)
-   * Niveau 2 : écart 20–50% (avertissement + notification directeur)
-   * Niveau 3 : écart > 50% (blocage + notification directeur et président CGCS)
+   * Toujours niveau 2 : avertissement avec notification au directeur (pas de blocage).
    */
   function detecterEcartInventaire(
     entrees: EcartInventaireInput[],
@@ -121,16 +119,11 @@ export const useAnomalieStore = defineStore('anomalie', () => {
       const tauxEcart = (ecartAbs / entree.stockTheorique) * 100
       if (tauxEcart <= 10) continue
 
-      let niveau: AnomalieNiveau
-      if (tauxEcart > 50) niveau = 3
-      else if (tauxEcart > 20) niveau = 2
-      else niveau = 1
-
       const sens = entree.stockPhysique > entree.stockTheorique ? 'excédent' : 'manquant'
       const anomalie = logAnomalie(
         {
           type: 'ecart_inventaire',
-          niveau,
+          niveau: 2,
           titre: `Écart d'inventaire > 10% — ${entree.nom}`,
           description: `Écart de ${tauxEcart.toFixed(1)}% (${sens} de ${ecartAbs.toFixed(2)} ${entree.unite}) entre le stock théorique (${entree.stockTheorique}) et le stock physique (${entree.stockPhysique}).`,
           denreeId: entree.denreeId,
@@ -186,7 +179,8 @@ export const useAnomalieStore = defineStore('anomalie', () => {
 
   /**
    * Règle métier n°10 — Une anomalie de niveau 3 bloque l'opération concernée
-   * jusqu'à validation manuelle.
+   * jusqu'à validation manuelle (pointage > 20 %, sortie hors 10h–14h — US-37).
+   * Les écarts d'inventaire et la surconsommation restent au niveau 2 (non bloquants).
    */
   function verifierBlocage(denreeId?: string): boolean {
     return anomalies.value.some(
@@ -260,6 +254,10 @@ export const useAnomalieStore = defineStore('anomalie', () => {
     anomalies.value.filter((a) => a.niveau === 3 && a.statut === 'en_cours'),
   )
 
+  const anomaliesNiveau2 = computed(() =>
+    anomalies.value.filter((a) => a.niveau === 2 && a.statut === 'en_cours'),
+  )
+
   const statsAnomalies = computed(() => ({
     total: anomalies.value.length,
     actives: anomaliesActives.value.length,
@@ -273,6 +271,7 @@ export const useAnomalieStore = defineStore('anomalie', () => {
   return {
     anomalies,
     anomaliesActives,
+    anomaliesNiveau2,
     anomaliesNiveau3,
     statsAnomalies,
     getAnomalie,

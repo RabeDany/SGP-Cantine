@@ -104,8 +104,8 @@ function changerStatut(id: string, statut: AnomalieStatut) {
         <p class="mt-2 text-3xl font-semibold text-amber-700">{{ anomalieStore.statsAnomalies.actives }}</p>
       </div>
       <div class="card p-4">
-        <p class="text-sm text-gray-500">{{ i18n.t('anomalie.stats.level3') }}</p>
-        <p class="mt-2 text-3xl font-semibold text-red-700">{{ anomalieStore.statsAnomalies.niveau3 }}</p>
+        <p class="text-sm text-gray-500">{{ i18n.t('anomalie.stats.level2') }}</p>
+        <p class="mt-2 text-3xl font-semibold text-amber-700">{{ anomalieStore.statsAnomalies.niveau2 }}</p>
       </div>
       <div class="card p-4">
         <p class="text-sm text-gray-500">{{ i18n.t('anomalie.stats.justified') }}</p>
