@@ -46,6 +46,7 @@ const allNav: NavItem[] = [
   { labelKey: 'nav.audit', to: '/audit', icon: 'shield-check', module: 'audit' },
   { labelKey: 'nav.anomalies', to: '/anomalies', icon: 'warning', module: 'anomalie' },
   { labelKey: 'nav.communal', to: '/communal', icon: 'chart-bar', module: 'communal' },
+  { labelKey: 'nav.synchronisation', to: '/synchronisation', icon: 'refresh', module: 'synchronisation' },
   { labelKey: 'nav.fournisseurs', to: '/fournisseurs', icon: 'store', module: 'fournisseurs' },
   { labelKey: 'nav.commandes', to: '/commandes', icon: 'receipt', module: 'commandes' },
   { labelKey: 'nav.users', to: '/users', icon: 'user', module: 'users' },

@@ -122,6 +122,12 @@ const router = createRouter({
           component: () => import('@/views/RapportsCommunauxView.vue'),
           meta: { module: 'communal', roles: ['inspecteur'] },
         },
+        {
+          path: 'synchronisation',
+          name: 'synchronisation',
+          component: () => import('@/views/SyncView.vue'),
+          meta: { module: 'synchronisation', roles: ['inspecteur'] },
+        },
       ],
     },
     {

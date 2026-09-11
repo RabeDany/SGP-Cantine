@@ -83,6 +83,7 @@ const translations: Record<SupportedLang, Messages> = {
     'anomalie.action.closed': 'Clôturée',
     'anomalie.noResults': 'Aucune anomalie ne correspond aux filtres.',
     'nav.communal': 'Rapports communaux',
+    'nav.synchronisation': 'Synchronisation',
     'communal.title': 'Rapports communaux — Vue agrégée',
     'communal.subtitle': 'Ruptures de stock par région et écoles les plus consommatrices (US-29)',
     'communal.readOnly': 'Accès lecture seule — aucune action de modification n\'est disponible pour le responsable communal / inspecteur.',

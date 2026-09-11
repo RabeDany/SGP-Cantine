@@ -2,6 +2,7 @@ import { defineStore } from 'pinia'
 import { computed, ref } from 'vue'
 import { loadFromStorage, saveToStorage } from '@/utils/helpers'
 import type { DenreeCategorie, UniteMesure } from '@/types'
+import { useSyncStore } from '@/stores/sync'
 
 export interface Ecole {
   id: string
@@ -66,6 +67,7 @@ const mockConsommations: ConsommationEcole[] = [
 
 export const useCommunalStore = defineStore('communal', () => {
   const ecoles = ref<Ecole[]>(loadFromStorage<Ecole[]>('communal_ecoles', [...mockEcoles]))
+  const syncStore = useSyncStore()
   const denrees = ref<DenreeEcole[]>(loadFromStorage<DenreeEcole[]>('communal_denrees', [...mockDenrees]))
   const consommations = ref<ConsommationEcole[]>(loadFromStorage<ConsommationEcole[]>('communal_consommations', [...mockConsommations]))
 
@@ -76,23 +78,70 @@ export const useCommunalStore = defineStore('communal', () => {
   }
 
   function getEcole(id: string) {
-    return ecoles.value.find((e) => e.id === id)
+    return ecolesRapport.value.find((e) => e.id === id)
   }
 
   function getDenree(id: string) {
-    return denrees.value.find((d) => d.id === id)
+    return denreesRapport.value.find((d) => d.id === id)
   }
 
   function getStockEcole(ecoleId: string, denreeId: string): number {
+    const imported = syncStore.imports.find((item) => item.site.id === ecoleId)
+    const denree = imported?.snapshot.denrees.find((item) => item.id === denreeId)
+    if (denree) return denree.stockActuel
     return stocksParEcole[ecoleId]?.[denreeId] ?? 0
   }
+
+  const ecolesRapport = computed<Ecole[]>(() =>
+    syncStore.imports.length
+      ? syncStore.imports.map((item) => item.site)
+      : ecoles.value,
+  )
+
+  const denreesRapport = computed<DenreeEcole[]>(() => {
+    if (!syncStore.imports.length) return denrees.value
+    const catalog = new Map<string, DenreeEcole>()
+    for (const imported of syncStore.imports) {
+      for (const denree of imported.snapshot.denrees) {
+        catalog.set(denree.id, {
+          id: denree.id,
+          nom: denree.nom,
+          categorie: denree.categorie,
+          unite: denree.unite,
+          seuilAlerte: denree.seuilAlerte,
+          stockActuel: denree.stockActuel,
+        })
+      }
+    }
+    return Array.from(catalog.values())
+  })
+
+  const consommationsRapport = computed<ConsommationEcole[]>(() => {
+    if (!syncStore.imports.length) return consommations.value
+    return syncStore.imports.flatMap((imported) => {
+      const repasServis = imported.snapshot.pointages.reduce((sum, pointage) => sum + pointage.presents, 0)
+      const byDenree = new Map<string, number>()
+      for (const mouvement of imported.snapshot.mouvements) {
+        if (mouvement.type !== 'sortie' || mouvement.motif !== 'preparation_repas') continue
+        byDenree.set(mouvement.denreeId, (byDenree.get(mouvement.denreeId) ?? 0) + mouvement.quantite)
+      }
+      return Array.from(byDenree.entries()).map(([denreeId, quantite]) => ({
+        ecoleId: imported.site.id,
+        denreeId,
+        quantite,
+        unite: imported.snapshot.denrees.find((denree) => denree.id === denreeId)?.unite ?? 'kg',
+        repasServis,
+        periode: new Date().toISOString().slice(0, 7),
+      }))
+    })
+  })
 
   /** Ruptures de stock par région — denrées sous le seuil d'alerte */
   const rupturesParRegion = computed(() => {
     const result: Record<string, Array<{ ecole: Ecole; denree: DenreeEcole; stock: number; manque: number }>> = {}
 
-    for (const ecole of ecoles.value) {
-      for (const denree of denrees.value) {
+    for (const ecole of ecolesRapport.value) {
+      for (const denree of denreesRapport.value) {
         const stock = getStockEcole(ecole.id, denree.id)
         if (stock <= denree.seuilAlerte) {
           if (!result[ecole.region]) result[ecole.region] = []
@@ -111,7 +160,7 @@ export const useCommunalStore = defineStore('communal', () => {
   /** Écoles les plus consommatrices — triées par quantité totale consommée */
   const ecolesPlusConsommatrices = computed(() => {
     const totals = new Map<string, { ecole: Ecole; quantite: number; repasServis: number }>()
-    for (const conso of consommations.value) {
+    for (const conso of consommationsRapport.value) {
       const ecole = getEcole(conso.ecoleId)
       if (!ecole) continue
       const current = totals.get(ecole.id) ?? { ecole, quantite: 0, repasServis: 0 }
@@ -124,7 +173,7 @@ export const useCommunalStore = defineStore('communal', () => {
 
   /** Consommation par denrée et par école, filtrable */
   function getConsommationFiltree(denreeId: string | null, ecoleId: string | null, periode: string | null) {
-    return consommations.value.filter((conso) => {
+    return consommationsRapport.value.filter((conso) => {
       const matchesDenree = denreeId === null || conso.denreeId === denreeId
       const matchesEcole = ecoleId === null || conso.ecoleId === ecoleId
       const matchesPeriode = periode === null || conso.periode === periode
@@ -133,25 +182,62 @@ export const useCommunalStore = defineStore('communal', () => {
   }
 
   const periodesDisponibles = computed(() =>
-    Array.from(new Set(consommations.value.map((c) => c.periode))).sort().reverse(),
+    Array.from(new Set(consommationsRapport.value.map((c) => c.periode))).sort().reverse(),
   )
 
   const statsCommunales = computed(() => {
-    const totalEcoles = ecoles.value.length
+    const totalEcoles = ecolesRapport.value.length
     const totalRuptures = Object.values(rupturesParRegion.value).reduce((sum, list) => sum + list.length, 0)
-    const totalConsommation = consommations.value.reduce((sum, c) => sum + c.quantite, 0)
-    const totalRepas = consommations.value.reduce((sum, c) => sum + c.repasServis, 0)
+    const totalConsommation = consommationsRapport.value.reduce((sum, c) => sum + c.quantite, 0)
+    const totalRepas = consommationsRapport.value.reduce((sum, c) => sum + c.repasServis, 0)
     return { totalEcoles, totalRuptures, totalConsommation, totalRepas }
   })
 
+  const stocksMutualisables = computed(() => {
+    const result: Array<{ source: Ecole; cible: Ecole; denree: DenreeEcole; quantite: number }> = []
+    for (const denree of denreesRapport.value) {
+      const excedents = ecolesRapport.value
+        .map((ecole) => ({ ecole, quantite: Math.max(0, getStockEcole(ecole.id, denree.id) - denree.seuilAlerte) }))
+        .filter((item) => item.quantite > 0)
+      const besoins = ecolesRapport.value
+        .map((ecole) => ({ ecole, quantite: Math.max(0, denree.seuilAlerte - getStockEcole(ecole.id, denree.id)) }))
+        .filter((item) => item.quantite > 0)
+      for (const besoin of besoins) {
+        for (const excedent of excedents) {
+          if (besoin.ecole.id === excedent.ecole.id) continue
+          const quantite = Math.min(besoin.quantite, excedent.quantite)
+          if (quantite > 0) result.push({ source: excedent.ecole, cible: besoin.ecole, denree, quantite })
+        }
+      }
+    }
+    return result
+  })
+
+  const commandesGroupees = computed(() =>
+    denreesRapport.value
+      .map((denree) => {
+        const besoins = ecolesRapport.value
+          .map((ecole) => ({ ecole, quantite: Math.max(0, denree.seuilAlerte - getStockEcole(ecole.id, denree.id)) }))
+          .filter((item) => item.quantite > 0)
+        return {
+          denree,
+          quantiteTotale: besoins.reduce((sum, item) => sum + item.quantite, 0),
+          besoins,
+        }
+      })
+      .filter((item) => item.quantiteTotale > 0),
+  )
+
   return {
-    ecoles,
-    denrees,
-    consommations,
+    ecoles: ecolesRapport,
+    denrees: denreesRapport,
+    consommations: consommationsRapport,
     rupturesParRegion,
     ecolesPlusConsommatrices,
     periodesDisponibles,
     statsCommunales,
+    stocksMutualisables,
+    commandesGroupees,
     getEcole,
     getDenree,
     getStockEcole,

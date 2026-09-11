@@ -90,7 +90,7 @@ export const useAuthStore = defineStore('auth', () => {
       gestionnaire: ['dashboard', 'stock', 'inventaire', 'denrees', 'mouvements', 'fournisseurs', 'commandes','courses', 'rapports', 'prevision'],
       planificateur: ['dashboard', 'stock', 'recettes', 'menu', 'nutrition', 'courses', 'rapports'],
       agent: ['dashboard', 'stock', 'presences'],
-      inspecteur: ['dashboard', 'presences', 'rapports', 'audit', 'anomalie', 'communal'],
+      inspecteur: ['dashboard', 'presences', 'rapports', 'audit', 'anomalie', 'communal', 'synchronisation'],
     }
     return access[role]?.includes(module) ?? false
   }
