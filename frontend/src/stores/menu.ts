@@ -16,6 +16,8 @@ import type {
   SortiePreparationLigne,
   UserRole,
 } from '@/types'
+import type { OptimisationOptions, OptimisationResultat } from '@/types/optimisation'
+import { optimiserPlanning } from '@/utils/menuOptimizer'
 
 function getWeekStart(date = new Date()): string {
   const d = new Date(date)
@@ -399,6 +401,62 @@ export const useMenuStore = defineStore('menu', () => {
     [...menus.value].sort((a, b) => b.semaineDebut.localeCompare(a.semaineDebut)),
   )
 
+  /**
+   * US-41 — propose un menu hebdomadaire via algorithme génétique.
+   * Ne modifie pas le menu actuel ; appeler `appliquerPlanningOptimise` pour confirmer.
+   */
+  function optimiserMenu(options: OptimisationOptions = {}): OptimisationResultat {
+    const stockStore = useStockStore()
+    const portionsParJour = menuActuel.value.jours
+      .slice()
+      .sort((a, b) => a.jour - b.jour)
+      .map((j) => j.portionsPrevues || 180)
+
+    return optimiserPlanning({
+      recettes: recettes.value.filter((r) => r.actif),
+      denrees: stockStore.denrees.filter((d) => d.actif),
+      prixUnitaireMoyen: stockStore.prixUnitaireMoyen,
+      portionsParJour,
+      planningActuel: menuActuel.value.jours
+        .slice()
+        .sort((a, b) => a.jour - b.jour)
+        .map((j) => j.recetteId ?? ''),
+      options: {
+        populationSize: 50,
+        generations: 60,
+        ...options,
+      },
+    })
+  }
+
+  function appliquerPlanningOptimise(
+    recetteIds: string[],
+    user?: { id: string; nom: string; role: UserRole },
+  ) {
+    if (recetteIds.length !== 5) {
+      return { ok: false as const, error: 'Le planning doit contenir 5 recettes (lundi–vendredi).' }
+    }
+    for (let jour = 0; jour < 5; jour += 1) {
+      const portions = menuActuel.value.jours.find((j) => j.jour === jour)?.portionsPrevues ?? 180
+      updateMenuJour(jour, recetteIds[jour], portions, user)
+    }
+    if (user) {
+      const audit = useAuditStore()
+      void audit.logAction({
+        actionType: 'menu_update' as AuditActionType,
+        actionLabel: 'Application menu optimisé',
+        description: `Menu optimisé (algo génétique US-41) appliqué par ${user.nom}`,
+        module: 'menu',
+        userId: user.id,
+        userName: user.nom,
+        role: user.role,
+        targetId: menuActuel.value.id,
+        targetType: 'menu',
+      })
+    }
+    return { ok: true as const }
+  }
+
   return {
     recettes,
     menuActuel,
@@ -419,5 +477,7 @@ export const useMenuStore = defineStore('menu', () => {
     setMenuActuel,
     calculerBesoins,
     getListeCoursesAjustee,
+    optimiserMenu,
+    appliquerPlanningOptimise,
   }
 })

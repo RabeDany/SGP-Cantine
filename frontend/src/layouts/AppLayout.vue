@@ -151,7 +151,7 @@ const notifications = computed(() => {
         </div>
       </div>
 
-      <nav class="flex-1 space-y-1 px-3 py-4">
+      <nav class="flex-1 space-y-1 px-3 py-4 ">
         <RouterLink
           v-for="item in navItems"
           :key="item.to"

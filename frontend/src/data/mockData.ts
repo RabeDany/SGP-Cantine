@@ -254,6 +254,32 @@ export const mockRecettes: Recette[] = [
     instructions: 'Cuire le riz et le manioc. Servir avec salade de laitue.',
     actif: true,
   },
+  {
+    id: 'r5',
+    nom: 'Haricots à la laitue',
+    categorie: 'dejeuner',
+    ingredients: [
+      { denreeId: 'd2', quantiteParPortion: 0.08 },
+      { denreeId: 'd4', quantiteParPortion: 0.05 },
+      { denreeId: 'd3', quantiteParPortion: 0.008 },
+      { denreeId: 'd6', quantiteParPortion: 0.001 },
+    ],
+    instructions: 'Cuire les haricots, assaisonner et servir avec laitue fraîche.',
+    actif: true,
+  },
+  {
+    id: 'r6',
+    nom: 'Riz patate douce',
+    categorie: 'dejeuner',
+    ingredients: [
+      { denreeId: 'd1', quantiteParPortion: 0.12 },
+      { denreeId: 'd7', quantiteParPortion: 0.1 },
+      { denreeId: 'd3', quantiteParPortion: 0.005 },
+      { denreeId: 'd6', quantiteParPortion: 0.001 },
+    ],
+    instructions: 'Cuire le riz et les patates douces. Assaisonner à l’huile.',
+    actif: true,
+  },
 ]
 
 export const mockMenu: MenuHebdo = {
