@@ -35,6 +35,8 @@ export type AuditActionType =
   | 'denree_delete'
   | 'anomalie_detectee'
   | 'anomalie_statut'
+  | 'audit_verify'
+  | 'audit_export'
   | 'unknown'
 
 export interface AuditEntry {
@@ -49,10 +51,37 @@ export interface AuditEntry {
   targetId?: string
   targetType?: string
   detail?: string
+  /** Hash SHA-256 de l'enregistrement modifié (US-43) */
+  recordHash: string
   timestamp: string
   location: string
   previousHash: string
   hash: string
+}
+
+export interface AuditChainVerification {
+  valid: boolean
+  brokenEntryId?: string
+  brokenIndex?: number
+  reason?: string
+  checkedCount: number
+  durationMs: number
+}
+
+export type AuditReportDestination = 'autorites_scolaires' | 'bailleurs_fonds'
+
+export interface SignedAuditReport {
+  version: 1
+  generatedAt: string
+  destination: AuditReportDestination
+  destinationLabel: string
+  algorithm: 'ECDSA-P256-SHA256'
+  integrity: AuditChainVerification
+  entries: AuditEntry[]
+  /** Signature Web Crypto (base64) — clé privée jamais exportée */
+  signature: string
+  publicKeyJwk: JsonWebKey
+  payloadHash: string
 }
 
 export type MotifSortie = 'preparation_repas' | 'perte' | 'avarie' | 'transfert'
