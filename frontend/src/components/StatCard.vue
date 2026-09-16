@@ -9,22 +9,24 @@ defineProps<{
 }>()
 
 const colors = {
-  green: 'border-green-200 bg-green-50 text-green-800',
-  amber: 'border-amber-200 bg-amber-50 text-amber-800',
-  red: 'border-red-200 bg-red-50 text-red-800',
-  blue: 'border-blue-200 bg-blue-50 text-blue-800',
-  gray: 'border-gray-200 bg-gray-50 text-gray-800',
+  green: 'bg-emerald-50 text-emerald-600',
+  amber: 'bg-amber-50 text-amber-600',
+  red: 'bg-red-50 text-red-600',
+  blue: 'bg-blue-50 text-blue-600',
+  gray: 'bg-slate-100 text-slate-600',
 }
 </script>
 
 <template>
-  <div class="card border-l-4" :class="colors[color ?? 'gray']">
+  <div class="card p-4">
     <div class="flex items-start justify-between">
       <div>
-        <p class="text-xs font-medium uppercase tracking-wide opacity-70">{{ label }}</p>
-        <p class="mt-1 text-2xl font-bold">{{ value }}</p>
+        <p class="text-xs font-medium text-slate-500">{{ label }}</p>
+        <p class="mt-2 text-3xl font-bold tracking-tight text-slate-900">{{ value }}</p>
       </div>
-      <Icon v-if="icon" :name="icon" className="h-10 w-10 text-current" />
+      <span v-if="icon" class="flex h-10 w-10 items-center justify-center rounded-xl" :class="colors[color ?? 'gray']">
+        <Icon :name="icon" className="h-5 w-5" />
+      </span>
     </div>
   </div>
 </template>

@@ -178,7 +178,7 @@ function marquerNonJustifiee(id: string) {
       class="mb-6 rounded-xl border border-red-300 bg-red-50 px-5 py-4"
     >
       <div class="flex items-start gap-3">
-        <span class="text-2xl">🚨</span>
+        <Icon name="warning" className="mt-0.5 h-6 w-6 text-red-700" />
         <div>
           <h3 class="font-semibold text-red-900">
             {{ anomalieStore.anomaliesNiveau3.length }} {{ i18n.t('anomalie.blocking.title') }}

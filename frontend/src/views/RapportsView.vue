@@ -298,7 +298,7 @@ function printCurrentSection() {
         <div class="mb-4">
           <div class="mb-2 text-sm font-semibold text-gray-700">{{ i18n.t('rapports.stock.summary') }}</div>
           <div class="flex flex-wrap gap-2">
-            <span v-for="item in stockReport.summary" :key="item.label" class="rounded-full bg-earth-50 px-3 py-1 text-sm text-gray-700">
+            <span v-for="item in stockReport.summary" :key="item.label" class="rounded-full bg-slate-50 px-3 py-1 text-sm text-gray-700">
               {{ item.label }} : {{ item.value }}
             </span>
           </div>

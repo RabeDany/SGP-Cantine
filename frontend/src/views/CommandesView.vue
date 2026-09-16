@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter, type LocationQueryValue } from 'vue-router'
+import Icon from '@/components/Icon.vue'
 import PageHeader from '@/components/PageHeader.vue'
 import { useAuthStore } from '@/stores/auth'
 import { useCommandeStore } from '@/stores/commande'
@@ -363,10 +364,11 @@ function getUsername(id: string) {
             <td class="px-5 py-3 space-y-2">
               <button
                 type="button"
-                class="btn-secondary w-full"
+                class="btn-secondary inline-flex w-full items-center justify-center gap-2"
                 @click="openDetailModal(bon)"
               >
-                👁️ {{ i18n.t('commandes.detail') }}
+                <Icon name="eye" className="h-4 w-4" />
+                {{ i18n.t('commandes.detail') }}
               </button>
               <button
                 v-if="canValidateBon(bon)"

@@ -44,7 +44,7 @@ function ignoreSuggestion(suggestion: { nutriment: string; type: string; denreeI
 </script>
 
 <template>
-  <div class="min-h-screen bg-earth-50">
+  <div class="min-h-screen bg-slate-50">
     <PageHeader
       :title="i18n.t('dashboard.cards.nutrition')"
       :subtitle="i18n.t('dashboard.charts.nutritionSub')"

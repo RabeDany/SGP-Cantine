@@ -37,7 +37,7 @@ function exportCsv() {
 
 <template>
   <div class="space-y-6">
-    <div class="rounded-3xl border border-earth-200 bg-white p-6 shadow-sm">
+    <div class="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
       <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 class="text-2xl font-semibold text-gray-900">{{ i18n.t('inventaire.title') }}</h1>
@@ -63,10 +63,10 @@ function exportCsv() {
       </div>
     </div>
 
-    <div class="rounded-3xl border border-earth-200 bg-white p-6 shadow-sm">
-      <div class="overflow-hidden rounded-3xl border border-earth-200">
+    <div class="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+      <div class="overflow-hidden rounded-3xl border border-slate-200">
         <table class="min-w-full divide-y divide-earth-200 text-left text-sm">
-          <thead class="bg-earth-50 text-gray-700">
+          <thead class="bg-slate-50 text-gray-700">
             <tr>
               <th class="px-6 py-4 font-semibold">{{ i18n.t('inventaire.column.nom') }}</th>
               <th class="px-6 py-4 font-semibold">{{ i18n.t('inventaire.column.stock') }}</th>

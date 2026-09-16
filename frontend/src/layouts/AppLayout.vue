@@ -135,9 +135,9 @@ const notifications = computed(() => {
 </script>
 
 <template>
-  <div class="flex min-h-screen bg-earth-50">
-    <aside :class="['flex shrink-0 flex-col border-r border-earth-200 bg-white transition-all duration-200', sidebarWidthClass]">
-      <div class="border-b border-earth-200 px-3 py-4">
+  <div class="flex h-screen overflow-hidden bg-slate-50">
+    <aside :class="['sticky top-0 flex h-screen shrink-0 flex-col border-r border-slate-200 bg-white transition-all duration-200', sidebarWidthClass]">
+      <div class="border-b border-slate-200 px-3 py-4">
         <div class="flex items-center gap-2">
           <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-brand-600 text-white">
             <Icon name="bowl" className="h-6 w-6" />
@@ -152,16 +152,16 @@ const notifications = computed(() => {
         </div>
       </div>
 
-      <nav class="flex-1 space-y-1 px-3 py-4 ">
+      <nav class="flex-1 space-y-1 overflow-y-auto px-3 py-4">
         <RouterLink
           v-for="item in navItems"
           :key="item.to"
           :to="item.to"
           class="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors"
           :class="[
-            isActive(item.to)
-              ? 'bg-brand-50 text-brand-800'
-              : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900',
+              isActive(item.to)
+              ? 'border-l-2 border-brand-600 bg-brand-50/70 pl-[10px] text-brand-800'
+              : 'border-l-2 border-transparent text-gray-600 hover:bg-slate-50 hover:text-gray-900',
             sidebarCollapsed ? 'justify-center px-2' : 'justify-start',
           ]"
           :title="sidebarCollapsed ? i18n.t(item.labelKey) : undefined"
@@ -171,8 +171,8 @@ const notifications = computed(() => {
         </RouterLink>
       </nav>
 
-      <div class="border-t border-earth-200 p-4">
-        <div v-if="!sidebarCollapsed" class="mb-3 rounded-lg bg-earth-50 px-3 py-2">
+      <div class="border-t border-slate-200 p-4">
+        <div v-if="!sidebarCollapsed" class="mb-3 rounded-lg bg-slate-50 px-3 py-2">
           <p class="text-sm font-medium text-gray-900">{{ auth.currentUser?.nom }}</p>
           <p class="text-xs text-gray-500">
             {{ auth.roleLabel(auth.currentUser!.role) }}
@@ -185,13 +185,13 @@ const notifications = computed(() => {
       </div>
     </aside>
 
-    <main class="flex flex-1 flex-col overflow-hidden">
-      <header class="border-b border-earth-200 bg-white px-8 py-4">
+    <main class="flex flex-1 flex-col overflow-y-auto">
+      <header class="border-b border-slate-200 bg-white px-8 py-4">
         <div class="flex items-center justify-between">
           <div class="flex items-center gap-3">
             <button
               type="button"
-              class="flex h-9 w-9 items-center justify-center rounded-lg border border-earth-200 bg-white text-gray-700 transition hover:bg-gray-100"
+              class="flex h-9 w-9 items-center justify-center rounded-lg border border-slate-200 bg-white text-gray-700 transition hover:bg-slate-100"
               :title="sidebarCollapsed ? 'Ouvrir la sidebar' : 'Réduire la sidebar'"
               @click="sidebarCollapsed = !sidebarCollapsed"
             >
@@ -202,7 +202,7 @@ const notifications = computed(() => {
             </p>
           </div>
           <div class="flex items-center gap-3">
-            <div class="flex items-center gap-2 rounded-full border border-earth-200 bg-earth-50 px-3 py-1 text-xs text-gray-600">
+            <div class="flex items-center gap-2 rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-xs text-gray-600">
               <span>{{ i18n.t('header.language') }}:</span>
               <div class="flex items-center rounded-full bg-white p-1">
                 <button
@@ -231,14 +231,15 @@ const notifications = computed(() => {
               <button
                 v-if="notifications.length"
                 type="button"
-                class="rounded-full border border-amber-200 bg-amber-50 px-3 py-1 text-xs font-medium text-amber-700"
+                class="inline-flex items-center gap-2 rounded-full border border-amber-200 bg-amber-50 px-3 py-1 text-xs font-medium text-amber-700"
                 @click="showNotifications = !showNotifications"
               >
-                🔔 {{ notifications.length }} {{ i18n.t('header.notifications') }}
+                <Icon name="bell" className="h-3.5 w-3.5" />
+                {{ notifications.length }} {{ i18n.t('header.notifications') }}
               </button>
               <div
                 v-if="showNotifications && notifications.length"
-                class="absolute right-0 top-10 z-20 w-80 rounded-xl border border-earth-200 bg-white p-3 shadow-lg"
+                class="absolute right-0 top-10 z-20 w-80 rounded-xl border border-slate-200 bg-white p-3 shadow-lg"
               >
                 <div class="mb-2 flex items-center justify-between">
                   <p class="text-sm font-semibold text-gray-900">Notifications</p>
@@ -267,7 +268,7 @@ const notifications = computed(() => {
           </div>
         </div>
       </header>
-      <div class="flex-1 overflow-y-auto p-8">
+      <div class="flex-1 overflow-y-auto p-6 lg:p-8">
         <RouterView v-slot="{ Component }">
           <transition name="page" mode="out-in">
             <component :is="Component" :key="route.name" class="page-content" />

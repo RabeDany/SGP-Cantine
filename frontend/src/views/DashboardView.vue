@@ -332,14 +332,14 @@ function printDashboard() {
       />
     </div>
 
-    <div class="mb-8 grid gap-6 lg:grid-cols-2">
+    <div class="mb-8 grid gap-6">
       <section class="card">
         <div class="mb-4 flex items-center justify-between">
           <h3 class="font-semibold text-gray-900">{{ i18n.t('dashboard.charts.nutritionTitle') }}</h3>
           <span class="text-sm text-gray-500">{{ i18n.t('dashboard.charts.nutritionSub') }}</span>
         </div>
-        <div class="flex flex-col items-center gap-6 lg:flex-row">
-          <svg viewBox="0 0 200 200" class="h-56 w-full max-w-[280px]">
+        <div class="grid items-center gap-6 md:grid-cols-[minmax(260px,0.8fr)_minmax(0,1.2fr)]">
+          <svg viewBox="0 0 200 200" class="h-auto w-full max-w-[360px] justify-self-center">
             <circle cx="100" cy="100" r="80" fill="#f8fafc" />
             <template v-for="segment in nutritionSegments" :key="segment.categorie">
               <path :d="segment.path" :fill="segment.color" />
@@ -347,7 +347,7 @@ function printDashboard() {
             <circle cx="100" cy="100" r="45" fill="white" />
             <text x="100" y="102" fill="#334155" text-anchor="middle" font-size="12">{{ i18n.t('dashboard.charts.nutritionCenter') }}</text>
           </svg>
-          <div class="w-full space-y-2 text-sm text-gray-700">
+          <div class="grid w-full gap-2 text-sm text-gray-700 sm:grid-cols-2 lg:grid-cols-3">
             <div v-for="segment in nutritionSegments" :key="segment.categorie" class="flex items-center gap-3 rounded-lg bg-slate-50 px-3 py-2">
               <span class="h-3.5 w-3.5 rounded-full" :style="{ backgroundColor: segment.color }" />
               <span>{{ segment.label }}</span>
@@ -408,6 +408,7 @@ function printDashboard() {
           </div>
         </div>
       </section>
+
     </div>
 
     <div class="grid gap-6 lg:grid-cols-2">
@@ -473,7 +474,7 @@ function printDashboard() {
 
     <section v-if="!presenceStore.pointageEffectue && auth.canAccess('presences')" class="mt-6 card border-l-4 border-blue-400">
       <div class="flex items-center gap-3">
-        <span class="text-2xl">📋</span>
+        <Icon name="clipboard-list" className="h-6 w-6 text-blue-600" />
         <div>
           <h3 class="font-semibold text-gray-900">{{ i18n.t('dashboard.attendance.pending.title') }}</h3>
           <p class="text-sm text-gray-600">
