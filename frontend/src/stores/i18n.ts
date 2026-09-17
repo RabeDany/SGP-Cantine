@@ -693,6 +693,8 @@ const translations: Record<SupportedLang, Messages> = {
     'dashboard.noMissing': 'Tsy misy sakafo tsy ampy amin’ny herinandro.',
     'dashboard.viewStock': 'Hahita ny tahiry rehetra →',
     'dashboard.viewCourses': 'Hahita lisitra feno →',
+    'dashboard.export.pdf': 'Manondrana amin’ny PDF',
+    'dashboard.export.subtitle': 'Manonta na mamokatra PDF ho an’ny tabilao izay manankarena.',
     'dashboard.courses.title': 'Lisitra fiantsenana — tsy ampy (US-08)',
     'dashboard.attendance.pending.title': 'Tsy mbola vita ny fanisana anio',
     'dashboard.attendance.pending.text': 'Ilaina ny fanisana maraina alohan’ny hanamafisana ny fizarana sakafo.',
