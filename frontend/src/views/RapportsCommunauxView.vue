@@ -87,11 +87,11 @@ function printRapport() {
     <div class="mb-6 grid gap-6 xl:grid-cols-2">
       <section class="card p-5">
         <div class="mb-4">
-          <h2 class="text-lg font-semibold text-gray-900">Stocks mutualisables</h2>
-          <p class="text-sm text-gray-500">Propositions calculées sans transfert automatique.</p>
+          <h2 class="text-lg font-semibold text-gray-900">{{ i18n.t('communal.mutual.title') }}</h2>
+          <p class="text-sm text-gray-500">{{ i18n.t('communal.mutual.subtitle') }}</p>
         </div>
         <div v-if="communalStore.stocksMutualisables.length === 0" class="rounded-lg bg-gray-50 px-4 py-6 text-center text-sm text-gray-500">
-          Aucun transfert inter-écoles proposé.
+          {{ i18n.t('communal.mutual.empty') }}
         </div>
         <div v-else class="space-y-3">
           <div v-for="(item, index) in communalStore.stocksMutualisables" :key="`${item.source.id}-${item.cible.id}-${item.denree.id}-${index}`" class="rounded-lg border border-emerald-100 bg-emerald-50 p-3 text-sm">
@@ -103,11 +103,11 @@ function printRapport() {
 
       <section class="card p-5">
         <div class="mb-4">
-          <h2 class="text-lg font-semibold text-gray-900">Commandes groupées proposées</h2>
-          <p class="text-sm text-gray-500">Besoins calculés sous les seuils d’alerte des écoles.</p>
+          <h2 class="text-lg font-semibold text-gray-900">{{ i18n.t('communal.orders.title') }}</h2>
+          <p class="text-sm text-gray-500">{{ i18n.t('communal.orders.subtitle') }}</p>
         </div>
         <div v-if="communalStore.commandesGroupees.length === 0" class="rounded-lg bg-gray-50 px-4 py-6 text-center text-sm text-gray-500">
-          Aucun besoin de commande groupée.
+          {{ i18n.t('communal.orders.empty') }}
         </div>
         <div v-else class="space-y-3">
           <div v-for="item in communalStore.commandesGroupees" :key="item.denree.id" class="rounded-lg border border-blue-100 bg-blue-50 p-3 text-sm">

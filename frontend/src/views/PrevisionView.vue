@@ -168,8 +168,8 @@ function openCoursesAjustee() {
       </button>
     </div>
 
-    <div class="grid gap-6 lg:grid-cols-2">
-      <div v-if="isAdmin" class="card">
+    <div class="grid min-w-0 gap-6 lg:grid-cols-2">
+      <div v-if="isAdmin" class="card min-w-0">
           <div class="mb-4 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
           <h2 class="font-semibold text-gray-900">{{ i18n.t('dashboard.prediction.title') }}</h2>
           <span class="text-sm text-gray-500">{{ i18n.t('dashboard.prediction.subtitle') }}</span>
@@ -191,7 +191,7 @@ function openCoursesAjustee() {
         </div>
 
         <div class="mt-6 overflow-x-auto">
-          <table class="min-w-[520px] w-full text-sm text-left text-gray-700">
+          <table class="w-full min-w-[520px] text-left text-sm text-gray-700">
             <thead class="text-xs uppercase text-gray-500">
               <tr>
                 <th class="pb-2 pr-3">{{ i18n.t('dashboard.charts.dateLabel') }}</th>
@@ -213,7 +213,7 @@ function openCoursesAjustee() {
         </div>
       </div>
 
-      <div class="card">
+      <div class="card min-w-0">
         <div class="mb-4 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <h2 class="font-semibold text-gray-900">{{ i18n.t('dashboard.prediction.consumptionTitle') }}</h2>
@@ -223,7 +223,7 @@ function openCoursesAjustee() {
         </div>
 
         <div class="overflow-x-auto">
-          <table class="min-w-[620px] w-full text-sm text-left text-gray-700">
+          <table class="w-full min-w-[620px] text-left text-sm text-gray-700">
             <thead class="text-xs uppercase text-gray-500">
               <tr>
                 <th class="pb-2 pr-3">{{ i18n.t('dashboard.prediction.denreeLabel') }}</th>
