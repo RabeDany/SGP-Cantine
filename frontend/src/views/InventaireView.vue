@@ -64,8 +64,8 @@ function exportCsv() {
     </div>
 
     <div class="rounded-3xl border border-slate-200 bg-white p-4 shadow-sm sm:p-6">
-      <div class="overflow-x-auto rounded-3xl border border-slate-200">
-        <table class="min-w-[620px] divide-y divide-slate-200 text-left text-sm">
+      <div class="w-full overflow-x-auto rounded-3xl border border-slate-200">
+        <table class="w-full divide-y divide-slate-200 text-left text-sm">
           <thead class="bg-slate-50 text-gray-700">
             <tr>
               <th class="px-6 py-4 font-semibold">{{ i18n.t('inventaire.column.nom') }}</th>

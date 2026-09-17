@@ -23,7 +23,7 @@ const error = ref('')
 const globalForm = ref({ presents: 0, exemptions: 0 })
 
 const classOptions = computed(() => [
-  { id: 'all', nom: 'École / Toutes les classes' },
+  { id: 'all', nom: i18n.t('presences.class.all') },
   ...presenceStore.classes.map((classe) => ({ id: classe.id, nom: `${classe.nom} (${classe.niveau})` })),
 ])
 
@@ -89,7 +89,7 @@ function submitGlobal() {
     error.value = result.error!
     return
   }
-  message.value = 'Pointage enregistré avec succès.'
+  message.value = i18n.t('presences.message.globalSaved')
 }
 
 function updateClasse(classeId: string, presents: number) {
@@ -108,7 +108,7 @@ function updateClasse(classeId: string, presents: number) {
     error.value = result.error!
     return
   }
-  message.value = 'Pointage classe mis à jour.'
+  message.value = i18n.t('presences.message.classUpdated')
 }
 </script>
 
@@ -139,7 +139,7 @@ function updateClasse(classeId: string, presents: number) {
     </div>
 
     <div v-if="isInspecteur" class="mb-4 rounded-lg border border-blue-200 bg-blue-50 px-4 py-3 text-sm text-blue-800">
-      Accès en lecture seule — historique des présences réservé au directeur et au Responsable Communal / Inspecteur.
+      {{ i18n.t('presences.access.readOnly') }}
     </div>
 
     <div class="mb-4 grid gap-4 sm:grid-cols-3">
@@ -232,7 +232,7 @@ function updateClasse(classeId: string, presents: number) {
               :class="selectedPeriod === 'day' ? 'bg-brand-600 text-white' : 'text-gray-600'"
               @click="selectedPeriod = 'day'"
             >
-              Jour
+              {{ i18n.t('presences.period.day') }}
             </button>
             <button
               type="button"
@@ -240,7 +240,7 @@ function updateClasse(classeId: string, presents: number) {
               :class="selectedPeriod === 'week' ? 'bg-brand-600 text-white' : 'text-gray-600'"
               @click="selectedPeriod = 'week'"
             >
-              Semaine
+              {{ i18n.t('presences.period.week') }}
             </button>
             <button
               type="button"
@@ -248,7 +248,7 @@ function updateClasse(classeId: string, presents: number) {
               :class="selectedPeriod === 'month' ? 'bg-brand-600 text-white' : 'text-gray-600'"
               @click="selectedPeriod = 'month'"
             >
-              Mois
+              {{ i18n.t('presences.period.month') }}
             </button>
           </div>
         </div>
@@ -256,21 +256,21 @@ function updateClasse(classeId: string, presents: number) {
 
       <div class="mb-4 grid gap-3 sm:grid-cols-4">
         <div class="rounded-lg bg-gray-50 p-3">
-          <p class="text-xs text-gray-500">Période</p>
+          <p class="text-xs text-gray-500">{{ i18n.t('presences.metric.period') }}</p>
           <p class="mt-1 text-lg font-semibold">
-            {{ selectedPeriod === 'day' ? 'Jour' : selectedPeriod === 'week' ? 'Semaine' : 'Mois' }}
+            {{ i18n.t(`presences.period.${selectedPeriod}`) }}
           </p>
         </div>
         <div class="rounded-lg bg-gray-50 p-3">
-          <p class="text-xs text-gray-500">Taux moyen de fréquentation</p>
+          <p class="text-xs text-gray-500">{{ i18n.t('presences.metric.averageRate') }}</p>
           <p class="mt-1 text-lg font-semibold">{{ averageRate }}%</p>
         </div>
         <div class="rounded-lg bg-gray-50 p-3">
-          <p class="text-xs text-gray-500">Taux moyen d'absentéisme</p>
+          <p class="text-xs text-gray-500">{{ i18n.t('presences.metric.absenteeism') }}</p>
           <p class="mt-1 text-lg font-semibold">{{ absenteeismRate }}%</p>
         </div>
         <div class="rounded-lg bg-gray-50 p-3">
-          <p class="text-xs text-gray-500">Périodes affichées</p>
+          <p class="text-xs text-gray-500">{{ i18n.t('presences.metric.displayedPeriods') }}</p>
           <p class="mt-1 text-lg font-semibold">{{ historyRows.length }}</p>
         </div>
       </div>
@@ -278,10 +278,10 @@ function updateClasse(classeId: string, presents: number) {
       <div class="mb-4 rounded-3xl bg-white p-4 shadow-sm">
           <div class="mb-3 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <p class="text-xs uppercase tracking-wide text-gray-500">Courbe de fréquentation</p>
-            <p class="text-sm text-gray-600">Dernières périodes sélectionnées</p>
+            <p class="text-xs uppercase tracking-wide text-gray-500">{{ i18n.t('presences.chart.title') }}</p>
+            <p class="text-sm text-gray-600">{{ i18n.t('presences.chart.subtitle') }}</p>
           </div>
-          <p class="text-sm font-semibold text-brand-700">{{ averageRate }}% fréquentation</p>
+          <p class="text-sm font-semibold text-brand-700">{{ averageRate }}% {{ i18n.t('presences.chart.averageRate') }}</p>
         </div>
         <div class="relative h-44 overflow-hidden rounded-2xl bg-slate-50 p-3">
           <svg viewBox="0 0 560 110" class="h-full min-h-[130px] w-full">
@@ -320,11 +320,11 @@ function updateClasse(classeId: string, presents: number) {
         <table class="min-w-[620px] w-full text-sm">
           <thead class="bg-gray-50 text-left text-xs text-gray-500">
             <tr>
-              <th class="px-3 py-2">Période</th>
-              <th class="px-3 py-2">Présents</th>
-              <th class="px-3 py-2">Inscrits</th>
-              <th class="px-3 py-2">Taux fréquentation</th>
-              <th class="px-3 py-2">Taux absentéisme</th>
+              <th class="px-3 py-2">{{ i18n.t('presences.table.period') }}</th>
+              <th class="px-3 py-2">{{ i18n.t('presences.table.presents') }}</th>
+              <th class="px-3 py-2">{{ i18n.t('presences.table.inscrits') }}</th>
+              <th class="px-3 py-2">{{ i18n.t('presences.table.attendanceRate') }}</th>
+              <th class="px-3 py-2">{{ i18n.t('presences.table.absenteeismRate') }}</th>
             </tr>
           </thead>
           <tbody>
@@ -345,7 +345,7 @@ function updateClasse(classeId: string, presents: number) {
             </tr>
             <tr v-if="!historyRows.length">
               <td colspan="5" class="px-3 py-4 text-center text-gray-500">
-                Aucune donnée de fréquentation pour cette période.
+                {{ i18n.t('presences.table.noData') }}
               </td>
             </tr>
           </tbody>
