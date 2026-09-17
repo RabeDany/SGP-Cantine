@@ -66,16 +66,16 @@
   </script>
 
   <template>
-    <div>
+    <div class="min-w-0">
       <PageHeader
         :title="i18n.t('stock.title')"
         :subtitle="i18n.t('stock.subtitle')"
       />
 
-      <div class="mb-4 flex flex-wrap items-center justify-between gap-3">
-        <div class="flex flex-wrap gap-3">
-          <input v-model="search" class="input max-w-xs" :placeholder="i18n.t('stock.search')" />
-          <select v-model="filterStatus" class="input max-w-[180px]">
+      <div class="mb-4 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
+        <div class="flex w-full flex-col gap-3 sm:w-auto sm:flex-row sm:flex-wrap">
+          <input v-model="search" class="input w-full sm:max-w-xs" :placeholder="i18n.t('stock.search')" />
+          <select v-model="filterStatus" class="input w-full sm:max-w-[180px]">
             <option value="all">{{ i18n.t('stock.filterAll') }}</option>
             <option value="ok">{{ i18n.t('stock.filterOk') }}</option>
             <option value="warning">{{ i18n.t('stock.filterWarning') }}</option>
@@ -85,7 +85,7 @@
         <button
           v-if="auth.canAccess('commandes') && ['admin', 'gestionnaire'].includes(auth.currentUser?.role ?? '')"
           type="button"
-          class="btn-primary"
+          class="btn-primary w-full sm:w-auto"
           :disabled="!canCreateBon"
           @click="openCreateBonModal"
         >
@@ -96,7 +96,7 @@
         {{ i18n.t('stock.noNeeds') }}
       </div>
 
-      <div class="mb-4 flex gap-4 text-xs text-gray-500">
+      <div class="mb-4 flex flex-wrap gap-3 text-xs text-gray-500 sm:gap-4">
         <span class="flex items-center gap-1"><span class="h-3 w-3 rounded-full bg-green-500" /> {{ i18n.t('stock.legendOk') }}</span>
         <span class="flex items-center gap-1"><span class="h-3 w-3 rounded-full bg-amber-500" /> {{ i18n.t('stock.legendWarning') }}</span>
         <span class="flex items-center gap-1"><span class="h-3 w-3 rounded-full bg-red-500" /> {{ i18n.t('stock.legendCritical') }}</span>
@@ -164,7 +164,7 @@
         class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4"
       >
         <div class="w-full max-w-2xl rounded-xl bg-white p-6 shadow-lg">
-          <div class="mb-4 flex items-center justify-between">
+          <div class="mb-4 flex items-start justify-between gap-3">
             <div>
               <h2 class="text-lg font-semibold">{{ i18n.t('stock.modal.title') }}</h2>
               <p class="text-sm text-gray-500">{{ i18n.t('stock.modal.subtitle') }}</p>
@@ -178,12 +178,12 @@
               :key="denree.id"
               class="rounded-lg border border-gray-200 p-4"
             >
-              <div class="mb-2 flex items-center justify-between gap-3">
+              <div class="mb-2 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                 <div>
                   <p class="font-medium">{{ translateForUi(denree.nom) }}</p>
                   <p class="text-xs text-gray-500">{{ i18n.t('stock.modal.currentStock') }} : {{ formatNumber(denree.stockActuel) }} {{ UNITE_LABELS[denree.unite] }}</p>
                 </div>
-                <div class="w-32">
+                <div class="w-full sm:w-32">
                   <label class="text-xs text-gray-600">{{ i18n.t('stock.modal.quantity') }}</label>
                   <input
                     v-model.number="commandeQuantites[denree.id]"
@@ -198,11 +198,11 @@
             </div>
           </div>
 
-          <div class="mt-4 flex items-center justify-between gap-3">
+          <div class="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <p v-if="creationError" class="text-sm text-red-700">{{ creationError }}</p>
-            <div class="ml-auto flex gap-2">
-              <button type="button" class="btn-secondary" @click="closeCreateBonModal">{{ i18n.t('general.cancel') }}</button>
-              <button type="button" class="btn-primary" @click="createBonFromStock">{{ i18n.t('stock.modal.confirm') }}</button>
+            <div class="flex w-full flex-col gap-2 sm:ml-auto sm:w-auto sm:flex-row">
+              <button type="button" class="btn-secondary w-full sm:w-auto" @click="closeCreateBonModal">{{ i18n.t('general.cancel') }}</button>
+              <button type="button" class="btn-primary w-full sm:w-auto" @click="createBonFromStock">{{ i18n.t('stock.modal.confirm') }}</button>
             </div>
           </div>
         </div>

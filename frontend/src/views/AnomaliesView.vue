@@ -137,7 +137,7 @@ function marquerNonJustifiee(id: string) {
 </script>
 
 <template>
-  <div>
+  <div class="min-w-0">
     <PageHeader
       :title="i18n.t('anomalie.title')"
       :subtitle="i18n.t('anomalie.subtitle')"
@@ -150,7 +150,7 @@ function marquerNonJustifiee(id: string) {
       {{ i18n.t('anomalie.readOnly') }}
     </div>
 
-    <div class="mb-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
+    <div class="mb-6 grid gap-3 sm:grid-cols-2 sm:gap-4 lg:grid-cols-5">
       <div class="card p-4">
         <p class="text-sm text-gray-500">{{ i18n.t('anomalie.stats.total') }}</p>
         <p class="mt-2 text-3xl font-semibold text-gray-900">{{ anomalieStore.statsAnomalies.total }}</p>
@@ -218,7 +218,7 @@ function marquerNonJustifiee(id: string) {
       </div>
     </div>
 
-    <div class="card mb-6 grid gap-4 lg:grid-cols-3">
+    <div class="card mb-6 grid gap-3 sm:grid-cols-2 sm:gap-4 lg:grid-cols-3">
       <div>
         <label class="label">{{ i18n.t('anomalie.filter.search') }}</label>
         <input v-model="searchText" class="input" :placeholder="i18n.t('anomalie.filter.searchPlaceholder')" />

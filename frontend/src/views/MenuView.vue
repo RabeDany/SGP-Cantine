@@ -90,9 +90,9 @@ function genererMenuOptimise() {
   }, 30)
 }
 
-function appliquerProposition() {
-  if (!proposition.value || !auth.currentUser) return
-  const result = menuStore.appliquerPlanningOptimise(proposition.value.meilleur.recetteIds, {
+function appliquerProposition(recetteIds: string[]) {
+  if (!auth.currentUser) return
+  const result = menuStore.appliquerPlanningOptimise(recetteIds, {
     id: auth.currentUser.id,
     nom: auth.currentUser.nom,
     role: auth.currentUser.role,
@@ -206,10 +206,10 @@ const recettesDisponibles = computed(() => {
 </script>
 
 <template>
-  <div>
+  <div class="min-w-0">
     <PageHeader :title="i18n.t('menu.title')" :subtitle="i18n.t('menu.subtitle')" />
 
-    <div class="mb-4 flex flex-wrap items-center gap-4 text-sm">
+    <div class="mb-4 flex flex-wrap items-center gap-3 text-sm sm:gap-4">
       <span class="rounded-lg bg-brand-50 px-3 py-1.5 font-medium text-brand-800">
         {{ i18n.t('menu.weekLabel', { week: semaineLabel }) }}
       </span>
@@ -239,14 +239,14 @@ const recettesDisponibles = computed(() => {
 
     <!-- Proposition de menu automatique -->
     <section v-if="canOptimise" class="card mb-4 space-y-4">
-      <div class="flex flex-wrap items-center justify-between gap-3">
+      <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h3 class="text-lg font-semibold text-gray-900">{{ i18n.t('menu.optim.title') }}</h3>
           <p class="mt-1 text-sm text-gray-500">{{ i18n.t('menu.optim.help') }}</p>
         </div>
         <button
           type="button"
-          class="btn-primary"
+          class="btn-primary w-full sm:w-auto"
           :disabled="optimising"
           @click="genererMenuOptimise"
         >
@@ -260,26 +260,44 @@ const recettesDisponibles = computed(() => {
         v-if="proposition"
         class="space-y-4 rounded-lg border border-emerald-200 bg-emerald-50/60 p-4"
       >
-        <p class="text-sm font-medium text-emerald-900">{{ i18n.t('menu.optim.proposalTitle') }}</p>
-        <ul class="grid gap-2 text-sm sm:grid-cols-5">
-          <li
-            v-for="(recetteId, idx) in proposition.meilleur.recetteIds"
-            :key="idx"
-            class="rounded-lg border border-white bg-white px-3 py-3"
-          >
-            <p class="text-xs font-semibold uppercase tracking-wide text-gray-500">
-              {{ JOURS_SEMAINE[idx] }}
-            </p>
-            <p class="mt-1 font-medium text-gray-900">{{ getRecetteNom(recetteId) }}</p>
-          </li>
-        </ul>
-        <div class="flex flex-wrap gap-2">
-          <button type="button" class="btn-primary" @click="appliquerProposition">
-            {{ i18n.t('menu.optim.apply') }}
-          </button>
+        <div class="flex flex-wrap items-center justify-between gap-2">
+          <p class="text-sm font-medium text-emerald-900">{{ i18n.t('menu.optim.proposalTitle') }}</p>
           <button type="button" class="btn-secondary" @click="rejeterProposition">
             {{ i18n.t('menu.optim.reject') }}
           </button>
+        </div>
+        <div class="grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
+          <article
+            v-for="(candidat, candidatIndex) in proposition.meilleurs"
+            :key="candidat.recetteIds.join('-')"
+            class="flex flex-col rounded-lg border border-white bg-white p-3"
+          >
+            <div class="flex items-center justify-between gap-2 border-b border-slate-100 pb-2">
+              <p class="text-sm font-semibold text-slate-900">Menu {{ candidatIndex + 1 }}</p>
+              <span class="text-xs font-medium text-emerald-700">
+                {{ formatNumber(candidat.fitness, 1) }} pts
+              </span>
+            </div>
+            <ul class="mt-3 flex-1 space-y-2 text-sm">
+              <li
+                v-for="(recetteId, idx) in candidat.recetteIds"
+                :key="`${candidatIndex}-${idx}`"
+                class="flex items-start justify-between gap-2"
+              >
+                <span class="text-xs font-semibold uppercase tracking-wide text-slate-400">
+                  {{ JOURS_SEMAINE[idx].slice(0, 3) }}
+                </span>
+                <span class="text-right font-medium text-slate-700">{{ getRecetteNom(recetteId) }}</span>
+              </li>
+            </ul>
+            <button
+              type="button"
+              class="btn-primary mt-4 w-full"
+              @click="appliquerProposition(candidat.recetteIds)"
+            >
+              {{ i18n.t('menu.optim.apply') }}
+            </button>
+          </article>
         </div>
       </div>
 
@@ -324,7 +342,7 @@ const recettesDisponibles = computed(() => {
       <p v-if="menuDejaValide" class="mt-3 rounded-lg bg-green-50 p-3 text-sm text-green-800">
         {{
           i18n.t('menu.validated', {
-            date: menuStore.menuActuel.dateValidation,
+            date: menuStore.menuActuel.dateValidation ?? '',
             user: auth.currentUser?.nom ?? '',
           })
         }}
@@ -369,9 +387,9 @@ const recettesDisponibles = computed(() => {
       <div
         v-for="jour in menuStore.menuActuel.jours"
         :key="jour.jour"
-        class="card flex flex-wrap items-center gap-4"
+        class="card flex flex-wrap items-start gap-4 sm:items-center"
       >
-        <div class="w-28">
+        <div class="w-full sm:w-28">
           <p class="font-semibold text-gray-900">{{ JOURS_SEMAINE[jour.jour] }}</p>
           <button
             v-if="canOptimise"
@@ -391,7 +409,7 @@ const recettesDisponibles = computed(() => {
             }}
           </button>
         </div>
-        <div class="min-w-[200px] flex-1">
+        <div class="min-w-0 flex-1 sm:min-w-[200px]">
           <label class="label text-xs">{{ i18n.t('menu.label.recipe') }}</label>
           <select
             class="input"
@@ -410,7 +428,7 @@ const recettesDisponibles = computed(() => {
             </option>
           </select>
         </div>
-        <div class="w-36">
+        <div class="w-full sm:w-36">
           <label class="label text-xs">{{ i18n.t('menu.label.portions') }}</label>
           <input
             type="number"

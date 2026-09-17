@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref } from 'vue'
+import Icon from '@/components/Icon.vue'
 import PageHeader from '@/components/PageHeader.vue'
 import { useAuthStore } from '@/stores/auth'
 import { useI18nStore } from '@/stores/i18n'
@@ -96,19 +97,19 @@ function getDenreeNom(id: string) {
 </script>
 
 <template>
-  <div>
+  <div class="min-w-0">
     <PageHeader
       :title="i18n.t('recettes.title')"
       :subtitle="i18n.t('recettes.subtitle')"
     />
 
-    <div class="mb-4 flex justify-between">
+    <div class="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
       <p v-if="success" class="text-sm text-green-700">{{ success }}</p>
       <div v-else />
       <button
         v-if="auth.hasRole('admin','planificateur')"
         type="button"
-        class="btn-primary"
+        class="btn-primary w-full sm:w-auto"
         @click="toggleForm"
       >
         {{ showForm ? i18n.t('general.cancel') : i18n.t('recettes.button.new') }}
@@ -135,8 +136,8 @@ function getDenreeNom(id: string) {
       </div>
       <div>
         <label class="label">{{ i18n.t('recettes.label.ingredients') }}</label>
-        <div v-for="(ing, i) in form.ingredients" :key="i" class="mb-2 flex gap-2">
-          <select v-model="ing.denreeId" class="input flex-1" required>
+        <div v-for="(ing, i) in form.ingredients" :key="i" class="mb-2 flex flex-col gap-2 sm:flex-row">
+          <select v-model="ing.denreeId" class="input min-w-0 flex-1" required>
             <option value="">— {{ i18n.t('general.select') }} —</option>
             <option v-for="d in stockStore.denrees.filter((x) => x.actif)" :key="d.id" :value="d.id">
               {{ translateForUi(d.nom) }}
@@ -147,16 +148,18 @@ function getDenreeNom(id: string) {
             type="number"
             min="0.001"
             step="0.001"
-            class="input w-32"
+            class="input w-full sm:w-32"
             required
           />
-          <button type="button" class="btn-secondary px-2" @click="removeIngredient(i)">✕</button>
+          <button type="button" class="btn-secondary w-full sm:w-auto" @click="removeIngredient(i)">
+            {{ i18n.t('general.cancel') }}
+          </button>
         </div>
         <button type="button" class="text-sm text-brand-600 hover:underline" @click="addIngredient">
           + {{ i18n.t('recettes.button.new') }}
         </button>
       </div>
-      <button type="submit" class="btn-primary">{{ i18n.t('recettes.button.save') }}</button>
+      <button type="submit" class="btn-primary w-full sm:w-auto">{{ i18n.t('recettes.button.save') }}</button>
     </form>
 
     <div class="grid gap-4 md:grid-cols-2">
@@ -166,12 +169,12 @@ function getDenreeNom(id: string) {
         class="card"
         :class="{ 'opacity-60': !r.valide }"
       >
-        <div class="mb-3 flex items-start justify-between">
+        <div class="mb-3 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
           <div>
             <h3 class="font-semibold text-gray-900">{{ translateForUi(r.nom) }}</h3>
             <p class="text-xs text-gray-500 capitalize">{{ i18n.t(r.categorie === 'dejeuner' ? 'recettes.category.dejeuner' : 'recettes.category.complement') }}</p>
           </div>
-          <div class="flex items-center gap-2">
+          <div class="flex flex-wrap items-center gap-2">
             <span
               class="rounded-full px-2 py-0.5 text-xs font-medium"
               :class="r.valide ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'"
@@ -179,8 +182,24 @@ function getDenreeNom(id: string) {
               {{ r.valide ? i18n.t('recettes.status.valid') : i18n.t('recettes.status.incomplete') }}
             </span>
             <div v-if="auth.hasRole('admin','planificateur')" class="flex gap-2">
-              <button type="button" class="btn-secondary" @click="startEdit(r)">✎</button>
-              <button type="button" class="btn-danger" @click="removeRecette(r.id)">🗑</button>
+              <button
+                type="button"
+                class="btn-secondary h-8 w-8 p-0"
+                title="Modifier la recette"
+                aria-label="Modifier la recette"
+                @click="startEdit(r)"
+              >
+                <Icon name="pencil" className="h-4 w-4" />
+              </button>
+              <button
+                type="button"
+                class="btn-danger h-8 w-8 p-0"
+                title="Supprimer la recette"
+                aria-label="Supprimer la recette"
+                @click="removeRecette(r.id)"
+              >
+                <Icon name="trash" className="h-4 w-4" />
+              </button>
             </div>
           </div>
         </div>

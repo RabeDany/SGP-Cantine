@@ -22,6 +22,7 @@ const anomalieStore = useAnomalieStore()
 const i18n = useI18nStore()
 const showNotifications = ref(false)
 const sidebarCollapsed = ref(false)
+const mobileSidebarOpen = ref(false)
 
 interface NavItem {
   labelKey: string
@@ -58,6 +59,14 @@ const sidebarWidthClass = computed(() => (sidebarCollapsed.value ? 'w-20' : 'w-6
 function isActive(path: string) {
   if (path === '/') return route.path === '/'
   return route.path.startsWith(path)
+}
+
+function toggleSidebar() {
+  if (window.innerWidth < 768) {
+    mobileSidebarOpen.value = !mobileSidebarOpen.value
+    return
+  }
+  sidebarCollapsed.value = !sidebarCollapsed.value
 }
 
 function logout() {
@@ -135,8 +144,20 @@ const notifications = computed(() => {
 </script>
 
 <template>
-  <div class="flex h-screen overflow-hidden bg-slate-50">
-    <aside :class="['sticky top-0 flex h-screen shrink-0 flex-col border-r border-slate-200 bg-white transition-all duration-200', sidebarWidthClass]">
+  <div class="relative flex h-screen overflow-hidden bg-slate-50">
+    <div
+      v-if="mobileSidebarOpen"
+      class="fixed inset-0 z-30 bg-slate-900/30 md:hidden"
+      aria-hidden="true"
+      @click="mobileSidebarOpen = false"
+    />
+    <aside
+      :class="[
+        'fixed inset-y-0 left-0 z-40 flex h-screen w-64 shrink-0 flex-col border-r border-slate-200 bg-white transition-transform duration-200 md:sticky md:top-0 md:z-auto md:translate-x-0 md:transition-[width]',
+        mobileSidebarOpen ? 'translate-x-0' : '-translate-x-full',
+        sidebarCollapsed ? 'md:w-20' : 'md:w-64',
+      ]"
+    >
       <div class="border-b border-slate-200 px-3 py-4">
         <div class="flex items-center gap-2">
           <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-brand-600 text-white">
@@ -165,6 +186,7 @@ const notifications = computed(() => {
             sidebarCollapsed ? 'justify-center px-2' : 'justify-start',
           ]"
           :title="sidebarCollapsed ? i18n.t(item.labelKey) : undefined"
+          @click="mobileSidebarOpen = false"
         >
           <Icon :name="item.icon" className="h-5 w-5 shrink-0" />
           <span v-if="!sidebarCollapsed" class="truncate">{{ i18n.t(item.labelKey) }}</span>
@@ -186,22 +208,22 @@ const notifications = computed(() => {
     </aside>
 
     <main class="flex flex-1 flex-col overflow-y-auto">
-      <header class="border-b border-slate-200 bg-white px-8 py-4">
-        <div class="flex items-center justify-between">
-          <div class="flex items-center gap-3">
+      <header class="border-b border-slate-200 bg-white px-4 py-3 sm:px-8 sm:py-4">
+        <div class="flex flex-wrap items-center justify-between gap-3">
+          <div class="flex min-w-0 items-center gap-3">
             <button
               type="button"
               class="flex h-9 w-9 items-center justify-center rounded-lg border border-slate-200 bg-white text-gray-700 transition hover:bg-slate-100"
               :title="sidebarCollapsed ? 'Ouvrir la sidebar' : 'Réduire la sidebar'"
-              @click="sidebarCollapsed = !sidebarCollapsed"
+              @click="toggleSidebar"
             >
               <Icon name="menu" className="h-4 w-4" />
             </button>
-            <p class="text-xs font-medium uppercase tracking-wide text-brand-600">
+            <p class="truncate text-xs font-medium uppercase tracking-wide text-brand-600">
               {{ ECOLE_INFO.commune }} · {{ ECOLE_INFO.region }}
             </p>
           </div>
-          <div class="flex items-center gap-3">
+          <div class="flex flex-wrap items-center justify-end gap-2 sm:gap-3">
             <div class="flex items-center gap-2 rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-xs text-gray-600">
               <span>{{ i18n.t('header.language') }}:</span>
               <div class="flex items-center rounded-full bg-white p-1">
@@ -239,7 +261,7 @@ const notifications = computed(() => {
               </button>
               <div
                 v-if="showNotifications && notifications.length"
-                class="absolute right-0 top-10 z-20 w-80 rounded-xl border border-slate-200 bg-white p-3 shadow-lg"
+                class="absolute right-0 top-10 z-20 w-[min(20rem,calc(100vw-2rem))] rounded-xl border border-slate-200 bg-white p-3 shadow-lg"
               >
                 <div class="mb-2 flex items-center justify-between">
                   <p class="text-sm font-semibold text-gray-900">Notifications</p>
@@ -268,7 +290,7 @@ const notifications = computed(() => {
           </div>
         </div>
       </header>
-      <div class="flex-1 overflow-y-auto p-6 lg:p-8">
+      <div class="min-w-0 flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8">
         <RouterView v-slot="{ Component }">
           <transition name="page" mode="out-in">
             <component :is="Component" :key="route.name" class="page-content" />

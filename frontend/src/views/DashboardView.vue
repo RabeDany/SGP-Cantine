@@ -251,7 +251,7 @@ function printDashboard() {
 </script>
 
 <template>
-  <div>
+  <div class="min-w-0">
     <PageHeader
       :title="i18n.t('dashboard.title')"
       :subtitle="i18n.t('dashboard.subtitle', { user: auth.currentUser?.nom ?? '' })"
@@ -272,7 +272,7 @@ function printDashboard() {
       v-if="alertesPeremption.length && auth.hasRole('admin', 'gestionnaire', 'planificateur')"
       class="mb-6 rounded-xl border border-amber-300 bg-amber-50 px-5 py-4"
     >
-      <div class="flex items-start gap-3">
+      <div class="flex items-start gap-3 break-words">
         <Icon name="warning" className="text-xl text-amber-900" />
         <div>
           <h3 class="font-semibold text-amber-900">
@@ -334,12 +334,12 @@ function printDashboard() {
 
     <div class="mb-8 grid gap-6">
       <section class="card">
-        <div class="mb-4 flex items-center justify-between">
+        <div class="mb-4 flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
           <h3 class="font-semibold text-gray-900">{{ i18n.t('dashboard.charts.nutritionTitle') }}</h3>
           <span class="text-sm text-gray-500">{{ i18n.t('dashboard.charts.nutritionSub') }}</span>
         </div>
         <div class="grid items-center gap-6 md:grid-cols-[minmax(260px,0.8fr)_minmax(0,1.2fr)]">
-          <svg viewBox="0 0 200 200" class="h-auto w-full max-w-[360px] justify-self-center">
+          <svg viewBox="0 0 200 200" class="h-auto w-full max-w-[280px] justify-self-center sm:max-w-[360px]">
             <circle cx="100" cy="100" r="80" fill="#f8fafc" />
             <template v-for="segment in nutritionSegments" :key="segment.categorie">
               <path :d="segment.path" :fill="segment.color" />
@@ -357,12 +357,12 @@ function printDashboard() {
       </section>
 
       <section class="card">
-        <div class="mb-4 flex items-center justify-between">
+        <div class="mb-4 flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
           <h3 class="font-semibold text-gray-900">{{ i18n.t('dashboard.charts.trendTitle') }}</h3>
           <span class="text-sm text-gray-500">{{ i18n.t('dashboard.charts.trendSub') }}</span>
         </div>
         <div class="rounded-3xl bg-slate-50 p-4">
-          <svg viewBox="0 0 560 110" class="h-72 w-full">
+          <svg viewBox="0 0 560 110" class="h-48 w-full sm:h-72">
             <path d="M20 10 H540" stroke="#E2E8F0" stroke-width="1" />
             <path d="M20 40 H540" stroke="#E2E8F0" stroke-width="1" />
             <path d="M20 70 H540" stroke="#E2E8F0" stroke-width="1" />
@@ -387,7 +387,8 @@ function printDashboard() {
               <span class="h-2.5 w-2.5 rounded-full bg-emerald-600" />{{ i18n.t('dashboard.charts.consumptionLabel') }}
             </span>
           </div>
-          <div class="mt-4 rounded-2xl border border-slate-200 bg-white p-3 text-xs text-slate-700 shadow-sm">
+          <div class="mt-4 overflow-x-auto rounded-2xl border border-slate-200 bg-white p-3 text-xs text-slate-700 shadow-sm">
+            <div class="min-w-[420px]">
             <div class="mb-2 text-sm font-semibold text-slate-900">{{ i18n.t('dashboard.charts.dataTitle') }}</div>
             <div class="grid grid-cols-3 gap-2 font-medium text-slate-500">
               <div>{{ i18n.t('dashboard.charts.dateLabel') }}</div>
@@ -404,6 +405,7 @@ function printDashboard() {
                 <span>{{ row.taux }} %</span>
                 <span>{{ consumptionTrendSeries[index]?.value ?? 0 }}</span>
               </div>
+            </div>
             </div>
           </div>
         </div>

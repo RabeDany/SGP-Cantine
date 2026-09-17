@@ -276,13 +276,13 @@ function getUsername(id: string) {
 </script>
 
 <template>
-  <div>
+  <div class="min-w-0">
     <PageHeader
       :title="i18n.t('commandes.title')"
       :subtitle="i18n.t('commandes.subtitle')"
     />
 
-    <div class="card mb-6 grid gap-4 lg:grid-cols-3">
+    <div class="card mb-6 grid gap-3 sm:grid-cols-2 sm:gap-4 lg:grid-cols-3">
       <div>
         <label class="label">{{ i18n.t('commandes.selectSupplier') }}</label>
         <select v-model="fournisseurId" class="input">
@@ -322,15 +322,15 @@ function getUsername(id: string) {
           />
         </div>
       </div>
-      <div class="mt-4 flex justify-end">
-        <button type="button" class="btn-primary" @click="submitBonCommande">
+      <div class="mt-4 flex justify-stretch sm:justify-end">
+        <button type="button" class="btn-primary w-full sm:w-auto" @click="submitBonCommande">
           {{ i18n.t('commandes.saveOrder') }}
         </button>
       </div>
     </div>
 
     <div class="card overflow-x-auto p-0">
-      <table class="w-full text-sm">
+      <table class="min-w-[900px] w-full text-sm">
         <thead class="bg-gray-50">
           <tr class="text-left text-xs text-gray-500">
             <th class="px-5 py-3">{{ i18n.t('commandes.table.ref') }}</th>
@@ -414,8 +414,8 @@ function getUsername(id: string) {
       v-if="showDetailModal && detailBon"
       class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4"
     >
-      <div class="w-full max-w-2xl max-h-[80vh] overflow-hidden rounded-xl bg-white p-6 shadow-lg">
-        <div class="mb-4 flex items-center justify-between">
+      <div class="max-h-[80vh] w-full max-w-2xl overflow-hidden rounded-xl bg-white p-4 shadow-lg sm:p-6">
+        <div class="mb-4 flex items-start justify-between gap-3">
           <div>
             <h2 class="text-lg font-semibold">Détail du bon {{ detailBon.id }}</h2>
             <p class="text-sm text-gray-500">Fournisseur : {{ getFournisseurName(detailBon.fournisseurId) }}</p>
@@ -441,8 +441,8 @@ function getUsername(id: string) {
           </div>
         </div>
 
-        <div class="mt-4 flex justify-end">
-          <button type="button" class="btn-secondary" @click="closeDetailModal">Fermer</button>
+        <div class="mt-4 flex justify-stretch sm:justify-end">
+          <button type="button" class="btn-secondary w-full sm:w-auto" @click="closeDetailModal">Fermer</button>
         </div>
       </div>
     </div>
@@ -451,8 +451,8 @@ function getUsername(id: string) {
       v-if="showReceptionModal && receptionBon"
       class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4"
     >
-      <div class="w-full max-w-3xl max-h-[90vh] overflow-hidden rounded-xl bg-white p-6 shadow-lg">
-        <div class="mb-4 flex items-center justify-between">
+      <div class="max-h-[90vh] w-full max-w-3xl overflow-hidden rounded-xl bg-white p-4 shadow-lg sm:p-6">
+        <div class="mb-4 flex items-start justify-between gap-3">
           <div>
             <h2 class="text-lg font-semibold">Réception du bon {{ receptionBon.id }}</h2>
             <p class="text-sm text-gray-500">Fournisseur : {{ getFournisseurName(receptionBon.fournisseurId) }}</p>

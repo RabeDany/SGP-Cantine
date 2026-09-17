@@ -36,8 +36,8 @@ function exportCsv() {
 </script>
 
 <template>
-  <div class="space-y-6">
-    <div class="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+  <div class="min-w-0 space-y-6">
+    <div class="rounded-3xl border border-slate-200 bg-white p-4 shadow-sm sm:p-6">
       <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 class="text-2xl font-semibold text-gray-900">{{ i18n.t('inventaire.title') }}</h1>
@@ -63,9 +63,9 @@ function exportCsv() {
       </div>
     </div>
 
-    <div class="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
-      <div class="overflow-hidden rounded-3xl border border-slate-200">
-        <table class="min-w-full divide-y divide-earth-200 text-left text-sm">
+    <div class="rounded-3xl border border-slate-200 bg-white p-4 shadow-sm sm:p-6">
+      <div class="overflow-x-auto rounded-3xl border border-slate-200">
+        <table class="min-w-[620px] divide-y divide-slate-200 text-left text-sm">
           <thead class="bg-slate-50 text-gray-700">
             <tr>
               <th class="px-6 py-4 font-semibold">{{ i18n.t('inventaire.column.nom') }}</th>
@@ -74,7 +74,7 @@ function exportCsv() {
               <th class="px-6 py-4 font-semibold">{{ i18n.t('inventaire.column.peremption') }}</th>
             </tr>
           </thead>
-          <tbody class="divide-y divide-earth-200 bg-white">
+          <tbody class="divide-y divide-slate-200 bg-white">
             <tr v-if="denreesActives.length === 0">
               <td class="px-6 py-8 text-center text-sm text-gray-500" colspan="4">
                 {{ i18n.t('inventaire.noItems') }}
@@ -102,8 +102,8 @@ function exportCsv() {
           </tbody>
         </table>
       </div>
-      <div class="mt-6 flex justify-end">
-        <button type="button" class="btn-primary">
+      <div class="mt-6 flex justify-stretch sm:justify-end">
+        <button type="button" class="btn-primary w-full sm:w-auto">
           {{ i18n.t('inventaire.validate') }}
         </button>
       </div>

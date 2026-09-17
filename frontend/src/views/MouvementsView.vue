@@ -112,13 +112,13 @@ function getDenreeNom(id: string) {
 </script>
 
 <template>
-  <div>
+  <div class="min-w-0">
     <PageHeader
       :title="i18n.t('mouvements.title')"
       :subtitle="i18n.t('mouvements.subtitle')"
     />
 
-    <div class="mb-4 flex gap-2">
+    <div class="mb-4 flex flex-wrap gap-2">
       <button
         v-for="t in [
           { id: 'entree', label: i18n.t('mouvements.tab.entree') },
@@ -127,7 +127,7 @@ function getDenreeNom(id: string) {
         ]"
         :key="t.id"
         type="button"
-        class="rounded-lg px-4 py-2 text-sm font-medium"
+        class="flex-1 rounded-lg px-4 py-2 text-sm font-medium sm:flex-none"
         :class="
           tab === t.id
             ? 'bg-brand-600 text-white'
@@ -179,7 +179,7 @@ function getDenreeNom(id: string) {
         <input v-model="entreeForm.datePeremption" type="date" class="input" />
       </div>
       <div class="sm:col-span-2">
-        <button type="submit" class="btn-primary">{{ i18n.t('mouvements.button.submitEntry') }}</button>
+        <button type="submit" class="btn-primary w-full sm:w-auto">{{ i18n.t('mouvements.button.submitEntry') }}</button>
       </div>
     </form>
 
@@ -229,12 +229,12 @@ function getDenreeNom(id: string) {
         Les sorties hors plage 10h–14h déclenchent une anomalie de niveau 3 bloquante (US-37). Seuls le directeur ou le président du CGCS peuvent justifier et lever le blocage.
       </div>
       <div class="sm:col-span-2">
-        <button type="submit" class="btn-primary">{{ i18n.t('mouvements.button.submitExit') }}</button>
+        <button type="submit" class="btn-primary w-full sm:w-auto">{{ i18n.t('mouvements.button.submitExit') }}</button>
       </div>
     </form>
 
     <div v-if="tab === 'historique'" class="card overflow-x-auto p-0">
-      <table class="w-full text-sm">
+      <table class="min-w-[680px] w-full text-sm">
         <thead class="bg-gray-50">
           <tr class="text-left text-xs text-gray-500">
             <th class="px-5 py-3">{{ i18n.t('general.date') }}</th>

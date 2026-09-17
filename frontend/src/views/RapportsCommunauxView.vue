@@ -52,14 +52,14 @@ function printRapport() {
 </script>
 
 <template>
-  <div>
+  <div class="min-w-0">
     <PageHeader
       :title="i18n.t('communal.title')"
       :subtitle="i18n.t('communal.subtitle')"
     />
 
     <!-- Bandeau lecture seule -->
-    <div class="mb-6 flex items-center gap-3 rounded-xl border border-blue-200 bg-blue-50 px-5 py-3">
+    <div class="mb-6 flex items-start gap-3 rounded-xl border border-blue-200 bg-blue-50 px-4 py-3 sm:items-center sm:px-5">
       <Icon name="shield-check" className="h-6 w-6 shrink-0 text-blue-700" />
       <p class="text-sm text-blue-900">{{ i18n.t('communal.readOnly') }}</p>
     </div>
@@ -122,7 +122,7 @@ function printRapport() {
     </div>
 
     <!-- Filtres -->
-    <div class="card mb-6 grid gap-4 lg:grid-cols-3">
+    <div class="card mb-6 grid gap-3 sm:grid-cols-2 sm:gap-4 lg:grid-cols-3">
       <div>
         <label class="label">{{ i18n.t('communal.filter.denree') }}</label>
         <select v-model="selectedDenree" class="input">
@@ -145,7 +145,7 @@ function printRapport() {
 
     <!-- Ruptures de stock par région -->
     <section class="card mb-6">
-      <div class="mb-4 flex items-center justify-between">
+      <div class="mb-4 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h2 class="text-lg font-semibold text-gray-900">{{ i18n.t('communal.ruptures.title') }}</h2>
           <p class="text-sm text-gray-500">{{ i18n.t('communal.ruptures.subtitle') }}</p>
@@ -166,7 +166,7 @@ function printRapport() {
           </span>
         </h3>
         <div class="overflow-x-auto rounded-xl border border-gray-100">
-          <table class="w-full text-sm">
+          <table class="min-w-[620px] w-full text-sm">
             <thead class="bg-gray-50 text-left text-xs uppercase tracking-wide text-gray-500">
               <tr>
                 <th class="px-4 py-2.5">{{ i18n.t('communal.ruptures.ecole') }}</th>
@@ -223,15 +223,15 @@ function printRapport() {
 
     <!-- Détail des consommations -->
     <section class="card">
-      <div class="mb-4 flex items-center justify-between">
+      <div class="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h2 class="text-lg font-semibold text-gray-900">{{ i18n.t('communal.detail.title') }}</h2>
           <p class="text-sm text-gray-500">{{ i18n.t('communal.detail.subtitle') }}</p>
         </div>
-        <button type="button" class="btn-secondary" @click="printRapport">{{ i18n.t('communal.export') }}</button>
+        <button type="button" class="btn-secondary w-full sm:w-auto" @click="printRapport">{{ i18n.t('communal.export') }}</button>
       </div>
       <div class="overflow-x-auto">
-        <table class="w-full text-sm">
+        <table class="min-w-[620px] w-full text-sm">
           <thead class="bg-gray-50 text-left text-xs uppercase tracking-wide text-gray-500">
             <tr>
               <th class="px-4 py-2.5">{{ i18n.t('communal.detail.ecole') }}</th>

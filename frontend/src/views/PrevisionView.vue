@@ -149,7 +149,7 @@ function openCoursesAjustee() {
 </script>
 
 <template>
-  <section class="page-card">
+  <section class="page-card min-w-0">
     <div class="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
       <div>
         <h1 class="text-xl font-semibold text-slate-900">{{ i18n.t('prevision.title') }}</h1>
@@ -170,7 +170,7 @@ function openCoursesAjustee() {
 
     <div class="grid gap-6 lg:grid-cols-2">
       <div v-if="isAdmin" class="card">
-        <div class="mb-4 flex items-center justify-between">
+          <div class="mb-4 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
           <h2 class="font-semibold text-gray-900">{{ i18n.t('dashboard.prediction.title') }}</h2>
           <span class="text-sm text-gray-500">{{ i18n.t('dashboard.prediction.subtitle') }}</span>
         </div>
@@ -191,7 +191,7 @@ function openCoursesAjustee() {
         </div>
 
         <div class="mt-6 overflow-x-auto">
-          <table class="w-full text-sm text-left text-gray-700">
+          <table class="min-w-[520px] w-full text-sm text-left text-gray-700">
             <thead class="text-xs uppercase text-gray-500">
               <tr>
                 <th class="pb-2 pr-3">{{ i18n.t('dashboard.charts.dateLabel') }}</th>
@@ -214,7 +214,7 @@ function openCoursesAjustee() {
       </div>
 
       <div class="card">
-        <div class="mb-4 flex items-center justify-between">
+        <div class="mb-4 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <h2 class="font-semibold text-gray-900">{{ i18n.t('dashboard.prediction.consumptionTitle') }}</h2>
                       <p class="text-sm text-gray-500">{{ i18n.t('dashboard.prediction.consumptionSub') }}</p>
@@ -223,7 +223,7 @@ function openCoursesAjustee() {
         </div>
 
         <div class="overflow-x-auto">
-          <table class="w-full text-sm text-left text-gray-700">
+          <table class="min-w-[620px] w-full text-sm text-left text-gray-700">
             <thead class="text-xs uppercase text-gray-500">
               <tr>
                 <th class="pb-2 pr-3">{{ i18n.t('dashboard.prediction.denreeLabel') }}</th>

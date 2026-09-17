@@ -32,16 +32,16 @@ function submit() {
 </script>
 
 <template>
-  <div>
+  <div class="min-w-0">
     <PageHeader
       :title="i18n.t('users.title')"
       :subtitle="i18n.t('users.subtitle')"
     />
 
-    <div class="mb-4 flex justify-between">
+    <div class="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
       <p v-if="success" class="text-sm text-green-700">{{ success }}</p>
       <div v-else />
-      <button type="button" class="btn-primary" @click="showForm = !showForm">
+      <button type="button" class="btn-primary w-full sm:w-auto" @click="showForm = !showForm">
         {{ showForm ? i18n.t('general.cancel') : i18n.t('users.button.new') }}
       </button>
     </div>
@@ -66,12 +66,12 @@ function submit() {
         </select>
       </div>
       <div class="sm:col-span-2">
-        <button type="submit" class="btn-primary">{{ i18n.t('users.button.create') }}</button>
+        <button type="submit" class="btn-primary w-full sm:w-auto">{{ i18n.t('users.button.create') }}</button>
       </div>
     </form>
 
     <div class="card overflow-x-auto p-0">
-      <table class="w-full text-sm">
+      <table class="min-w-[640px] w-full text-sm">
         <thead class="bg-gray-50">
           <tr class="text-left text-xs text-gray-500">
             <th class="px-5 py-3">{{ i18n.t('users.table.name') }}</th>

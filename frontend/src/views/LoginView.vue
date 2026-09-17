@@ -44,7 +44,7 @@ async function submit() {
 </script>
 
 <template>
-  <div class="flex min-h-screen items-center justify-center bg-gradient-to-br from-brand-50 via-earth-50 to-brand-100 p-4">
+  <div class="flex min-h-screen items-center justify-center bg-slate-50 p-4 sm:p-6">
     <div class="w-full max-w-md">
       <div class="mb-8 text-center">
         <div class="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-brand-600 text-white shadow-lg">

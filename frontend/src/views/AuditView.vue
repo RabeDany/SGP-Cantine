@@ -112,7 +112,7 @@ onMounted(() => {
 </script>
 
 <template>
-  <div>
+  <div class="min-w-0">
     <PageHeader :title="i18n.t('audit.title')" :subtitle="i18n.t('audit.subtitle')" />
 
     <div
@@ -122,7 +122,7 @@ onMounted(() => {
       {{ i18n.t('audit.readOnly') }}
     </div>
 
-    <div class="card mb-6 grid gap-4 lg:grid-cols-3">
+    <div class="card mb-6 grid gap-3 sm:grid-cols-2 sm:gap-4 lg:grid-cols-3">
       <div>
         <label class="label">{{ i18n.t('audit.filter.user') }}</label>
         <input
@@ -189,10 +189,10 @@ onMounted(() => {
         </div>
       </div>
 
-      <div class="flex flex-wrap items-end gap-3 border-t border-gray-100 pt-4">
+      <div class="flex flex-col items-stretch gap-3 border-t border-gray-100 pt-4 sm:flex-row sm:flex-wrap sm:items-end">
         <button
           type="button"
-          class="btn-primary"
+          class="btn-primary w-full sm:w-auto"
           :disabled="verifying"
           @click="verifierIntegrite"
         >
@@ -201,7 +201,7 @@ onMounted(() => {
 
         <div>
           <label class="label text-xs">{{ i18n.t('audit.destination') }}</label>
-          <select v-model="destination" class="input min-w-[200px]">
+          <select v-model="destination" class="input w-full sm:min-w-[200px]">
             <option value="autorites_scolaires">
               {{ auditStore.destinationLabels.autorites_scolaires }}
             </option>
@@ -213,7 +213,7 @@ onMounted(() => {
 
         <button
           type="button"
-          class="btn-secondary"
+          class="btn-secondary w-full sm:w-auto"
           :disabled="exporting"
           @click="exporterJson"
         >
@@ -221,7 +221,7 @@ onMounted(() => {
         </button>
         <button
           type="button"
-          class="btn-secondary"
+          class="btn-secondary w-full sm:w-auto"
           :disabled="exporting"
           @click="exporterPdf"
         >
@@ -234,7 +234,7 @@ onMounted(() => {
     </div>
 
     <div class="card overflow-x-auto p-0">
-      <table class="w-full text-sm">
+      <table class="min-w-[760px] w-full text-sm">
         <thead class="bg-gray-50 text-left text-xs uppercase tracking-wide text-gray-500">
           <tr>
             <th class="px-4 py-3">{{ i18n.t('audit.table.timestamp') }}</th>

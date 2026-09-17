@@ -32,6 +32,16 @@ describe('menuOptimizer (US-41)', () => {
     expect(result.meilleur.recetteIds).toHaveLength(5)
   })
 
+  it('retourne les cinq meilleurs plannings distincts', () => {
+    const result = optimiserPlanning({
+      ...baseCtx(),
+      options: { populationSize: 50, generations: 20, seed: 42 },
+    })
+    expect(result.meilleurs).toHaveLength(5)
+    expect(new Set(result.meilleurs.map((candidat) => candidat.recetteIds.join('|'))).size).toBe(5)
+    expect(result.meilleurs[0].fitness).toBeGreaterThanOrEqual(result.meilleurs[4].fitness)
+  })
+
   it('conserve une recette verrouillée', () => {
     const result = optimiserPlanning({
       ...baseCtx(),

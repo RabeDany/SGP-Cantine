@@ -371,6 +371,7 @@ export function optimiserPlanning(ctx: OptimisationContext): OptimisationResulta
     const empty = evaluerPlanning(Array(JOURS).fill(''), ctx)
     return {
       meilleur: empty,
+      meilleurs: [empty],
       dureeMs: performance.now() - started,
       generations: 0,
       populationSize,
@@ -413,8 +414,15 @@ export function optimiserPlanning(ctx: OptimisationContext): OptimisationResulta
     historiqueMeilleur.push(population[0].fitness)
   }
 
+  const meilleurs = Array.from(
+    new Map(population.map((candidat) => [candidat.recetteIds.join('|'), candidat])).values(),
+  )
+    .sort((a, b) => b.fitness - a.fitness)
+    .slice(0, 5)
+
   return {
     meilleur: population[0],
+    meilleurs,
     dureeMs: Number((performance.now() - started).toFixed(1)),
     generations,
     populationSize,

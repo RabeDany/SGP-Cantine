@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref } from 'vue'
+import Icon from '@/components/Icon.vue'
 import PageHeader from '@/components/PageHeader.vue'
 import { useStockStore } from '@/stores/stock'
 import { useI18nStore } from '@/stores/i18n'
@@ -94,16 +95,16 @@ function toggleForm() {
 </script>
 
 <template>
-  <div>
+  <div class="min-w-0">
     <PageHeader
       :title="i18n.t('denrees.title')"
       :subtitle="i18n.t('denrees.subtitle')"
     />
 
-    <div class="mb-4 flex items-center justify-between">
+    <div class="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
       <p v-if="success" class="text-sm text-green-700">{{ success }}</p>
       <div v-else />
-      <button type="button" class="btn-primary" @click="toggleForm">
+      <button type="button" class="btn-primary w-full sm:w-auto" @click="toggleForm">
         {{ showForm ? i18n.t('general.cancel') : i18n.t('denrees.button.new') }}
       </button>
     </div>
@@ -146,12 +147,12 @@ function toggleForm() {
         <input v-model.number="form.stockInitial" type="number" min="0" step="0.1" class="input" />
       </div>
       <div class="sm:col-span-2">
-        <button type="submit" class="btn-primary">{{ i18n.t('denrees.form.submit') }}</button>
+        <button type="submit" class="btn-primary w-full sm:w-auto">{{ i18n.t('denrees.form.submit') }}</button>
       </div>
     </form>
 
     <div class="card overflow-x-auto p-0">
-      <table class="w-full text-sm">
+      <table class="min-w-[760px] w-full text-sm">
         <thead class="bg-gray-50">
           <tr class="text-left text-xs text-gray-500">
             <th class="px-5 py-3">{{ i18n.t('denrees.table.name') }}</th>
@@ -172,8 +173,24 @@ function toggleForm() {
             <td class="px-5 py-3 text-gray-500">{{ d.dureeConservationJours }} {{ i18n.t('denrees.label.daysShort') }}</td>
             <td class="px-5 py-3">
               <div class="flex gap-2">
-                <button type="button" class="btn-secondary px-2 py-1" @click="startEdit(d)">✎</button>
-                <button type="button" class="btn-danger px-2 py-1" @click="deleteCurrent(d.id)">🗑</button>
+                <button
+                  type="button"
+                  class="btn-secondary h-8 w-8 p-0"
+                  title="Modifier la denrée"
+                  aria-label="Modifier la denrée"
+                  @click="startEdit(d)"
+                >
+                  <Icon name="pencil" className="h-4 w-4" />
+                </button>
+                <button
+                  type="button"
+                  class="btn-danger h-8 w-8 p-0"
+                  title="Supprimer la denrée"
+                  aria-label="Supprimer la denrée"
+                  @click="deleteCurrent(d.id)"
+                >
+                  <Icon name="trash" className="h-4 w-4" />
+                </button>
               </div>
             </td>
           </tr>

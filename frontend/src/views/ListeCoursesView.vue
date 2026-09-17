@@ -114,14 +114,14 @@ watch(
 </script>
 
 <template>
-  <div>
+  <div class="min-w-0">
     <PageHeader
       :title="i18n.t('courses.title')"
       :subtitle="i18n.t('courses.subtitle')"
     />
 
     <div class="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-      <div class="grid gap-4 sm:grid-cols-4 flex-1">
+      <div class="grid flex-1 gap-3 sm:grid-cols-2 sm:gap-4 lg:grid-cols-4">
         <div class="card">
           <p class="text-xs text-gray-500">{{ i18n.t('courses.card.referencePortions') }}</p>
           <p class="text-2xl font-bold">{{ portionsUtilisees }}</p>
@@ -169,7 +169,7 @@ watch(
     </div>
 
     <div class="card overflow-x-auto p-0">
-      <table class="w-full text-sm">
+      <table class="min-w-[760px] w-full text-sm">
         <thead class="bg-gray-50">
           <tr class="text-left text-xs text-gray-500 uppercase tracking-wide">
             <th class="px-5 py-3">{{ i18n.t('courses.table.ingredients') }}</th>

@@ -51,13 +51,13 @@ function toggleProduit(id: string) {
 </script>
 
 <template>
-  <div>
+  <div class="min-w-0">
     <PageHeader
       :title="i18n.t('fournisseurs.title')"
       :subtitle="i18n.t('fournisseurs.subtitle')"
     />
 
-    <div class="card mb-6 grid gap-4 lg:grid-cols-2">
+    <div class="card mb-6 grid gap-3 sm:grid-cols-2 sm:gap-4">
       <div>
         <label class="label">{{ i18n.t('fournisseurs.name') }}</label>
         <input v-model="nom" class="input" :placeholder="i18n.t('fournisseurs.placeholder.name')" />
@@ -85,20 +85,20 @@ function toggleProduit(id: string) {
           </button>
         </div>
       </div>
-      <div class="lg:col-span-2 flex justify-end">
-        <button type="button" class="btn-primary" @click="ajouterFournisseur">
+      <div class="flex justify-stretch sm:col-span-2 sm:justify-end">
+        <button type="button" class="btn-primary w-full sm:w-auto" @click="ajouterFournisseur">
           {{ i18n.t('fournisseurs.button.add') }}
         </button>
       </div>
     </div>
 
-    <div class="mb-4 flex items-center justify-between gap-4">
+    <div class="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
       <h2 class="text-lg font-semibold">{{ i18n.t('fournisseurs.registered') }}</h2>
-      <input v-model="search" class="input max-w-xs" :placeholder="i18n.t('fournisseurs.search')" />
+      <input v-model="search" class="input w-full sm:max-w-xs" :placeholder="i18n.t('fournisseurs.search')" />
     </div>
 
     <div class="card overflow-x-auto p-0">
-      <table class="w-full text-sm">
+      <table class="min-w-[620px] w-full text-sm">
         <thead class="bg-gray-50">
           <tr class="text-left text-xs text-gray-500">
             <th class="px-5 py-3">{{ i18n.t('fournisseurs.table.name') }}</th>

@@ -34,6 +34,7 @@ export interface PlanningCandidat {
 
 export interface OptimisationResultat {
   meilleur: PlanningCandidat
+  meilleurs: PlanningCandidat[]
   dureeMs: number
   generations: number
   populationSize: number

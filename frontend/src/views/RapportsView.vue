@@ -182,19 +182,19 @@ function printCurrentSection() {
 </script>
 
 <template>
-  <div>
+  <div class="min-w-0">
     <PageHeader
       :title="i18n.t('rapports.title')"
       :subtitle="i18n.t('rapports.subtitle')"
     />
 
-    <div class="mb-6 flex flex-wrap gap-3">
-      <button type="button" class="btn-secondary" @click="exportStockCsv">{{ i18n.t('rapports.export.stockCsv') }}</button>
-      <button type="button" class="btn-secondary" @click="exportStockJson">{{ i18n.t('rapports.export.stockJson') }}</button>
-      <button type="button" class="btn-secondary" @click="exportAttendanceCsv">{{ i18n.t('rapports.export.attendanceCsv') }}</button>
-      <button type="button" class="btn-secondary" @click="exportConsumptionCsv">{{ i18n.t('rapports.export.consumptionCsv') }}</button>
-      <button type="button" class="btn-primary" @click="exportGlobalJson">{{ i18n.t('rapports.export.globalJson') }}</button>
-      <button type="button" class="btn-primary" @click="printCurrentSection">{{ i18n.t('rapports.export.print') }}</button>
+    <div class="mb-6 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
+      <button type="button" class="btn-secondary w-full sm:w-auto" @click="exportStockCsv">{{ i18n.t('rapports.export.stockCsv') }}</button>
+      <button type="button" class="btn-secondary w-full sm:w-auto" @click="exportStockJson">{{ i18n.t('rapports.export.stockJson') }}</button>
+      <button type="button" class="btn-secondary w-full sm:w-auto" @click="exportAttendanceCsv">{{ i18n.t('rapports.export.attendanceCsv') }}</button>
+      <button type="button" class="btn-secondary w-full sm:w-auto" @click="exportConsumptionCsv">{{ i18n.t('rapports.export.consumptionCsv') }}</button>
+      <button type="button" class="btn-primary w-full sm:w-auto" @click="exportGlobalJson">{{ i18n.t('rapports.export.globalJson') }}</button>
+      <button type="button" class="btn-primary w-full sm:w-auto" @click="printCurrentSection">{{ i18n.t('rapports.export.print') }}</button>
     </div>
 
     <section class="card mb-6 print-card">
@@ -239,7 +239,7 @@ function printCurrentSection() {
       </div>
 
       <div class="overflow-x-auto">
-        <table class="w-full text-sm">
+        <table class="min-w-[620px] w-full text-sm">
           <thead class="bg-gray-50 text-left text-xs uppercase tracking-wide text-gray-500">
             <tr>
               <th class="px-3 py-2">{{ i18n.t('rapports.consumption.table.denree') }}</th>

@@ -55,7 +55,7 @@ function resolveConflict(id: string, decision: 'keep_existing' | 'accept_incomin
 </script>
 
 <template>
-  <div>
+  <div class="min-w-0">
     <PageHeader
       title="Synchronisation multi-sites"
       subtitle="Importez les données des écoles et résolvez les conflits en tant que responsable communal."
@@ -90,9 +90,9 @@ function resolveConflict(id: string, decision: 'keep_existing' | 'accept_incomin
           <h2 class="text-lg font-semibold text-gray-900">Échanges de données</h2>
           <p class="mt-1 text-sm text-gray-500">Les exports contiennent uniquement les changements depuis le dernier export local.</p>
         </div>
-        <div class="flex gap-2">
-          <button type="button" class="btn-secondary" @click="downloadPackage">Exporter JSON</button>
-          <button type="button" class="btn-primary" @click="openFilePicker">Importer JSON</button>
+        <div class="flex w-full flex-col gap-2 sm:w-auto sm:flex-row">
+          <button type="button" class="btn-secondary w-full sm:w-auto" @click="downloadPackage">Exporter JSON</button>
+          <button type="button" class="btn-primary w-full sm:w-auto" @click="openFilePicker">Importer JSON</button>
           <input ref="fileInput" type="file" accept="application/json,.json" class="hidden" @change="importPackage">
         </div>
       </div>
@@ -117,7 +117,7 @@ function resolveConflict(id: string, decision: 'keep_existing' | 'accept_incomin
             <p class="font-semibold text-amber-900">{{ conflit.entity }} — {{ conflit.entityId }}</p>
             <p class="text-xs text-amber-800">École source : {{ conflit.sourceSiteId }}</p>
           </div>
-          <div class="flex gap-2">
+          <div class="flex w-full flex-col gap-2 sm:w-auto sm:flex-row">
             <button type="button" class="btn-secondary text-xs" @click="resolveConflict(conflit.id, 'keep_existing')">Garder l’existant</button>
             <button type="button" class="btn-primary text-xs" @click="resolveConflict(conflit.id, 'accept_incoming')">Accepter l’import</button>
           </div>

@@ -113,16 +113,16 @@ function updateClasse(classeId: string, presents: number) {
 </script>
 
 <template>
-  <div>
+  <div class="min-w-0">
     <PageHeader
       :title="i18n.t('presences.title')"
       :subtitle="i18n.t('presences.subtitle')"
     />
 
-    <div v-if="canEditPresence" class="mb-4 flex gap-2">
+    <div v-if="canEditPresence" class="mb-4 flex flex-wrap gap-2">
       <button
         type="button"
-        class="rounded-lg px-4 py-2 text-sm font-medium"
+        class="flex-1 rounded-lg px-4 py-2 text-sm font-medium sm:flex-none"
         :class="mode === 'global' ? 'bg-brand-600 text-white' : 'bg-white ring-1 ring-gray-200'"
         @click="mode = 'global'"
       >
@@ -130,7 +130,7 @@ function updateClasse(classeId: string, presents: number) {
       </button>
       <button
         type="button"
-        class="rounded-lg px-4 py-2 text-sm font-medium"
+        class="flex-1 rounded-lg px-4 py-2 text-sm font-medium sm:flex-none"
         :class="mode === 'classe' ? 'bg-brand-600 text-white' : 'bg-white ring-1 ring-gray-200'"
         @click="mode = 'classe'"
       >
@@ -180,11 +180,11 @@ function updateClasse(classeId: string, presents: number) {
         <label class="label">{{ i18n.t('presences.label.exemptions') }}</label>
         <input v-model.number="globalForm.exemptions" type="number" min="0" class="input" />
       </div>
-      <button type="submit" class="btn-primary">{{ i18n.t('presences.form.save') }}</button>
+      <button type="submit" class="btn-primary w-full sm:w-auto">{{ i18n.t('presences.form.save') }}</button>
     </form>
 
     <div v-else-if="canEditPresence" class="card overflow-x-auto p-0">
-      <table class="w-full text-sm">
+      <table class="min-w-[560px] w-full text-sm">
         <thead class="bg-gray-50">
           <tr class="text-left text-xs text-gray-500">
             <th class="px-5 py-3">{{ i18n.t('presences.table.class') }}</th>
@@ -276,7 +276,7 @@ function updateClasse(classeId: string, presents: number) {
       </div>
 
       <div class="mb-4 rounded-3xl bg-white p-4 shadow-sm">
-        <div class="mb-3 flex items-center justify-between">
+          <div class="mb-3 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <p class="text-xs uppercase tracking-wide text-gray-500">Courbe de fréquentation</p>
             <p class="text-sm text-gray-600">Dernières périodes sélectionnées</p>
@@ -284,7 +284,7 @@ function updateClasse(classeId: string, presents: number) {
           <p class="text-sm font-semibold text-brand-700">{{ averageRate }}% fréquentation</p>
         </div>
         <div class="relative h-44 overflow-hidden rounded-2xl bg-slate-50 p-3">
-          <svg viewBox="0 0 560 110" class="h-full w-full">
+          <svg viewBox="0 0 560 110" class="h-full min-h-[130px] w-full">
             <path d="M20 10 H540" stroke="#CBD5E1" stroke-width="1" />
             <path d="M20 40 H540" stroke="#E2E8F0" stroke-width="1" />
             <path d="M20 70 H540" stroke="#E2E8F0" stroke-width="1" />
@@ -317,7 +317,7 @@ function updateClasse(classeId: string, presents: number) {
       </div>
 
       <div class="overflow-x-auto">
-        <table class="w-full text-sm">
+        <table class="min-w-[620px] w-full text-sm">
           <thead class="bg-gray-50 text-left text-xs text-gray-500">
             <tr>
               <th class="px-3 py-2">Période</th>
